@@ -13,6 +13,10 @@ build/
 dist/
 *.egg-info/
 .eggs/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
 
 # Environments
 .env
