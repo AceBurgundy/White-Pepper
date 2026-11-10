@@ -26,7 +26,8 @@ WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile=app_icon.ico
+UninstallDisplayIcon={app}\app_icon.ico
 UninstallDisplayName={#MyAppName}
 CloseApplications=yes
 RestartApplications=no
@@ -38,16 +39,18 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
+; Custom Application Icon
+Source: "app_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; Main Flutter Windows Release binaries and assets
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Isolated Headless Python CLI Backend Engine
 Source: "..\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: ".git\*,.old.git*\,__pycache__\*,*.pyc,*.pyo,scratch\*,test_output\*"
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\White Pepper Documentation"; Filename: "{app}\scripts\documentation\index.html"; Flags: createonlyiffileexists
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app_icon.ico"
+Name: "{group}\White Pepper Documentation"; Filename: "{app}\scripts\documentation\index.html"; IconFilename: "{app}\app_icon.ico"; Flags: createonlyiffileexists
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app_icon.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
