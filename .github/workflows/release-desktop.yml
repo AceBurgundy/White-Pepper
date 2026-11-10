@@ -1,0 +1,54 @@
+name: Release Desktop Suite
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Static Analysis & Tests
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Build Windows Release Binary
+        run: flutter build windows --release
+
+      - name: Compile Inno Setup Installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\white_pepper_desktop_setup.iss
+
+      - name: Package Portable ZIP Archive
+        run: |
+          $ReleaseDir = "build\windows\x64\runner\Release"
+          Copy-Item -Path "scripts" -Destination "$ReleaseDir\scripts" -Recurse -Force
+          Compress-Archive -Path "$ReleaseDir\*" -DestinationPath "installer\output\WhitePepper-Desktop-Portable.zip" -Force
+
+      - name: Publish GitHub Release Artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            installer/output/WhitePepper-Desktop-Setup-*.exe
+            installer/output/WhitePepper-Desktop-Portable.zip
+          generate_release_notes: true
