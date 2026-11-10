@@ -11,6 +11,7 @@ scripts/.old.git*/
 # Distribution / packaging
 build/
 dist/
+installer/output/
 *.egg-info/
 .eggs/
 .dart_tool/
