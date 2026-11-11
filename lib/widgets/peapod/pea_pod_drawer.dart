@@ -4,7 +4,7 @@ import '../../models/peapod_tool.dart';
 import '../../models/scan_configuration_model.dart';
 
 /// Dark #2D2D2D parameter adjustment drawer matching DesktopMockup.js lines 591–620.
-class PeaPodDrawer extends StatelessWidget {
+class PeaPodDrawer extends StatefulWidget {
   const PeaPodDrawer({
     required this.selectedTool,
     required this.config,
@@ -15,6 +15,55 @@ class PeaPodDrawer extends StatelessWidget {
   final PeaPodToolType selectedTool;
   final ScanConfigurationModel config;
   final ValueChanged<ScanConfigurationModel> onConfigChanged;
+
+  @override
+  State<PeaPodDrawer> createState() => _PeaPodDrawerState();
+}
+
+class _PeaPodDrawerState extends State<PeaPodDrawer> {
+  late final TextEditingController _prefixController;
+  late final TextEditingController _outputDirController;
+
+  ScanConfigurationModel get config => widget.config;
+  ValueChanged<ScanConfigurationModel> get onConfigChanged =>
+      widget.onConfigChanged;
+  PeaPodToolType get selectedTool => widget.selectedTool;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefixController = TextEditingController(text: widget.config.fileNamePrefix);
+    _outputDirController =
+        TextEditingController(text: widget.config.outputDirectory);
+  }
+
+  @override
+  void didUpdateWidget(covariant PeaPodDrawer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.config.fileNamePrefix != _prefixController.text) {
+      _prefixController.value = TextEditingValue(
+        text: widget.config.fileNamePrefix,
+        selection: TextSelection.collapsed(
+          offset: widget.config.fileNamePrefix.length,
+        ),
+      );
+    }
+    if (widget.config.outputDirectory != _outputDirController.text) {
+      _outputDirController.value = TextEditingValue(
+        text: widget.config.outputDirectory,
+        selection: TextSelection.collapsed(
+          offset: widget.config.outputDirectory.length,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _prefixController.dispose();
+    _outputDirController.dispose();
+    super.dispose();
+  }
 
   Widget _buildChip({
     required String label,
@@ -135,8 +184,9 @@ class PeaPodDrawer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
-            title: 'Virtual Paper Size & Fit Mode (--paper-size / --fit-mode)',
-            badgeValue: '${config.paperSize.toUpperCase()} • ${config.fitMode.toUpperCase()}',
+            title: 'Document Page Size & Fit Mode',
+            badgeValue:
+                '${config.paperSize.toUpperCase()} • ${config.fitMode.toUpperCase()}',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -155,7 +205,7 @@ class PeaPodDrawer extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Fit Mode (--fit-mode)',
+            'Fit Mode',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -203,7 +253,7 @@ class PeaPodDrawer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
-          title: 'Platen Paper Size Preset (--paper-size)',
+          title: 'Scanner Paper Size',
           badgeValue: config.paperSize.toUpperCase(),
         ),
         const SizedBox(height: 12),
@@ -274,6 +324,58 @@ class PeaPodDrawer extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Left Offset: ${config.offsetX.toStringAsFixed(0)} ${config.units}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: DesignTokens.neutralGrayFourHundred,
+                      ),
+                    ),
+                    _buildYellowSlider(
+                      value: config.offsetX,
+                      min: 0,
+                      max: 150,
+                      onChanged: (double v) {
+                        config.offsetX = v;
+                        onConfigChanged(config);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Top Offset: ${config.offsetY.toStringAsFixed(0)} ${config.units}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: DesignTokens.neutralGrayFourHundred,
+                      ),
+                    ),
+                    _buildYellowSlider(
+                      value: config.offsetY,
+                      min: 0,
+                      max: 200,
+                      onChanged: (double v) {
+                        config.offsetY = v;
+                        onConfigChanged(config);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ],
     );
@@ -286,8 +388,9 @@ class PeaPodDrawer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
-            title: 'PDF Resolution (--resolution)',
-            badgeValue: config.dpi == 0 ? 'AUTO (METADATA)' : '${config.dpi} DPI',
+            title: 'Document Resolution',
+            badgeValue:
+                config.dpi == 0 ? 'AUTO (METADATA)' : '${config.dpi} DPI',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -295,7 +398,7 @@ class PeaPodDrawer extends StatelessWidget {
             runSpacing: 8,
             children: pdfDpiOptions.map((int val) {
               return _buildChip(
-                label: val == 0 ? 'AUTO (EMBEDDED DPI)' : '$val DPI',
+                label: val == 0 ? 'AUTO (ORIGINAL)' : '$val DPI',
                 isSelected: config.dpi == val,
                 onTap: () {
                   config.dpi = val;
@@ -315,7 +418,7 @@ class PeaPodDrawer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
-          title: 'Optical Scan Resolution (--dpi)',
+          title: 'Scan Resolution (DPI)',
           badgeValue: '${config.dpi} DPI',
         ),
         const SizedBox(height: 8),
@@ -353,7 +456,7 @@ class PeaPodDrawer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
-          title: 'Post-Scan Clockwise Rotation (--rotate)',
+          title: 'Page Orientation & Rotation',
           badgeValue: '${config.rotation}°',
         ),
         const SizedBox(height: 12),
@@ -376,21 +479,23 @@ class PeaPodDrawer extends StatelessWidget {
   }
 
   Widget _buildContrastControls() {
-    final bool supportsToneSliders = config.workflowType == WorkflowType.flatbed ||
-        config.workflowType == WorkflowType.photoScan ||
-        config.workflowType == WorkflowType.receiptArchive;
+    final bool supportsToneSliders =
+        config.workflowType == WorkflowType.flatbed ||
+            config.workflowType == WorkflowType.photoScan ||
+            config.workflowType == WorkflowType.receiptArchive;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
-          title: 'Color Mode & Exposure (--color-mode)',
+          title: 'Color Mode & Exposure',
           badgeValue: config.colorMode.toUpperCase(),
         ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
-          children: const <String>['color', 'grayscale', 'bw'].map((String mode) {
+          children:
+              const <String>['color', 'grayscale', 'bw'].map((String mode) {
             return _buildChip(
               label: mode.toUpperCase(),
               isSelected: config.colorMode == mode,
@@ -410,7 +515,7 @@ class PeaPodDrawer extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Brightness (--brightness): ${config.brightness}',
+                      'Brightness: ${config.brightness}',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -435,7 +540,7 @@ class PeaPodDrawer extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Contrast (--contrast): ${config.contrast}',
+                      'Contrast: ${config.contrast}',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -469,7 +574,7 @@ class PeaPodDrawer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
-            title: 'ID-1 Card Vision Geometry',
+            title: 'Card Alignment & Geometry',
             badgeValue:
                 'Inset ${config.safetyInsetMm.toStringAsFixed(1)}mm • R${config.cornerRadiusMm.toStringAsFixed(1)}mm',
           ),
@@ -496,7 +601,9 @@ class PeaPodDrawer extends StatelessWidget {
                   },
                 ),
                 _buildChip(
-                  label: config.noDeskew ? 'RAW 5x5" (--no-deskew)' : 'AUTO CV DESKEW',
+                  label: config.noDeskew
+                      ? 'MANUAL 5x5" REGION'
+                      : 'AUTO DESKEW & STRAIGHTEN',
                   isSelected: !config.noDeskew,
                   onTap: () {
                     config.noDeskew = !config.noDeskew;
@@ -509,7 +616,8 @@ class PeaPodDrawer extends StatelessWidget {
           ],
           Wrap(
             spacing: 8,
-            children: const <String>['transparent', 'white', 'black'].map((String bg) {
+            children: const <String>['transparent', 'white', 'black']
+                .map((String bg) {
               return _buildChip(
                 label: 'BG: ${bg.toUpperCase()}',
                 isSelected: config.cardBackground == bg,
@@ -540,7 +648,8 @@ class PeaPodDrawer extends StatelessWidget {
                       max: 3.0,
                       divisions: 30,
                       onChanged: (double v) {
-                        config.safetyInsetMm = double.parse(v.toStringAsFixed(1));
+                        config.safetyInsetMm =
+                            double.parse(v.toStringAsFixed(1));
                         onConfigChanged(config);
                       },
                     ),
@@ -565,7 +674,8 @@ class PeaPodDrawer extends StatelessWidget {
                       max: 6.0,
                       divisions: 60,
                       onChanged: (double v) {
-                        config.cornerRadiusMm = double.parse(v.toStringAsFixed(2));
+                        config.cornerRadiusMm =
+                            double.parse(v.toStringAsFixed(2));
                         onConfigChanged(config);
                       },
                     ),
@@ -584,7 +694,7 @@ class PeaPodDrawer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
-            title: 'Booklet Batch Timing (--interval / --max-scans)',
+            title: 'Booklet Batch Timing',
             badgeValue:
                 '${config.intervalSeconds}s • ${config.maxScans == 0 ? "UNLIMITED" : "${config.maxScans} SPREADS"}',
           ),
@@ -652,7 +762,7 @@ class PeaPodDrawer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
-            title: 'Page Margin Bleed (--margin-mm)',
+            title: 'Page Margin Bleed',
             badgeValue: '${config.marginMm.toStringAsFixed(1)} mm',
           ),
           const SizedBox(height: 8),
@@ -675,7 +785,7 @@ class PeaPodDrawer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
-          title: 'Automatic Whitespace Trimming (--auto-crop)',
+          title: 'Automatic Border Trimming',
           badgeValue: config.autoCrop ? 'ENABLED' : 'OFF',
         ),
         const SizedBox(height: 12),
@@ -691,7 +801,7 @@ class PeaPodDrawer extends StatelessWidget {
               },
             ),
             _buildChip(
-              label: 'TRIM BORDERS (--auto-crop)',
+              label: 'TRIM BORDERS',
               isSelected: config.autoCrop,
               onTap: () {
                 config.autoCrop = true;
@@ -725,7 +835,7 @@ class PeaPodDrawer extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
-          title: 'Output Format & Filename Prefix (--format / --prefix)',
+          title: 'Output File & Storage',
           badgeValue: '.${config.format.toUpperCase()}',
         ),
         const SizedBox(height: 10),
@@ -748,10 +858,7 @@ class PeaPodDrawer extends StatelessWidget {
           children: <Widget>[
             Expanded(
               child: TextField(
-                controller: TextEditingController(text: config.fileNamePrefix)
-                  ..selection = TextSelection.collapsed(
-                    offset: config.fileNamePrefix.length,
-                  ),
+                controller: _prefixController,
                 onChanged: (String val) {
                   config.fileNamePrefix = val;
                   onConfigChanged(config);
@@ -762,12 +869,12 @@ class PeaPodDrawer extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Filename Prefix (--prefix / --name)',
+                  labelText: 'Filename Prefix',
                   labelStyle: const TextStyle(
                     fontSize: 11,
                     color: DesignTokens.neutralGrayFiveHundred,
                   ),
-                  hintText: 'e.g. SCAN_BATCH_2026 or National_ID',
+                  hintText: 'e.g. Scan_Document or National_ID',
                   hintStyle: const TextStyle(
                     fontSize: 12,
                     color: DesignTokens.neutralGraySixHundred,
@@ -798,10 +905,7 @@ class PeaPodDrawer extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
-                controller: TextEditingController(text: config.outputDirectory)
-                  ..selection = TextSelection.collapsed(
-                    offset: config.outputDirectory.length,
-                  ),
+                controller: _outputDirController,
                 onChanged: (String val) {
                   config.outputDirectory = val;
                   onConfigChanged(config);
@@ -809,10 +913,9 @@ class PeaPodDrawer extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 12,
                   color: DesignTokens.pureWhite,
-                  fontFamily: 'Consolas',
                 ),
                 decoration: InputDecoration(
-                  labelText: 'Target Directory (--output-dir)',
+                  labelText: 'Save Location Folder',
                   labelStyle: const TextStyle(
                     fontSize: 11,
                     color: DesignTokens.neutralGrayFiveHundred,
@@ -854,7 +957,7 @@ class PeaPodDrawer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
       decoration: BoxDecoration(
         color: DesignTokens.darkSurfaceTwo,
-        borderRadius: BorderRadius.circular(26.0),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
         border: Border.all(color: DesignTokens.darkSurfaceSix),
       ),
       child: switch (selectedTool) {

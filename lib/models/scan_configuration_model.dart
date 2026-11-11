@@ -2,7 +2,7 @@ enum WorkflowType {
   flatbed(
     identifier: 'flatbed-document',
     title: 'Flatbed Document',
-    subtitle: 'Standard optical platen scanning',
+    subtitle: 'Standard document & photo scanning',
     cliSummary: 'scan_cli.py flatbed --paper-size a4 --dpi 300',
     iconName: 'description',
     emojiIcon: '📄',
@@ -11,7 +11,7 @@ enum WorkflowType {
   photoScan(
     identifier: 'photo-scan',
     title: 'Photo Scan',
-    subtitle: 'High DPI optical archival scanning',
+    subtitle: 'High-resolution color photo scan',
     cliSummary: 'scan_cli.py flatbed --preset photo-4x6 --dpi 600',
     iconName: 'image',
     emojiIcon: '🖼️',
@@ -20,7 +20,7 @@ enum WorkflowType {
   bookletBatch(
     identifier: 'booklet-batch',
     title: 'Booklet Batch',
-    subtitle: 'Continuous dual-page spread acquisition',
+    subtitle: 'Continuous dual-page book scanning',
     cliSummary: 'scan_cli.py booklet --interval 10 --dpi 300',
     iconName: 'auto_stories',
     emojiIcon: '📖',
@@ -29,7 +29,7 @@ enum WorkflowType {
   cardDuplex(
     identifier: 'id-card-duplex',
     title: 'ID Card Duplex',
-    subtitle: 'Front & back card alignment and CV deskew',
+    subtitle: 'Front & back ID card alignment',
     cliSummary: 'scan_cli.py card --dpi 600 --safety-inset-mm 0.5',
     iconName: 'badge',
     emojiIcon: '🪪',
@@ -38,7 +38,7 @@ enum WorkflowType {
   batchCardDeskew(
     identifier: 'batch-card-deskew',
     title: 'Batch Card Deskewer',
-    subtitle: 'Computer vision corner-pinning & masking',
+    subtitle: 'Auto-straighten & crop card images',
     cliSummary: 'process_cli.py cards --dpi 600',
     iconName: 'view_carousel',
     emojiIcon: '🔍',
@@ -47,7 +47,7 @@ enum WorkflowType {
   compilePdf(
     identifier: 'compile-pdf',
     title: 'Compile PDF',
-    subtitle: 'Virtual-paper layout PDF generation',
+    subtitle: 'Combine scanned pages into PDF',
     cliSummary: 'process_cli.py compile-pdf --fit-mode contain',
     iconName: 'picture_as_pdf',
     emojiIcon: '📑',
@@ -56,7 +56,7 @@ enum WorkflowType {
   receiptArchive(
     identifier: 'receipt-archive',
     title: 'Receipt Archive',
-    subtitle: 'Fast half-platen thermal receipt capture',
+    subtitle: 'Quick receipt & invoice capture',
     cliSummary: 'scan_cli.py flatbed --preset boy-gatas-receipts',
     iconName: 'receipt_long',
     emojiIcon: '🧾',
@@ -65,7 +65,7 @@ enum WorkflowType {
   legalStitch(
     identifier: 'legal-two-pass',
     title: 'Legal 2-Pass Stitch',
-    subtitle: 'Zero-gradient Letter platen stitching',
+    subtitle: 'Two-pass full legal paper merge',
     cliSummary: 'scan_cli.py legal-stitch --resolution 300 --ipc-mode',
     iconName: 'vertical_split',
     emojiIcon: '📐',

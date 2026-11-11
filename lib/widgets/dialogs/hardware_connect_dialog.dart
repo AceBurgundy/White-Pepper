@@ -144,20 +144,21 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
             const SizedBox(height: 20),
 
             _buildCheckItem(
-              title: 'Wireless eSCL Transport',
-              subtitle: 'Endpoint: http://${state.scannerEndpoint}/eSCL',
+              title: 'Wireless Network Scanner',
+              subtitle:
+                  'Status: ${state.isScannerOnline ? "Connected" : "Searching"} (${state.scannerEndpoint})',
               isSuccess: state.isScannerOnline,
               isPending: _isProbing,
             ),
             _buildCheckItem(
-              title: 'Windows Image Acquisition (WIA COM)',
-              subtitle: 'Local USB device driver probe',
+              title: 'Direct USB Connection',
+              subtitle: 'Local device scanner ready',
               isSuccess: true,
               isPending: _isProbing,
             ),
             _buildCheckItem(
-              title: 'PowerShell Automation Bridge',
-              subtitle: 'Fallback scanner COM automation layer',
+              title: 'System Scanner Driver',
+              subtitle: 'Operating system scanner service ready',
               isSuccess: true,
               isPending: _isProbing,
             ),
@@ -180,11 +181,12 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(DesignTokens.onyx),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(DesignTokens.onyx),
                       ),
                     )
                   : const Text(
-                      'Run Full Diagnostic Probe',
+                      'Check Scanner Connection',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,

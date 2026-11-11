@@ -105,7 +105,7 @@ class AppState extends ChangeNotifier {
             physicalInstruction:
                 'Rotate the Legal sheet 180° upside-down and align the opposite bottom edge flush against the top-left markings.',
             subInstruction:
-                'Pass 2 captures the remaining 3.0" legal tail with an 8.0" overlap for Fourier phase-correlation stitching.',
+                'Pass 2 captures the remaining 3.0" legal tail with an 8.0" overlap for automatic alignment and seamless stitching.',
             actionButtonLabel: 'Scan Pass 2 & Auto-Stitch',
             schematicMode: 'legal_pass_2',
           ),
@@ -115,7 +115,7 @@ class AppState extends ChangeNotifier {
             badgeLabel: 'Step 3 of 3 • Reconstruction Complete',
             headline: 'Legal Document\nStitched!',
             physicalInstruction:
-                'Both passes have been registered via sub-pixel Fourier phase correlation into a seamless 8.5" × 14.0" canvas.',
+                'Both passes have been aligned and stitched into a seamless 8.5" × 14.0" Legal document.',
             subInstruction:
                 'Physical DPI metadata is embedded directly into the output document.',
             actionButtonLabel: 'Done',
@@ -211,7 +211,7 @@ class AppState extends ChangeNotifier {
             badgeLabel: 'Step 2 of 3 • Interval Capture Active',
             headline: 'Turn Pages\nBetween Scans',
             physicalInstruction:
-                'Watch the live CLI countdown log on the right and turn to the next booklet spread during each ${_config.intervalSeconds}s pause.',
+                'Watch the scan activity log on the right and turn to the next booklet spread during each ${_config.intervalSeconds}s pause.',
             subInstruction:
                 'You can stop the batch at any time once your final spread is captured.',
             actionButtonLabel: 'Capturing Spreads...',
@@ -244,7 +244,7 @@ class AppState extends ChangeNotifier {
                 ? 'Verify target folder (${_config.outputDirectory}) and layout settings (${_config.paperSize.toUpperCase()} • fit=${_config.fitMode}).'
                 : 'Verify source folder (${_config.outputDirectory}) for batch ID-1 contour isolation at ${_config.dpi} DPI.',
             subInstruction:
-                'Press the yellow trigger button on the right to launch scripts/process_cli.py.',
+                'Press the yellow start button on the right to begin processing your documents.',
             actionButtonLabel: 'Run Processing Pipeline',
             schematicMode: 'platen_sheet',
           ),
@@ -254,7 +254,7 @@ class AppState extends ChangeNotifier {
             badgeLabel: 'Step 2 of 2 • Pipeline Complete',
             headline: 'Processing\nComplete!',
             physicalInstruction:
-                'All files have been processed by scripts/process_cli.py with lossless DPI metadata preservation.',
+                'All files have been successfully processed with high resolution and quality preservation.',
             subInstruction: 'Open the generated output below.',
             actionButtonLabel: 'Done',
             schematicMode: 'completed',
@@ -284,7 +284,7 @@ class AppState extends ChangeNotifier {
             badgeLabel: 'Step 2 of 2 • Acquisition Complete',
             headline: 'Scan Saved\nSuccessfully!',
             physicalInstruction:
-                'Optical capture, region clipping, and DPI metadata embedding completed via scripts/scan_cli.py.',
+                'Document scanned, cropped, and saved successfully with high resolution clarity.',
             subInstruction: 'Open the scanned file or folder below.',
             actionButtonLabel: 'Done',
             schematicMode: 'completed',

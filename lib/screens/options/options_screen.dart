@@ -65,7 +65,7 @@ class OptionsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _buildDrawerAndCliPreview(state),
+                  _buildDrawerAndSummaryBar(state),
                   const SizedBox(height: 16),
                   _buildBottomActionRow(context, state),
                 ],
@@ -92,7 +92,7 @@ class OptionsScreen extends StatelessWidget {
               ),
               const SizedBox(width: 28),
 
-              // Right Column: Dedicated Control Panel (Pea Pod + Active Drawer + CLI Preview + Start)
+              // Right Column: Dedicated Control Panel (Pea Pod + Active Drawer + Summary + Start)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -113,7 +113,7 @@ class OptionsScreen extends StatelessWidget {
                     ),
                     Flexible(
                       child: SingleChildScrollView(
-                        child: _buildDrawerAndCliPreview(state),
+                        child: _buildDrawerAndSummaryBar(state),
                       ),
                     ),
                     _buildBottomActionRow(context, state),
@@ -258,7 +258,7 @@ class OptionsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         const Text(
-          '4:3 CONTROL DECK',
+          'SCAN SETTINGS',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -278,7 +278,7 @@ class OptionsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Select any parameter inside the contoured Pea Pod below or use the droplet arrows to refine ${state.config.workflowType.title} CLI flags.',
+          'Choose a category below to customize paper size, scan quality, color tone, and save location for ${state.config.workflowType.title}.',
           style: const TextStyle(
             fontSize: 13.5,
             color: DesignTokens.neutralGrayFiveHundred,
@@ -289,19 +289,23 @@ class OptionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDrawerAndCliPreview(AppState state) {
+  Widget _buildDrawerAndSummaryBar(AppState state) {
+    final ScanConfigurationModel config = state.config;
+    final String dpiLabel =
+        config.dpi <= 0 ? 'Auto Quality' : '${config.dpi} DPI';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         PeaPodDrawer(
           selectedTool: state.activeTool,
-          config: state.config,
+          config: config,
           onConfigChanged: (ScanConfigurationModel cfg) {
             state.updateConfig(cfg);
           },
         ),
         const SizedBox(height: 10),
-        // Live Subprocess CLI Command String Readout
+        // Active Scan Configuration Summary Bar
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -309,7 +313,7 @@ class OptionsScreen extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: DesignTokens.darkSurfaceOne,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(DesignTokens.radiusCardInner),
             border: Border.all(
               color: DesignTokens.darkSurfaceFive,
             ),
@@ -317,26 +321,81 @@ class OptionsScreen extends StatelessWidget {
           child: Row(
             children: <Widget>[
               const Icon(
-                Icons.terminal_rounded,
-                size: 15,
+                Icons.tune_rounded,
+                size: 16,
                 color: DesignTokens.accentYellow,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
+              const Text(
+                'Active Settings:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: DesignTokens.pureWhite,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
-                child: SelectableText(
-                  state.currentCommandPreview,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    fontFamily: 'Consolas',
-                    fontSize: 11.5,
-                    color: DesignTokens.neutralGrayThreeHundred,
-                  ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: <Widget>[
+                    _buildSummaryBadge(
+                      label: 'Paper',
+                      value: config.paperSize.toUpperCase(),
+                    ),
+                    _buildSummaryBadge(
+                      label: 'Quality',
+                      value: dpiLabel,
+                    ),
+                    _buildSummaryBadge(
+                      label: 'Color',
+                      value: config.colorMode.toUpperCase(),
+                    ),
+                    _buildSummaryBadge(
+                      label: 'Format',
+                      value: '.${config.format.toUpperCase()}',
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSummaryBadge({
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: DesignTokens.darkSurfaceFour,
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+      ),
+      child: Text.rich(
+        TextSpan(
+          text: '$label: ',
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: DesignTokens.neutralGrayFiveHundred,
+          ),
+          children: <InlineSpan>[
+            TextSpan(
+              text: value,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: DesignTokens.pureWhite,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

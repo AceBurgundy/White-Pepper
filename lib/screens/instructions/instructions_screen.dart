@@ -6,7 +6,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/buttons/progress_button.dart';
 
-/// Stage 3: Step-by-Step Progressing Instructions & Live CLI Execution Screen.
+/// Stage 3: Step-by-Step Progressing Instructions & Scanner Activity Screen.
 /// Replicates the Split Wavy Layout (desktop-screen-connect & WavyInstructionCard & LegalStitchWizardModal)
 /// from D:\Conversations\scanner\minimalist.
 class InstructionsScreen extends StatefulWidget {
@@ -425,9 +425,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
             const SizedBox(height: 4),
             Text(
               isProcessing
-                  ? 'Subprocess active — communicating with scanner hardware...'
+                  ? 'Communicating with scanner hardware...'
                   : (isCompleted
-                      ? 'All CLI tasks finished with embedded DPI metadata.'
+                      ? 'Document acquired and saved successfully.'
                       : 'Click or press-and-hold the yellow trigger below to execute this step'),
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -532,7 +532,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
             const SizedBox(height: 8),
             Text(
               isProcessing
-                  ? 'Executing Python CLI backend...'
+                  ? 'Communicating with scanner...'
                   : (isCompleted
                       ? 'Click to return to Dashboard'
                       : 'Step ${currentStep.stepNumber} of ${currentStep.totalSteps} Ready'),
@@ -546,7 +546,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
         ),
         const SizedBox(height: 16),
 
-        // Live CLI Output Console & Completion Actions
+        // Scanner Activity Card & Completion Actions
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -555,7 +555,8 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: DesignTokens.darkSurfaceOne,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius:
+                    BorderRadius.circular(DesignTokens.radiusCardInner),
                 border: Border.all(color: DesignTokens.darkSurfaceSix),
               ),
               child: Column(
@@ -564,68 +565,93 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      const Flexible(
-                        child: Text(
-                          'LIVE CLI SUBPROCESS OUTPUT',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: DesignTokens.accentYellow,
-                            letterSpacing: 0.6,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: isProcessing
+                                  ? DesignTokens.accentYellow
+                                  : (isCompleted
+                                      ? DesignTokens.statusOnlineGreen
+                                      : DesignTokens.neutralGrayFiveHundred),
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'SCANNER ACTIVITY',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: DesignTokens.accentYellow,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
-                        '${state.consoleLogs.length} lines',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: DesignTokens.neutralGraySixHundred,
+                        isProcessing
+                            ? 'In Progress'
+                            : (isCompleted ? 'Complete' : 'Ready'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isCompleted
+                              ? DesignTokens.statusOnlineGreen
+                              : (isProcessing
+                                  ? DesignTokens.accentYellow
+                                  : DesignTokens.neutralGraySixHundred),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Expanded(
                     child: state.consoleLogs.isEmpty
-                        ? SelectableText(
-                            '\$ ${state.currentCommandPreview}\n[Ready] Waiting for step confirmation to launch CLI...',
-                            style: const TextStyle(
-                              fontFamily: 'Consolas',
-                              fontSize: 11,
-                              color: DesignTokens.neutralGrayFiveHundred,
-                              height: 1.4,
+                        ? const Center(
+                            child: Text(
+                              'Ready to start. Tap or hold the button above to begin.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: DesignTokens.neutralGrayFiveHundred,
+                              ),
                             ),
                           )
                         : ListView.builder(
                             reverse: true,
                             itemCount: state.consoleLogs.length,
                             itemBuilder: (BuildContext context, int idx) {
-                              final String line = state.consoleLogs[
+                              final String rawLine = state.consoleLogs[
                                   state.consoleLogs.length - 1 - idx];
+                              if (rawLine.startsWith('\$') ||
+                                  rawLine.contains('scan_cli.py') ||
+                                  rawLine.contains('process_cli.py')) {
+                                return const SizedBox.shrink();
+                              }
                               final bool isSuccessLine =
-                                  line.contains('[Success]') ||
-                                      line.contains('[SAVED]');
+                                  rawLine.contains('[Success]') ||
+                                      rawLine.contains('[SAVED]') ||
+                                      rawLine.contains('completed');
                               final bool isErrorLine =
-                                  line.contains('[ERROR]') ||
-                                      line.contains('[stderr]');
+                                  rawLine.contains('[ERROR]') ||
+                                      rawLine.contains('[stderr]');
                               return Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 1.5),
-                                child: SelectableText(
-                                  line,
+                                    const EdgeInsets.symmetric(vertical: 2.0),
+                                child: Text(
+                                  rawLine,
                                   style: TextStyle(
-                                    fontFamily: 'Consolas',
-                                    fontSize: 11,
+                                    fontSize: 11.5,
                                     color: isSuccessLine
                                         ? DesignTokens.statusOnlineGreen
                                         : (isErrorLine
                                             ? DesignTokens.statusErrorRed
-                                            : (line.startsWith('\$')
-                                                ? DesignTokens.accentYellow
-                                                : DesignTokens
-                                                    .neutralGrayThreeHundred)),
+                                            : DesignTokens
+                                                .neutralGrayThreeHundred),
                                   ),
                                 ),
                               );
@@ -927,7 +953,6 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'Consolas',
                     fontSize: 11,
                     color: DesignTokens.neutralGraySevenHundred,
                   ),

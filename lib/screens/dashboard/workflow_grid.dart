@@ -110,7 +110,7 @@ class WorkflowGrid extends StatelessWidget {
             final WorkflowType workflow = workflows[index];
             return WorkflowActionCard(
               title: workflow.title,
-              subtitle: workflow.cliSummary,
+              subtitle: workflow.subtitle,
               icon: _resolveIcon(workflow.iconName),
               emojiIcon: workflow.emojiIcon,
               useEmoji: workflow.useEmoji,

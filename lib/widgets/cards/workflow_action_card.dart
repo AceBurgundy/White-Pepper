@@ -78,10 +78,15 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
           padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(26.0),
-            border: widget.theme == WorkflowCardTheme.light
-                ? Border.all(color: DesignTokens.neutralGrayTwoHundred)
-                : null,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusCardMedium),
+            border: Border.all(
+              color: widget.theme == WorkflowCardTheme.light
+                  ? DesignTokens.neutralGrayTwoHundred
+                  : (widget.theme == WorkflowCardTheme.dark
+                      ? DesignTokens.darkSurfaceFour
+                      : Colors.transparent),
+              width: 1.0,
+            ),
             boxShadow: _isHovered
                 ? <BoxShadow>[
                     BoxShadow(
@@ -201,10 +206,9 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: subtitleColor,
-                      fontSize: 11.0,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Consolas',
-                      height: 1.2,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      height: 1.25,
                     ),
                   ),
                 ],

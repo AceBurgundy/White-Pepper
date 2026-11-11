@@ -225,29 +225,47 @@ class StepWizardDialog extends StatelessWidget {
             ),
             const SizedBox(height: 18),
 
-            // Live Output Console ticker
+            // Scanner Activity Status
             Container(
-              height: 80,
+              height: 70,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: DesignTokens.onyx,
-                borderRadius: BorderRadius.circular(DesignTokens.radiusModuleContainer),
+                borderRadius:
+                    BorderRadius.circular(DesignTokens.radiusModuleContainer),
               ),
-              child: ListView.builder(
-                reverse: true,
-                itemCount: state.consoleLogs.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final String log = state.consoleLogs[state.consoleLogs.length - 1 - index];
-                  return Text(
-                    log,
-                    style: const TextStyle(
-                      fontFamily: 'Consolas',
-                      fontSize: 10.5,
-                      color: DesignTokens.neutralGrayThreeHundred,
+              child: state.consoleLogs.isEmpty
+                  ? Center(
+                      child: Text(
+                        step == 1
+                            ? 'Ready to scan Pass 1 (Top upright)'
+                            : 'Ready to scan Pass 2 (Bottom upside-down)',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: DesignTokens.neutralGrayFiveHundred,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      reverse: true,
+                      itemCount: state.consoleLogs.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final String log = state.consoleLogs[
+                            state.consoleLogs.length - 1 - index];
+                        if (log.startsWith('\$') ||
+                            log.contains('scan_cli.py') ||
+                            log.contains('process_cli.py')) {
+                          return const SizedBox.shrink();
+                        }
+                        return Text(
+                          log,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: DesignTokens.neutralGrayThreeHundred,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 24),
 
