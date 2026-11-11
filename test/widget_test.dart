@@ -6,7 +6,7 @@ import 'package:white_pepper/providers/app_state.dart';
 
 void main() {
   testWidgets(
-    'WhitePepperApp navigates Dashboard -> Options Control Deck -> Step-by-Step Instructions with consumer UI',
+    'WhitePepperApp renders seamless top bar, right-most window actions, black line icons, and custom scroll thumb',
     (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
       await tester.pumpWidget(
@@ -15,17 +15,33 @@ void main() {
           child: const WhitePepperApp(),
         ),
       );
+      await tester.pumpAndSettle();
 
-      // 1. Frameless title bar branding and Workstation render
+      // 1. Sidebar headline displays 'White Pepper' instead of 'Scanner Module'
       expect(find.text('White Pepper'), findsOneWidget);
+      expect(find.text('Scanner\nModule'), findsNothing);
+      expect(find.textContaining('Scanner Module'), findsNothing);
       expect(find.text('WORKSTATION'), findsOneWidget);
       expect(find.text('All Workflows (8)'), findsOneWidget);
-      expect(find.text('Flatbed Document'), findsOneWidget);
-      expect(find.text('Legal 2-Pass Stitch'), findsOneWidget);
-      expect(find.text('ID Card Duplex'), findsOneWidget);
-      expect(find.text('Compile PDF'), findsOneWidget);
 
-      // 2. Clicking 'ID Card Duplex' transitions to Options Control Deck
+      // 2. Top bar window action buttons sit at the far rightmost side of the 1280px window
+      final Offset closeTopRight =
+          tester.getTopRight(find.byTooltip('Close'));
+      expect(closeTopRight.dx, greaterThan(1250.0));
+
+      // 3. Old emoji icons are gone; black line icons are used on workflow cards
+      expect(find.text('📄'), findsNothing);
+      expect(find.text('🔍'), findsNothing);
+      expect(find.byIcon(Icons.description_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.crop_free_outlined), findsOneWidget);
+
+      // 4. Custom thin scroll thumb is present on the right cards section
+      expect(
+        find.byKey(const Key('workflow_grid_scroll_thumb')),
+        findsOneWidget,
+      );
+
+      // 5. Clicking 'ID Card Duplex' transitions to Options Control Deck
       await tester.tap(find.text('ID Card Duplex'));
       await tester.pumpAndSettle();
 
@@ -34,7 +50,7 @@ void main() {
       expect(find.text('Start ID Card Duplex'), findsOneWidget);
       expect(find.text('Active Settings:'), findsOneWidget);
 
-      // 3. Clicking 'Start ID Card Duplex' transitions to Step-by-Step Instructions Screen
+      // 6. Clicking 'Start ID Card Duplex' transitions to Step-by-Step Instructions Screen
       await tester.tap(find.text('Start ID Card Duplex'));
       await tester.pumpAndSettle();
 
