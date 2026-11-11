@@ -37,17 +37,17 @@ abstract final class DesignTokens {
   static const Color inkBlack = Color(0xFF212121);
 
   // ---------------------------------------------------------------------------
-  // Corner Radius Tokens
+  // Corner Radius Tokens (Calibrated for native frameless window & sleek cards)
   // ---------------------------------------------------------------------------
   static const double radiusPill = 100.0;
   static const double radiusCircle = 999.0;
-  static const double radiusViewportDesktop = 36.0;
-  static const double radiusViewportMobile = 42.0;
-  static const double radiusCardOuter = 32.0;
-  static const double radiusCardMedium = 28.0;
-  static const double radiusCardInner = 24.0;
-  static const double radiusModuleContainer = 20.0;
-  static const double radiusControlSmall = 14.0;
+  static const double radiusViewportDesktop = 16.0;
+  static const double radiusViewportMobile = 24.0;
+  static const double radiusCardOuter = 22.0;
+  static const double radiusCardMedium = 18.0;
+  static const double radiusCardInner = 14.0;
+  static const double radiusModuleContainer = 14.0;
+  static const double radiusControlSmall = 10.0;
 
   // ---------------------------------------------------------------------------
   // Dimensions & Spacing

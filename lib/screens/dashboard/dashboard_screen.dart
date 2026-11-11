@@ -4,11 +4,12 @@ import '../../core/theme/design_tokens.dart';
 import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/dialogs/hardware_connect_dialog.dart';
+import '../../widgets/window/window_title_bar.dart';
 import '../instructions/instructions_screen.dart';
 import '../options/options_screen.dart';
 import 'workflow_grid.dart';
 
-/// Unified 3-Screen Workstation matching minimalist/interactive-mockup/4-is-to-3/DesktopMockup.js
+/// Unified 3-Screen Workstation matching minimalist design system
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -16,57 +17,61 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppState state = context.watch<AppState>();
     final bool isDarkScreen = state.currentScreen != AppScreen.dashboard;
+    final String viewSubtitle = switch (state.currentScreen) {
+      AppScreen.dashboard => 'Workstation',
+      AppScreen.options => 'Scan Settings',
+      AppScreen.instructions => 'Guided Scan',
+    };
 
     return Scaffold(
-      backgroundColor: const Color(0xFFDCDCDC),
+      backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints outerConstraints) {
-            final bool isCompactOuter = outerConstraints.maxWidth < 860;
-            return Padding(
-              padding: EdgeInsets.all(isCompactOuter ? 8.0 : 20.0),
-              child: Center(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
-                  constraints: const BoxConstraints(
-                    maxWidth: 1240,
-                    maxHeight: 860,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDarkScreen
-                        ? DesignTokens.onyx
-                        : DesignTokens.neutralLightSurface,
-                    borderRadius: BorderRadius.circular(
-                      isCompactOuter ? 24.0 : DesignTokens.radiusViewportDesktop,
-                    ),
-                    border: Border.all(
-                      color: isDarkScreen
-                          ? DesignTokens.darkSurfaceThree
-                          : DesignTokens.onyx,
-                      width: isCompactOuter ? 3.0 : 6.0,
-                    ),
-                    boxShadow: DesignTokens.shadowWorkstation,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 240),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    child: switch (state.currentScreen) {
-                      AppScreen.dashboard => _buildDashboardPane(context, state),
-                      AppScreen.options => const OptionsScreen(
-                          key: ValueKey<String>('screen_options'),
-                        ),
-                      AppScreen.instructions => const InstructionsScreen(
-                          key: ValueKey<String>('screen_instructions'),
-                        ),
-                    },
-                  ),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: isDarkScreen
+                ? DesignTokens.onyx
+                : DesignTokens.neutralLightSurface,
+            borderRadius: BorderRadius.circular(
+              DesignTokens.radiusViewportDesktop,
+            ),
+            border: Border.all(
+              color: isDarkScreen
+                  ? DesignTokens.darkSurfaceThree
+                  : DesignTokens.neutralGrayThreeHundred,
+              width: 1.0,
+            ),
+            boxShadow: DesignTokens.shadowWorkstation,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: <Widget>[
+              // Integrated Frameless Window Title Bar
+              WindowTitleBar(
+                isDark: isDarkScreen,
+                subtitle: viewSubtitle,
+              ),
+
+              // Main Application Content
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 240),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: switch (state.currentScreen) {
+                    AppScreen.dashboard => _buildDashboardPane(context, state),
+                    AppScreen.options => const OptionsScreen(
+                        key: ValueKey<String>('screen_options'),
+                      ),
+                    AppScreen.instructions => const InstructionsScreen(
+                        key: ValueKey<String>('screen_instructions'),
+                      ),
+                  },
                 ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
@@ -172,7 +177,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  '4:3 WORKSTATION',
+                  'WORKSTATION',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -390,7 +395,7 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: DesignTokens.onyx,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
           boxShadow: DesignTokens.shadowCard,
         ),
         child: Column(
@@ -415,7 +420,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'eSCL • ${state.scannerEndpoint}',
+                        'Wireless Scanner • ${state.scannerEndpoint}',
                         style: const TextStyle(
                           fontSize: 11.5,
                           color: DesignTokens.neutralGrayFiveHundred,

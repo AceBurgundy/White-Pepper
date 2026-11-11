@@ -17,13 +17,15 @@ Future<void> main() async {
       await windowManager.ensureInitialized();
       final WindowOptions windowOptions = const WindowOptions(
         size: Size(DesignTokens.desktopWidth, DesignTokens.desktopHeight),
-        minimumSize: Size(960, 680),
+        minimumSize: Size(920, 660),
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,
-        title: 'White-Pepper Desktop Scanner',
+        title: 'White Pepper',
+        titleBarStyle: TitleBarStyle.hidden,
       );
       await windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.setAsFrameless();
         await windowManager.show();
         await windowManager.focus();
       });
