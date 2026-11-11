@@ -60,6 +60,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
     final bool isCompleted =
         state.scanButtonState == ProgressButtonState.completed;
     final bool isError = state.scanButtonState == ProgressButtonState.error;
+    final bool isDark = state.isDarkMode;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -71,7 +72,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Container(
-                  color: DesignTokens.neutralLightSurface,
+                  color: isDark
+                      ? DesignTokens.darkSurfaceOne
+                      : DesignTokens.neutralLightSurface,
                   padding: const EdgeInsets.fromLTRB(20, 38, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,7 +118,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
             Expanded(
               flex: 11,
               child: Container(
-                color: DesignTokens.neutralLightSurface,
+                color: isDark
+                    ? DesignTokens.darkSurfaceOne
+                    : DesignTokens.neutralLightSurface,
                 padding:
                     const EdgeInsets.fromLTRB(32, 38, 32, 28),
                 child: Column(
@@ -149,7 +154,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               width: 44,
               child: CustomPaint(
                 painter: _VerticalOrganicWavePainter(
-                  lightColor: DesignTokens.neutralLightSurface,
+                  lightColor: isDark
+                      ? DesignTokens.darkSurfaceOne
+                      : DesignTokens.neutralLightSurface,
                   darkColor: DesignTokens.onyx,
                 ),
               ),

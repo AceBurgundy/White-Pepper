@@ -3,18 +3,38 @@ import '../../core/theme/design_tokens.dart';
 import '../../models/peapod_tool.dart';
 import '../../models/scan_configuration_model.dart';
 
-/// Dark #2D2D2D parameter adjustment drawer matching DesktopMockup.js lines 591–620.
+/// Parameter adjustment drawer without enclosing background container (sibling of PeaPod).
 class PeaPodDrawer extends StatefulWidget {
   const PeaPodDrawer({
     required this.selectedTool,
     required this.config,
     required this.onConfigChanged,
+    this.isDarkMode = false,
     super.key,
   });
 
   final PeaPodToolType selectedTool;
   final ScanConfigurationModel config;
   final ValueChanged<ScanConfigurationModel> onConfigChanged;
+  final bool isDarkMode;
+
+  /// Formats raw preset tokens into Title Case (Capital First Letter Every Word).
+  static String formatPresetTitle(String raw) {
+    if (raw.isEmpty) return '';
+    final List<String> parts = raw.split(RegExp(r'[-_ ]+'));
+    return parts.map((String part) {
+      if (part.isEmpty) return '';
+      final String lower = part.toLowerCase();
+      if (lower == 'bw') return 'B&W';
+      if (lower == 'id') return 'ID';
+      if (lower == 'pdf') return 'PDF';
+      if (lower == 'dpi') return 'DPI';
+      if (RegExp(r'^[ab]\d+$', caseSensitive: false).hasMatch(part)) {
+        return part.toUpperCase();
+      }
+      return part[0].toUpperCase() + part.substring(1).toLowerCase();
+    }).join(' ');
+  }
 
   @override
   State<PeaPodDrawer> createState() => _PeaPodDrawerState();
@@ -69,6 +89,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return InkWell(
       onTap: onTap,
@@ -79,20 +100,31 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
         decoration: BoxDecoration(
           color: isSelected
               ? DesignTokens.accentYellow
-              : DesignTokens.darkSurfaceFive,
+              : (isDark ? DesignTokens.darkSurfaceFive : DesignTokens.pureWhite),
           borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
           border: Border.all(
             color: isSelected
                 ? DesignTokens.accentYellow
-                : DesignTokens.darkSurfaceSix,
+                : (isDark ? DesignTokens.darkSurfaceSix : DesignTokens.neutralGrayThreeHundred),
           ),
+          boxShadow: !isDark && !isSelected
+              ? <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    offset: const Offset(0, 1),
+                    blurRadius: 3,
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            color: isSelected ? DesignTokens.onyx : DesignTokens.pureWhite,
+            color: isSelected
+                ? DesignTokens.onyx
+                : (isDark ? DesignTokens.pureWhite : DesignTokens.onyx),
           ),
         ),
       ),
@@ -102,6 +134,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   Widget _buildDrawerHeader({
     required String title,
     required String badgeValue,
+    required bool isDark,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,10 +142,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
         Flexible(
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFDDDDDD),
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: isDark ? const Color(0xFFDDDDDD) : DesignTokens.onyx,
             ),
           ),
         ),
@@ -125,7 +158,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           child: Text(
             badgeValue,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 11.5,
               fontWeight: FontWeight.w800,
               color: DesignTokens.onyx,
             ),
@@ -139,6 +172,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     required double value,
     required double min,
     required double max,
+    required bool isDark,
     int? divisions,
     required ValueChanged<double> onChanged,
   }) {
@@ -146,7 +180,9 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       data: SliderThemeData(
         trackHeight: 6,
         activeTrackColor: DesignTokens.accentYellow,
-        inactiveTrackColor: DesignTokens.neutralGrayNineHundred,
+        inactiveTrackColor: isDark
+            ? DesignTokens.neutralGrayNineHundred
+            : DesignTokens.neutralGrayThreeHundred,
         thumbColor: DesignTokens.accentYellow,
         overlayColor: DesignTokens.accentYellow.withValues(alpha: 0.16),
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
@@ -161,7 +197,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
-  Widget _buildLayoutControls() {
+  Widget _buildLayoutControls(bool isDark) {
     if (config.workflowType == WorkflowType.compilePdf) {
       const List<String> pdfPresets = <String>[
         'auto',
@@ -184,9 +220,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
+            isDark: isDark,
             title: 'Document Page Size & Fit Mode',
             badgeValue:
-                '${config.paperSize.toUpperCase()} • ${config.fitMode.toUpperCase()}',
+                '${PeaPodDrawer.formatPresetTitle(config.paperSize)} • ${PeaPodDrawer.formatPresetTitle(config.fitMode)}',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -194,7 +231,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             runSpacing: 7,
             children: pdfPresets.map((String preset) {
               return _buildChip(
-                label: preset.toUpperCase(),
+                isDark: isDark,
+                label: PeaPodDrawer.formatPresetTitle(preset),
                 isSelected: config.paperSize == preset,
                 onTap: () {
                   config.paperSize = preset;
@@ -204,12 +242,14 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             }).toList(),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Fit Mode',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: DesignTokens.neutralGrayFiveHundred,
+              color: isDark
+                  ? DesignTokens.neutralGrayFiveHundred
+                  : DesignTokens.neutralGrayEightHundred,
             ),
           ),
           const SizedBox(height: 8),
@@ -218,7 +258,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             runSpacing: 7,
             children: fitModes.map((String mode) {
               return _buildChip(
-                label: mode.toUpperCase(),
+                isDark: isDark,
+                label: PeaPodDrawer.formatPresetTitle(mode),
                 isSelected: config.fitMode == mode,
                 onTap: () {
                   config.fitMode = mode;
@@ -253,8 +294,9 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
+          isDark: isDark,
           title: 'Scanner Paper Size',
-          badgeValue: config.paperSize.toUpperCase(),
+          badgeValue: PeaPodDrawer.formatPresetTitle(config.paperSize),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -262,7 +304,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           runSpacing: 7,
           children: paperPresets.map((String preset) {
             return _buildChip(
-              label: preset.toUpperCase(),
+              isDark: isDark,
+              label: PeaPodDrawer.formatPresetTitle(preset),
               isSelected: config.paperSize == preset,
               onTap: () {
                 config.paperSize = preset;
@@ -281,12 +324,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Width: ${config.customWidth.toStringAsFixed(0)} ${config.units}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.customWidth,
                       min: 20,
                       max: 216,
@@ -305,12 +351,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Height: ${config.customHeight.toStringAsFixed(0)} ${config.units}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.customHeight,
                       min: 20,
                       max: 297,
@@ -333,12 +382,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Left Offset: ${config.offsetX.toStringAsFixed(0)} ${config.units}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.offsetX,
                       min: 0,
                       max: 150,
@@ -357,12 +409,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Top Offset: ${config.offsetY.toStringAsFixed(0)} ${config.units}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.offsetY,
                       min: 0,
                       max: 200,
@@ -381,13 +436,14 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
-  Widget _buildTuneControls() {
+  Widget _buildTuneControls(bool isDark) {
     if (config.workflowType == WorkflowType.compilePdf) {
       const List<int> pdfDpiOptions = <int>[0, 150, 300, 600, 1200];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
+            isDark: isDark,
             title: 'Document Resolution',
             badgeValue:
                 config.dpi == 0 ? 'AUTO (METADATA)' : '${config.dpi} DPI',
@@ -398,6 +454,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             runSpacing: 8,
             children: pdfDpiOptions.map((int val) {
               return _buildChip(
+                isDark: isDark,
                 label: val == 0 ? 'AUTO (ORIGINAL)' : '$val DPI',
                 isSelected: config.dpi == val,
                 onTap: () {
@@ -418,11 +475,13 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
+          isDark: isDark,
           title: 'Scan Resolution (DPI)',
           badgeValue: '${config.dpi} DPI',
         ),
         const SizedBox(height: 8),
         _buildYellowSlider(
+          isDark: isDark,
           value: currentIdx.toDouble(),
           min: 0,
           max: (dpis.length - 1).toDouble(),
@@ -438,6 +497,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           runSpacing: 8,
           children: dpis.map((int dpiValue) {
             return _buildChip(
+              isDark: isDark,
               label: '$dpiValue DPI',
               isSelected: config.dpi == dpiValue,
               onTap: () {
@@ -451,11 +511,12 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
-  Widget _buildRotateControls() {
+  Widget _buildRotateControls(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
+          isDark: isDark,
           title: 'Page Orientation & Rotation',
           badgeValue: '${config.rotation}°',
         ),
@@ -465,6 +526,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           runSpacing: 8,
           children: const <int>[0, 90, 180, 270].map((int deg) {
             return _buildChip(
+              isDark: isDark,
               label: '$deg°',
               isSelected: config.rotation == deg,
               onTap: () {
@@ -478,7 +540,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
-  Widget _buildContrastControls() {
+  Widget _buildContrastControls(bool isDark) {
     final bool supportsToneSliders =
         config.workflowType == WorkflowType.flatbed ||
             config.workflowType == WorkflowType.photoScan ||
@@ -488,8 +550,9 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
+          isDark: isDark,
           title: 'Color Mode & Exposure',
-          badgeValue: config.colorMode.toUpperCase(),
+          badgeValue: PeaPodDrawer.formatPresetTitle(config.colorMode),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -497,7 +560,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           children:
               const <String>['color', 'grayscale', 'bw'].map((String mode) {
             return _buildChip(
-              label: mode.toUpperCase(),
+              isDark: isDark,
+              label: PeaPodDrawer.formatPresetTitle(mode),
               isSelected: config.colorMode == mode,
               onTap: () {
                 config.colorMode = mode;
@@ -516,13 +580,16 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Brightness: ${config.brightness}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.brightness.toDouble(),
                       min: -100,
                       max: 100,
@@ -541,13 +608,16 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Contrast: ${config.contrast}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.contrast.toDouble(),
                       min: -100,
                       max: 100,
@@ -566,14 +636,14 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
-  Widget _buildCropControls() {
-    // Card-specific geometry controls
+  Widget _buildCropControls(bool isDark) {
     if (config.workflowType == WorkflowType.cardDuplex ||
         config.workflowType == WorkflowType.batchCardDeskew) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
+            isDark: isDark,
             title: 'Card Alignment & Geometry',
             badgeValue:
                 'Inset ${config.safetyInsetMm.toStringAsFixed(1)}mm • R${config.cornerRadiusMm.toStringAsFixed(1)}mm',
@@ -585,7 +655,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
               runSpacing: 8,
               children: <Widget>[
                 _buildChip(
-                  label: 'DUPLEX (FRONT + BACK)',
+                  isDark: isDark,
+                  label: 'Duplex (Front + Back)',
                   isSelected: config.cardDuplexTwoSided,
                   onTap: () {
                     config.cardDuplexTwoSided = true;
@@ -593,7 +664,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   },
                 ),
                 _buildChip(
-                  label: 'SINGLE SIDE ONLY',
+                  isDark: isDark,
+                  label: 'Single Side Only',
                   isSelected: !config.cardDuplexTwoSided,
                   onTap: () {
                     config.cardDuplexTwoSided = false;
@@ -601,9 +673,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   },
                 ),
                 _buildChip(
+                  isDark: isDark,
                   label: config.noDeskew
-                      ? 'MANUAL 5x5" REGION'
-                      : 'AUTO DESKEW & STRAIGHTEN',
+                      ? 'Manual 5×5" Region'
+                      : 'Auto Deskew & Straighten',
                   isSelected: !config.noDeskew,
                   onTap: () {
                     config.noDeskew = !config.noDeskew;
@@ -619,7 +692,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             children: const <String>['transparent', 'white', 'black']
                 .map((String bg) {
               return _buildChip(
-                label: 'BG: ${bg.toUpperCase()}',
+                isDark: isDark,
+                label: 'Background: ${PeaPodDrawer.formatPresetTitle(bg)}',
                 isSelected: config.cardBackground == bg,
                 onTap: () {
                   config.cardBackground = bg;
@@ -637,12 +711,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Safety Inset: ${config.safetyInsetMm.toStringAsFixed(1)} mm',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.safetyInsetMm,
                       min: 0.0,
                       max: 3.0,
@@ -663,12 +740,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Corner Radius: ${config.cornerRadiusMm.toStringAsFixed(2)} mm',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.cornerRadiusMm,
                       min: 0.0,
                       max: 6.0,
@@ -688,15 +768,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       );
     }
 
-    // Booklet interval & max-scans controls
     if (config.workflowType == WorkflowType.bookletBatch) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
+            isDark: isDark,
             title: 'Booklet Batch Timing',
             badgeValue:
-                '${config.intervalSeconds}s • ${config.maxScans == 0 ? "UNLIMITED" : "${config.maxScans} SPREADS"}',
+                '${config.intervalSeconds}s • ${config.maxScans == 0 ? "Unlimited" : "${config.maxScans} Spreads"}',
           ),
           const SizedBox(height: 8),
           Row(
@@ -707,12 +787,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Countdown Interval: ${config.intervalSeconds}s',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.intervalSeconds.toDouble(),
                       min: 2,
                       max: 45,
@@ -732,12 +815,15 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   children: <Widget>[
                     Text(
                       'Max Spreads (0=Unlimited): ${config.maxScans}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: DesignTokens.neutralGrayFourHundred,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
                       ),
                     ),
                     _buildYellowSlider(
+                      isDark: isDark,
                       value: config.maxScans.toDouble(),
                       min: 0,
                       max: 40,
@@ -756,17 +842,18 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       );
     }
 
-    // Compile PDF margin bleed control
     if (config.workflowType == WorkflowType.compilePdf) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
+            isDark: isDark,
             title: 'Page Margin Bleed',
             badgeValue: '${config.marginMm.toStringAsFixed(1)} mm',
           ),
           const SizedBox(height: 8),
           _buildYellowSlider(
+            isDark: isDark,
             value: config.marginMm,
             min: 0.0,
             max: 25.0,
@@ -780,20 +867,21 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       );
     }
 
-    // Standard auto-crop whitespace toggle
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
+          isDark: isDark,
           title: 'Automatic Border Trimming',
-          badgeValue: config.autoCrop ? 'ENABLED' : 'OFF',
+          badgeValue: config.autoCrop ? 'Enabled' : 'Off',
         ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           children: <Widget>[
             _buildChip(
-              label: 'FULL REGION (NO AUTO-CROP)',
+              isDark: isDark,
+              label: 'Full Region (No Auto-Crop)',
               isSelected: !config.autoCrop,
               onTap: () {
                 config.autoCrop = false;
@@ -801,7 +889,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
               },
             ),
             _buildChip(
-              label: 'TRIM BORDERS',
+              isDark: isDark,
+              label: 'Trim Borders',
               isSelected: config.autoCrop,
               onTap: () {
                 config.autoCrop = true;
@@ -814,7 +903,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
-  Widget _buildTitleControls() {
+  Widget _buildTitleControls(bool isDark) {
     final List<String> allowedFormats;
     switch (config.workflowType) {
       case WorkflowType.legalStitch:
@@ -835,6 +924,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
+          isDark: isDark,
           title: 'Output File & Storage',
           badgeValue: '.${config.format.toUpperCase()}',
         ),
@@ -844,6 +934,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           runSpacing: 8,
           children: allowedFormats.map((String fmt) {
             return _buildChip(
+              isDark: isDark,
               label: fmt.toUpperCase(),
               isSelected: config.format == fmt,
               onTap: () {
@@ -863,16 +954,18 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   config.fileNamePrefix = val;
                   onConfigChanged(config);
                 },
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: DesignTokens.pureWhite,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
                   labelText: 'Filename Prefix',
-                  labelStyle: const TextStyle(
+                  labelStyle: TextStyle(
                     fontSize: 11,
-                    color: DesignTokens.neutralGrayFiveHundred,
+                    color: isDark
+                        ? DesignTokens.neutralGrayFiveHundred
+                        : DesignTokens.neutralGrayEightHundred,
                   ),
                   hintText: 'e.g. Scan_Document or National_ID',
                   hintStyle: const TextStyle(
@@ -884,11 +977,13 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                     vertical: 10,
                   ),
                   filled: true,
-                  fillColor: DesignTokens.onyx,
+                  fillColor: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: DesignTokens.darkSurfaceSix,
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? DesignTokens.darkSurfaceSix
+                          : DesignTokens.neutralGrayThreeHundred,
                       width: 1.2,
                     ),
                   ),
@@ -910,26 +1005,30 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   config.outputDirectory = val;
                   onConfigChanged(config);
                 },
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: DesignTokens.pureWhite,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
                 ),
                 decoration: InputDecoration(
                   labelText: 'Save Location Folder',
-                  labelStyle: const TextStyle(
+                  labelStyle: TextStyle(
                     fontSize: 11,
-                    color: DesignTokens.neutralGrayFiveHundred,
+                    color: isDark
+                        ? DesignTokens.neutralGrayFiveHundred
+                        : DesignTokens.neutralGrayEightHundred,
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
                   ),
                   filled: true,
-                  fillColor: DesignTokens.onyx,
+                  fillColor: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: DesignTokens.darkSurfaceSix,
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? DesignTokens.darkSurfaceSix
+                          : DesignTokens.neutralGrayThreeHundred,
                       width: 1.2,
                     ),
                   ),
@@ -951,22 +1050,16 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
-      decoration: BoxDecoration(
-        color: DesignTokens.darkSurfaceTwo,
-        borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
-        border: Border.all(color: DesignTokens.darkSurfaceSix),
-      ),
+    final bool isDark = widget.isDarkMode;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: switch (selectedTool) {
-        PeaPodToolType.layout => _buildLayoutControls(),
-        PeaPodToolType.tune => _buildTuneControls(),
-        PeaPodToolType.rotate => _buildRotateControls(),
-        PeaPodToolType.contrast => _buildContrastControls(),
-        PeaPodToolType.crop => _buildCropControls(),
-        PeaPodToolType.title => _buildTitleControls(),
+        PeaPodToolType.layout => _buildLayoutControls(isDark),
+        PeaPodToolType.tune => _buildTuneControls(isDark),
+        PeaPodToolType.rotate => _buildRotateControls(isDark),
+        PeaPodToolType.contrast => _buildContrastControls(isDark),
+        PeaPodToolType.crop => _buildCropControls(isDark),
+        PeaPodToolType.title => _buildTitleControls(isDark),
       },
     );
   }

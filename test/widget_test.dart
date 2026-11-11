@@ -6,55 +6,111 @@ import 'package:white_pepper/providers/app_state.dart';
 
 void main() {
   testWidgets(
-    'WhitePepperApp renders seamless top bar, right-most window actions, black line icons, and custom scroll thumb',
+    'WhitePepperApp renders All-Day default theme, simplified dashboard controls, View Printer dialog, and borderless 1.5x options deck',
     (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
+      final AppState appState = AppState();
       await tester.pumpWidget(
-        ChangeNotifierProvider<AppState>(
-          create: (_) => AppState(),
+        ChangeNotifierProvider<AppState>.value(
+          value: appState,
           child: const WhitePepperApp(),
         ),
       );
       await tester.pumpAndSettle();
 
-      // 1. Sidebar headline displays 'White Pepper' instead of 'Scanner Module'
-      expect(find.text('White Pepper'), findsOneWidget);
-      expect(find.text('Scanner\nModule'), findsNothing);
-      expect(find.textContaining('Scanner Module'), findsNothing);
-      expect(find.text('WORKSTATION'), findsOneWidget);
-      expect(find.text('All Workflows (8)'), findsOneWidget);
+      // 1. All-Day (Light) theme is active by default
+      expect(appState.isDarkMode, isFalse);
 
-      // 2. Top bar window action buttons sit at the far rightmost side of the 1280px window
-      final Offset closeTopRight =
-          tester.getTopRight(find.byTooltip('Close'));
-      expect(closeTopRight.dx, greaterThan(1250.0));
+      // 2. Workstation Menu button is removed
+      expect(find.byTooltip('Workstation Menu'), findsNothing);
 
-      // 3. Old emoji icons are gone; black line icons are used on workflow cards
-      expect(find.text('📄'), findsNothing);
-      expect(find.text('🔍'), findsNothing);
-      expect(find.byIcon(Icons.description_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.crop_free_outlined), findsOneWidget);
+      // 3. Night Mode toggle button is present in the top-right of the left sidebar
+      final Finder nightModeBtn = find.byTooltip('Night Mode');
+      expect(nightModeBtn, findsOneWidget);
+      await tester.tap(nightModeBtn);
+      await tester.pumpAndSettle();
+      expect(appState.isDarkMode, isTrue);
 
-      // 4. Custom thin scroll thumb is present on the right cards section
-      expect(
-        find.byKey(const Key('workflow_grid_scroll_thumb')),
-        findsOneWidget,
+      // Toggle back to Day Mode
+      await tester.tap(find.byTooltip('Day Mode'));
+      await tester.pumpAndSettle();
+      expect(appState.isDarkMode, isFalse);
+
+      // 4. Left printer card has pointer hand cursor and 'View Printer' tooltip
+      final Finder viewPrinterBtn = find.byTooltip('View Printer');
+      expect(viewPrinterBtn, findsOneWidget);
+
+      // Tap 'View Printer' to open dialog with C/M/Y/K ink levels & hardware diagnostics
+      await tester.tap(viewPrinterBtn);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Printer Details'), findsOneWidget);
+      expect(find.text('INK LEVELS'), findsOneWidget);
+      expect(find.text('HARDWARE DIAGNOSTICS'), findsOneWidget);
+      expect(find.text('Check Scanner Connection'), findsOneWidget);
+
+      // Close dialog
+      await tester.tap(
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.byIcon(Icons.close_rounded),
+        ),
       );
+      await tester.pumpAndSettle();
 
-      // 5. Clicking 'ID Card Duplex' transitions to Options Control Deck
-      await tester.tap(find.text('ID Card Duplex'));
+      // 5. Docked bottom pill has Settings button and Instructions button
+      expect(find.byTooltip('Settings'), findsOneWidget);
+      expect(find.byTooltip('Step-by-Step Instructions'), findsOneWidget);
+
+      // Open settings dialog
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+      expect(find.text('Application Settings'), findsOneWidget);
+      expect(find.text('APPLICATION THEME'), findsOneWidget);
+      expect(find.text('MEASUREMENT UNITS'), findsOneWidget);
+      await tester.tap(
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.byIcon(Icons.close_rounded),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 6. Workflow cards have descriptions and pills removed
+      expect(find.text('Flatbed Document'), findsOneWidget);
+      expect(find.text('Standard document & photo scanning'), findsNothing);
+
+      // 7. Clicking 'Flatbed Document' transitions to Options Control Deck
+      await tester.tap(find.text('Flatbed Document'));
       await tester.pumpAndSettle();
 
       expect(find.text('SCAN SETTINGS'), findsOneWidget);
       expect(find.text('Tool & Parameter Adjustments'), findsOneWidget);
-      expect(find.text('Start ID Card Duplex'), findsOneWidget);
-      expect(find.text('Active Settings:'), findsOneWidget);
+      expect(find.text('Start Flatbed Document'), findsOneWidget);
 
-      // 6. Clicking 'Start ID Card Duplex' transitions to Step-by-Step Instructions Screen
-      await tester.tap(find.text('Start ID Card Duplex'));
+      // 8. Active option title is centered below the options button
+      expect(find.text(appState.activeTool.displayTitle), findsWidgets);
+
+      // 9. Paper size pills are in Title Case (e.g. 'ID Card', 'A4', 'Letter')
+      expect(find.text('ID Card'), findsWidgets);
+      expect(find.text('A4'), findsWidgets);
+      expect(find.text('Letter'), findsWidgets);
+
+      // 10. Return to workflow cards has only the Back button (menu button removed)
+      final Finder returnBackBtn = find.byTooltip('Return to Workflow Cards');
+      expect(returnBackBtn, findsOneWidget);
+      expect(
+        find.descendant(
+          of: returnBackBtn,
+          matching: find.byIcon(Icons.arrow_back_rounded),
+        ),
+        findsOneWidget,
+      );
+
+      // 11. Clicking 'Start Flatbed Document' transitions to Step-by-Step Instructions Screen
+      await tester.tap(find.text('Start Flatbed Document'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Step 1 of 3'), findsWidgets);
+      expect(find.textContaining('Step 1 of 2'), findsWidgets);
       expect(find.text('SCANNER ACTIVITY'), findsOneWidget);
 
       // Assert zero developer/CLI jargon is visible in the UI

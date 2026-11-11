@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/design_tokens.dart';
 import 'platen_geometry_helper.dart';
 
-/// Replicates the 3D Printer Pill + Paper Sheet & Platen Preview from DesktopMockup.js (lines 543–569)
+/// Minimalized Optical Platen Preview Canvas with widened glass bed & corner markers.
 class PlatenPreviewCanvas extends StatelessWidget {
   const PlatenPreviewCanvas({
     required this.paperPreset,
@@ -14,6 +14,7 @@ class PlatenPreviewCanvas extends StatelessWidget {
     this.fileNamePrefix = '',
     this.colorMode = 'color',
     this.format = 'png',
+    this.isDarkMode = false,
     super.key,
   });
 
@@ -25,6 +26,25 @@ class PlatenPreviewCanvas extends StatelessWidget {
   final String fileNamePrefix;
   final String colorMode;
   final String format;
+  final bool isDarkMode;
+
+  /// Formats paper preset tokens in Title Case (Capital First Letter Every Word).
+  static String formatPaperTitle(String raw) {
+    if (raw.isEmpty) return '';
+    final List<String> parts = raw.split(RegExp(r'[-_ ]+'));
+    return parts.map((String part) {
+      if (part.isEmpty) return '';
+      final String lower = part.toLowerCase();
+      if (lower == 'bw') return 'B&W';
+      if (lower == 'id') return 'ID';
+      if (lower == 'pdf') return 'PDF';
+      if (lower == 'dpi') return 'DPI';
+      if (RegExp(r'^[ab]\d+$', caseSensitive: false).hasMatch(part)) {
+        return part.toUpperCase();
+      }
+      return part[0].toUpperCase() + part.substring(1).toLowerCase();
+    }).join(' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,240 +56,269 @@ class PlatenPreviewCanvas extends StatelessWidget {
     );
 
     final int effectiveDpi = dpi <= 0 ? 300 : dpi;
-    final bool isExceedingPlaten =
-        resolved.heightMm > PlatenGeometryHelper.platenHeightMm ||
-            resolved.widthMm > PlatenGeometryHelper.platenWidthMm;
+    final String titlePaperName = formatPaperTitle(resolved.name);
 
-    final String captionText = fileNamePrefix.trim().isNotEmpty
-        ? fileNamePrefix.trim().toUpperCase()
-        : 'SCAN_BATCH_2026';
+    final Color glassSurfaceColor = isDarkMode
+        ? const Color(0xFF1E1E22)
+        : const Color(0xFFF4F4F6);
+    final Color glassBorderColor = isDarkMode
+        ? const Color(0xFF333338)
+        : const Color(0xFFDDDDDF);
+    final Color markerColor = isDarkMode
+        ? const Color(0xFF55555C)
+        : const Color(0xFFAAAAAF);
+    final Color textColor = isDarkMode
+        ? DesignTokens.pureWhite
+        : DesignTokens.onyx;
+    final Color subtextColor = isDarkMode
+        ? DesignTokens.neutralGrayFiveHundred
+        : DesignTokens.neutralGraySevenHundred;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        // 3D Printer Pill Capsule (260px x 58px, gradient #FFFFFF -> #D8D8D8)
-        Container(
-          width: 268,
-          height: 58,
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: <Color>[
-                Color(0xFFFFFFFF),
-                Color(0xFFD8D8D8),
-              ],
-            ),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color(0x59000000),
-                offset: Offset(0, 12),
-                blurRadius: 24,
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: glassSurfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: glassBorderColor, width: 1.5),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.35 : 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
-          child: Row(
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: <Widget>[
+          // Minimal Top Header Badge
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEEEEE),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFBBBBBB),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              Text(
-                isExceedingPlaten ? '2-PASS PLATEN' : 'OPTICAL PLATEN',
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: DesignTokens.neutralGraySevenHundred,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: DesignTokens.accentYellow,
-                  shape: BoxShape.circle,
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: DesignTokens.accentYellow,
-                      blurRadius: 8,
-                      spreadRadius: 1,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: DesignTokens.statusOnlineGreen,
+                      shape: BoxShape.circle,
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Paper Sheet emerging underneath (-10px overlap)
-        Expanded(
-          child: Transform.translate(
-            offset: const Offset(0, -10),
-            child: Container(
-              width: 232,
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 14),
-              decoration: const BoxDecoration(
-                color: DesignTokens.pureWhite,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: Color(0x33000000),
-                    offset: Offset(0, 10),
-                    blurRadius: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'OPTICAL PLATEN',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: subtextColor,
+                    ),
                   ),
                 ],
               ),
-              child: Column(
-                children: <Widget>[
-                  // Pink/Tinted Platen Preview Frame (from DesktopMockup.js)
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3D1DC),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Expanded(
-                            child: Center(
-                              child: Transform.rotate(
-                                angle: rotation * (math.pi / 180.0),
-                                child: FractionallySizedBox(
-                                  widthFactor: (resolved.widthMm /
-                                          PlatenGeometryHelper.platenWidthMm)
-                                      .clamp(0.42, 1.0),
-                                  heightFactor: (resolved.heightMm /
-                                          PlatenGeometryHelper.platenHeightMm)
-                                      .clamp(0.42, 1.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                      gradient: colorMode == 'grayscale' ||
-                                              colorMode == 'bw'
-                                          ? const LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: <Color>[
-                                                Color(0xFF777777),
-                                                Color(0xFF333333),
-                                              ],
-                                            )
-                                          : const LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: <Color>[
-                                                Color(0xFF2EC4B6),
-                                                Color(0xFFFF9F1C),
-                                                Color(0xFFE71D36),
-                                              ],
-                                            ),
-                                    ),
-                                    child: Center(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.55),
-                                            borderRadius: BorderRadius.circular(
-                                              DesignTokens.radiusPill,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${resolved.name.toUpperCase()} • ${dpi <= 0 ? "AUTO" : "$dpi"} DPI',
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              color: DesignTokens.pureWhite,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? DesignTokens.darkSurfaceFour
+                      : DesignTokens.neutralGrayOneHundred,
+                  borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                ),
+                child: Text(
+                  '$effectiveDpi DPI',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Central Platen Glass Bed with Corner Markers and Proportional Paper Sheet
+          Expanded(
+            child: Stack(
+              children: <Widget>[
+                // Corner Alignment Markers
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _PlatenGlassGridPainter(markerColor: markerColor),
+                  ),
+                ),
+
+                // Proportional Sheet
+                Center(
+                  child: Transform.rotate(
+                    angle: rotation * (math.pi / 180.0),
+                    child: FractionallySizedBox(
+                      widthFactor: (resolved.widthMm /
+                              PlatenGeometryHelper.platenWidthMm)
+                          .clamp(0.38, 0.94),
+                      heightFactor: (resolved.heightMm /
+                              PlatenGeometryHelper.platenHeightMm)
+                          .clamp(0.38, 0.94),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: DesignTokens.pureWhite,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.18),
+                              offset: const Offset(0, 6),
+                              blurRadius: 18,
+                            ),
+                          ],
+                          border: Border.all(
+                            color: const Color(0xFFDDDDDD),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    titlePaperName,
+                                    style: const TextStyle(
+                                      color: DesignTokens.onyx,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.2,
                                     ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 3),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '${resolved.widthMm.toStringAsFixed(0)} × ${resolved.heightMm.toStringAsFixed(0)} mm',
+                                    style: const TextStyle(
+                                      color: DesignTokens.neutralGrayEightHundred,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$captionText.${format.toUpperCase()}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: DesignTokens.onyx,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-
-                  // Bottom Dimensions / Pixel Matrix Readout Slot
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEEEEE),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        Text(
-                          '${resolved.pixelWidth(effectiveDpi)} × ${resolved.pixelHeight(effectiveDpi)} px',
-                          style: const TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: DesignTokens.onyx,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${resolved.widthMm.toStringAsFixed(1)}×${resolved.heightMm.toStringAsFixed(1)} mm (${resolved.widthInches.toStringAsFixed(2)}"×${resolved.heightInches.toStringAsFixed(2)}")',
-                          style: const TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w600,
-                            color: DesignTokens.neutralGraySevenHundred,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+
+          const SizedBox(height: 12),
+
+          // Bottom Minimal Resolution & Dimensions Footnote
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Flexible(
+                child: Text(
+                  '${resolved.pixelWidth(effectiveDpi)} × ${resolved.pixelHeight(effectiveDpi)} px',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '${resolved.widthInches.toStringAsFixed(2)}" × ${resolved.heightInches.toStringAsFixed(2)}"',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: subtextColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _PlatenGlassGridPainter extends CustomPainter {
+  const _PlatenGlassGridPainter({required this.markerColor});
+
+  final Color markerColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = markerColor
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    const double markerLength = 12.0;
+    const double pad = 4.0;
+
+    // Top-Left L-bracket
+    canvas.drawLine(const Offset(pad, pad), const Offset(pad + markerLength, pad), paint);
+    canvas.drawLine(const Offset(pad, pad), const Offset(pad, pad + markerLength), paint);
+
+    // Top-Right L-bracket
+    canvas.drawLine(
+      Offset(size.width - pad, pad),
+      Offset(size.width - pad - markerLength, pad),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width - pad, pad),
+      Offset(size.width - pad, pad + markerLength),
+      paint,
+    );
+
+    // Bottom-Left L-bracket
+    canvas.drawLine(
+      Offset(pad, size.height - pad),
+      Offset(pad + markerLength, size.height - pad),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(pad, size.height - pad),
+      Offset(pad, size.height - pad - markerLength),
+      paint,
+    );
+
+    // Bottom-Right L-bracket
+    canvas.drawLine(
+      Offset(size.width - pad, size.height - pad),
+      Offset(size.width - pad - markerLength, size.height - pad),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width - pad, size.height - pad),
+      Offset(size.width - pad, size.height - pad - markerLength),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PlatenGlassGridPainter oldDelegate) =>
+      oldDelegate.markerColor != markerColor;
 }

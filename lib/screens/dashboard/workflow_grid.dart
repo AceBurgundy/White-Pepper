@@ -130,9 +130,9 @@ class _WorkflowGridState extends State<WorkflowGrid> {
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        const int crossAxisCount = 2;
+        final int crossAxisCount = constraints.maxWidth < 420 ? 1 : 2;
         const double spacing = 12.0;
-        const double cardHeight = 166.0;
+        const double cardHeight = 136.0;
 
         final double trackHeight =
             constraints.maxHeight.clamp(120.0, 4000.0);
@@ -162,7 +162,7 @@ class _WorkflowGridState extends State<WorkflowGrid> {
                       parent: AlwaysScrollableScrollPhysics(),
                     ),
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                        SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
                       crossAxisSpacing: spacing,
                       mainAxisSpacing: spacing,

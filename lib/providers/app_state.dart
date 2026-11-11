@@ -58,6 +58,7 @@ class AppState extends ChangeNotifier {
   bool _isScannerOnline = true;
   final String _scannerModel = 'HP DeskJet / Wireless eSCL';
   final String _scannerEndpoint = '192.168.1.150:8080';
+  bool _isDarkMode = false;
 
   // Getters
   AppScreen get currentScreen => _currentScreen;
@@ -73,6 +74,19 @@ class AppState extends ChangeNotifier {
   bool get isScannerOnline => _isScannerOnline;
   String get scannerModel => _scannerModel;
   String get scannerEndpoint => _scannerEndpoint;
+  bool get isDarkMode => _isDarkMode;
+
+  void toggleDarkMode() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
+  }
+
+  void setDarkMode(bool value) {
+    if (_isDarkMode != value) {
+      _isDarkMode = value;
+      notifyListeners();
+    }
+  }
 
   List<PeaPodToolType> get availableTools =>
       PeaPodToolType.toolsForWorkflow(_config.workflowType);

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
+import '../../widgets/dialogs/app_settings_dialog.dart';
 import '../../widgets/dialogs/hardware_connect_dialog.dart';
 import '../../widgets/window/window_title_bar.dart';
 import '../instructions/instructions_screen.dart';
@@ -16,7 +17,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppState state = context.watch<AppState>();
-    final bool isDarkScreen = state.currentScreen != AppScreen.dashboard;
+    final bool isDark = state.isDarkMode;
     final String viewSubtitle = switch (state.currentScreen) {
       AppScreen.dashboard => 'Workstation',
       AppScreen.options => 'Scan Settings',
@@ -30,14 +31,14 @@ class DashboardScreen extends StatelessWidget {
           width: double.infinity,
           height: double.infinity,
           decoration: BoxDecoration(
-            color: isDarkScreen
+            color: isDark
                 ? DesignTokens.onyx
                 : DesignTokens.neutralLightSurface,
             borderRadius: BorderRadius.circular(
               DesignTokens.radiusViewportDesktop,
             ),
             border: Border.all(
-              color: isDarkScreen
+              color: isDark
                   ? DesignTokens.darkSurfaceThree
                   : DesignTokens.neutralGrayThreeHundred,
               width: 1.0,
@@ -54,7 +55,7 @@ class DashboardScreen extends StatelessWidget {
                   switchInCurve: Curves.easeOutCubic,
                   switchOutCurve: Curves.easeInCubic,
                   child: switch (state.currentScreen) {
-                    AppScreen.dashboard => _buildDashboardPane(context, state),
+                    AppScreen.dashboard => _buildDashboardPane(context, state, isDark),
                     AppScreen.options => const OptionsScreen(
                         key: ValueKey<String>('screen_options'),
                       ),
@@ -71,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
                 left: 0,
                 right: 0,
                 child: WindowTitleBar(
-                  isDark: isDarkScreen,
+                  isDark: isDark,
                   subtitle: viewSubtitle,
                 ),
               ),
@@ -82,7 +83,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardPane(BuildContext context, AppState state) {
+  Widget _buildDashboardPane(BuildContext context, AppState state, bool isDark) {
     return LayoutBuilder(
       key: const ValueKey<String>('screen_dashboard'),
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -94,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                _buildSidebarTopContent(context, state),
+                _buildSidebarTopContent(context, state, isDark),
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 520,
@@ -103,7 +104,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Center(child: _buildDockedNavPill(state)),
+                Center(child: _buildDockedNavPill(context, state, isDark)),
               ],
             ),
           );
@@ -123,10 +124,10 @@ class DashboardScreen extends StatelessWidget {
                   children: <Widget>[
                     Flexible(
                       child: SingleChildScrollView(
-                        child: _buildSidebarTopContent(context, state),
+                        child: _buildSidebarTopContent(context, state, isDark),
                       ),
                     ),
-                    _buildDockedNavPill(state),
+                    _buildDockedNavPill(context, state, isDark),
                   ],
                 ),
               ),
@@ -147,91 +148,55 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSidebarTopContent(BuildContext context, AppState state) {
+  Widget _buildSidebarTopContent(BuildContext context, AppState state, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        // Top Actions Bar
+        // Top Actions Bar (Workstation Pill + Night Mode Button)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            _buildCircleIconButton(
-              icon: Icons.segment_rounded,
-              tooltip: 'Workstation Menu',
-              onTap: () {
-                showDialog<void>(
-                  context: context,
-                  builder: (_) => const HardwareConnectDialog(),
-                );
-              },
-            ),
-            Flexible(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.radiusPill,
                 ),
-                decoration: BoxDecoration(
-                  color: DesignTokens.pureWhite,
-                  borderRadius: BorderRadius.circular(
-                    DesignTokens.radiusPill,
-                  ),
-                  border: Border.all(
-                    color: DesignTokens.neutralGrayTwoHundred,
-                  ),
+                border: Border.all(
+                  color: isDark ? DesignTokens.darkSurfaceFive : DesignTokens.neutralGrayTwoHundred,
                 ),
-                child: const Text(
-                  'WORKSTATION',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: DesignTokens.onyx,
-                    letterSpacing: 0.6,
-                  ),
+              ),
+              child: Text(
+                'WORKSTATION',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                  letterSpacing: 0.6,
                 ),
               ),
             ),
-            Stack(
-              children: <Widget>[
-                _buildCircleIconButton(
-                  icon: Icons.notifications_rounded,
-                  tooltip: 'Probe Scanner Hardware',
-                  onTap: () {
-                    state.runDiagnostics();
-                    showDialog<void>(
-                      context: context,
-                      builder: (_) => const HardwareConnectDialog(),
-                    );
-                  },
-                ),
-                Positioned(
-                  top: 11,
-                  right: 11,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: DesignTokens.accentYellow,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
+            _buildCircleIconButton(
+              icon: state.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              tooltip: state.isDarkMode ? 'Day Mode' : 'Night Mode',
+              isDark: isDark,
+              onTap: () => state.toggleDarkMode(),
             ),
           ],
         ),
         const SizedBox(height: 18),
 
-        // Headline ("White Pepper" replacing "Scanner Module")
-        const Text(
+        // Headline ("White Pepper")
+        Text(
           'White Pepper',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
-            color: DesignTokens.onyx,
+            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
             height: 1.12,
             letterSpacing: -0.5,
           ),
@@ -252,48 +217,17 @@ class DashboardScreen extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: DesignTokens.onyx,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
                   borderRadius: BorderRadius.circular(
                     DesignTokens.radiusPill,
                   ),
-                  border: Border.all(
-                    color: DesignTokens.darkSurfaceFour,
-                  ),
                 ),
-                child: const Text(
+                child: Text(
                   'All Workflows (8)',
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: DesignTokens.pureWhite,
-                  ),
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                showDialog<void>(
-                  context: context,
-                  builder: (_) => const HardwareConnectDialog(),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: DesignTokens.pureWhite,
-                  borderRadius: BorderRadius.circular(
-                    DesignTokens.radiusPill,
-                  ),
-                ),
-                child: const Text(
-                  'Connect',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: DesignTokens.onyx,
+                    color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
                   ),
                 ),
               ),
@@ -304,7 +238,7 @@ class DashboardScreen extends StatelessWidget {
                 vertical: 6,
               ),
               decoration: BoxDecoration(
-                color: DesignTokens.onyx.withValues(alpha: 0.08),
+                color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.onyx.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(
                   DesignTokens.radiusPill,
                 ),
@@ -325,10 +259,10 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(
                     state.isScannerOnline ? 'Online' : 'Offline',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
-                      color: DesignTokens.onyx,
+                      color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
                     ),
                   ),
                 ],
@@ -338,17 +272,17 @@ class DashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 18),
 
-        // Connected Printer Status Card (.card--printer-status from DesktopMockup.js)
-        _buildSidebarPrinterCard(context, state),
+        // Connected Printer Status Card (.card--printer-status)
+        _buildSidebarPrinterCard(context, state, isDark),
       ],
     );
   }
 
-  Widget _buildDockedNavPill(AppState state) {
+  Widget _buildDockedNavPill(BuildContext context, AppState state, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: DesignTokens.onyx,
+        color: isDark ? DesignTokens.darkSurfaceTwo : DesignTokens.onyx,
         borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
         boxShadow: DesignTokens.shadowFloatingPill,
       ),
@@ -363,10 +297,15 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           _buildDockedNavButton(
-            icon: Icons.tune_rounded,
-            tooltip: 'Options Control Deck',
-            isActive: state.currentScreen == AppScreen.options,
-            onTap: () => state.switchScreen(AppScreen.options),
+            icon: Icons.settings_rounded,
+            tooltip: 'Settings',
+            isActive: false,
+            onTap: () {
+              showDialog<void>(
+                context: context,
+                builder: (_) => const AppSettingsDialog(),
+              );
+            },
           ),
           const SizedBox(width: 4),
           _buildDockedNavButton(
@@ -380,7 +319,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSidebarPrinterCard(BuildContext context, AppState state) {
+  Widget _buildSidebarPrinterCard(BuildContext context, AppState state, bool isDark) {
     final List<Map<String, Object>> channels = <Map<String, Object>>[
       <String, Object>{'label': 'C', 'pct': 0.85, 'color': DesignTokens.inkCyan},
       <String, Object>{'label': 'M', 'pct': 0.72, 'color': DesignTokens.inkMagenta},
@@ -410,29 +349,15 @@ class DashboardScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        state.scannerModel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: DesignTokens.pureWhite,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Wireless Scanner • ${state.scannerEndpoint}',
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: DesignTokens.neutralGrayFiveHundred,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    state.scannerModel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: DesignTokens.pureWhite,
+                    ),
                   ),
                 ),
                 Container(
@@ -473,7 +398,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Ink / Sensor Channel Bars + Quick Hardware Probe Button
+            // Ink Channel Bars + View Printer Tooltip/Hand Button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -517,17 +442,31 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }).toList(),
                 ),
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: DesignTokens.accentYellow,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.chevron_right_rounded,
-                    color: DesignTokens.onyx,
-                    size: 22,
+                Tooltip(
+                  message: 'View Printer',
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => const HardwareConnectDialog(),
+                        );
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                          color: DesignTokens.accentYellow,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.chevron_right_rounded,
+                          color: DesignTokens.onyx,
+                          size: 22,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -542,11 +481,12 @@ class DashboardScreen extends StatelessWidget {
     required IconData icon,
     required String tooltip,
     required VoidCallback onTap,
+    required bool isDark,
   }) {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: DesignTokens.darkSurfaceFour,
+        color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
         shape: const CircleBorder(),
         child: InkWell(
           onTap: onTap,
@@ -556,7 +496,7 @@ class DashboardScreen extends StatelessWidget {
             height: 44,
             child: Icon(
               icon,
-              color: DesignTokens.pureWhite,
+              color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
               size: 20,
             ),
           ),

@@ -8,12 +8,14 @@ class PeaPodWidget extends StatefulWidget {
     required this.selectedTool,
     required this.onToolSelected,
     this.tools = PeaPodToolType.values,
+    this.isDarkMode = false,
     super.key,
   });
 
   final PeaPodToolType selectedTool;
   final ValueChanged<PeaPodToolType> onToolSelected;
   final List<PeaPodToolType> tools;
+  final bool isDarkMode;
 
   @override
   State<PeaPodWidget> createState() => _PeaPodWidgetState();
@@ -36,15 +38,33 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
       duration: const Duration(milliseconds: 450),
     );
     _dropletScaleX = TweenSequence<double>(<TweenSequenceItem<double>>[
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 1.0, end: 1.28), weight: 35),
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 1.28, end: 0.90), weight: 35),
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 0.90, end: 1.0), weight: 30),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1.0, end: 1.28),
+        weight: 35,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1.28, end: 0.90),
+        weight: 35,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0.90, end: 1.0),
+        weight: 30,
+      ),
     ]).animate(CurvedAnimation(parent: _dropletController, curve: Curves.easeOutCubic));
 
     _dropletScaleY = TweenSequence<double>(<TweenSequenceItem<double>>[
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 1.0, end: 0.80), weight: 35),
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 0.80, end: 1.12), weight: 35),
-      TweenSequenceItem<double>(tween: Tween<double>(begin: 1.12, end: 1.0), weight: 30),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1.0, end: 0.80),
+        weight: 35,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0.80, end: 1.12),
+        weight: 35,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 1.12, end: 1.0),
+        weight: 30,
+      ),
     ]).animate(CurvedAnimation(parent: _dropletController, curve: Curves.easeOutCubic));
   }
 
@@ -60,7 +80,8 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
       if (selectedIdx < _windowStartIndex) {
         _windowStartIndex = selectedIdx;
       } else if (selectedIdx >= _windowStartIndex + _visibleSlots) {
-        _windowStartIndex = (selectedIdx - _visibleSlots + 1).clamp(0, maxStart);
+        _windowStartIndex =
+            (selectedIdx - _visibleSlots + 1).clamp(0, maxStart);
       }
     }
   }
@@ -74,7 +95,8 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
   void _stepDirection(int delta) {
     final int selectedIdx = widget.tools.indexOf(widget.selectedTool);
     if (selectedIdx == -1) return;
-    final int targetIdx = (selectedIdx + delta).clamp(0, widget.tools.length - 1);
+    final int targetIdx =
+        (selectedIdx + delta).clamp(0, widget.tools.length - 1);
     if (targetIdx != selectedIdx) {
       _dropletController.forward(from: 0.0);
       widget.onToolSelected(widget.tools[targetIdx]);
@@ -83,6 +105,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = widget.isDarkMode;
     final int slotCount = widget.tools.length < _visibleSlots
         ? widget.tools.length
         : _visibleSlots;
@@ -95,6 +118,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
       children: <Widget>[
         // Left Navigation Arrow Pod (.pea-pod__nav-pod)
         _buildNavPod(
+          isDark: isDark,
           icon: Icons.chevron_left_rounded,
           tooltip: 'Previous parameter',
           onTap: () => _stepDirection(-1),
@@ -114,7 +138,10 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
           child: SizedBox(
             height: 68,
             child: CustomPaint(
-              painter: _PeaPodMetaballPainter(nodeCount: visibleTools.length),
+              painter: _PeaPodMetaballPainter(
+                nodeCount: visibleTools.length,
+                isDark: isDark,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Row(
@@ -122,6 +149,14 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
                   children: List<Widget>.generate(visibleTools.length, (int i) {
                     final PeaPodToolType tool = visibleTools[i];
                     final bool isActive = tool == widget.selectedTool;
+
+                    final Color buttonBg = isActive
+                        ? (isDark ? DesignTokens.pureWhite : DesignTokens.onyx)
+                        : (isDark ? DesignTokens.darkSurfaceFive : DesignTokens.pureWhite);
+                    final Color iconColor = isActive
+                        ? (isDark ? DesignTokens.onyx : DesignTokens.pureWhite)
+                        : (isDark ? DesignTokens.pureWhite : DesignTokens.onyx);
+
                     return Padding(
                       padding: EdgeInsets.only(
                         right: i < visibleTools.length - 1 ? 12 : 0,
@@ -139,17 +174,22 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
                             width: 52,
                             height: 52,
                             decoration: BoxDecoration(
-                              color: isActive
-                                  ? DesignTokens.pureWhite
-                                  : DesignTokens.darkSurfaceFive,
+                              color: buttonBg,
                               shape: BoxShape.circle,
+                              boxShadow: isDark
+                                  ? null
+                                  : <BoxShadow>[
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        offset: const Offset(0, 2),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
                             ),
                             child: Icon(
                               tool.icon,
                               size: 22,
-                              color: isActive
-                                  ? DesignTokens.onyx
-                                  : DesignTokens.pureWhite,
+                              color: iconColor,
                             ),
                           ),
                         ),
@@ -165,6 +205,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
         const SizedBox(width: 12),
         // Right Navigation Arrow Pod (.pea-pod__nav-pod)
         _buildNavPod(
+          isDark: isDark,
           icon: Icons.chevron_right_rounded,
           tooltip: 'Next parameter',
           onTap: () => _stepDirection(1),
@@ -174,19 +215,30 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
   }
 
   Widget _buildNavPod({
+    required bool isDark,
     required IconData icon,
     required String tooltip,
     required VoidCallback onTap,
   }) {
+    final Color podBg = isDark
+        ? DesignTokens.darkSurfaceTwo
+        : const Color(0xFFE4E4E7);
+    final Color innerBg = isDark
+        ? DesignTokens.darkSurfaceFive
+        : DesignTokens.pureWhite;
+    final Color iconColor = isDark
+        ? DesignTokens.pureWhite
+        : DesignTokens.onyx;
+
     return Container(
       padding: const EdgeInsets.all(6),
-      decoration: const BoxDecoration(
-        color: DesignTokens.darkSurfaceTwo,
+      decoration: BoxDecoration(
+        color: podBg,
         shape: BoxShape.circle,
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Color(0x40000000),
-            offset: Offset(0, 4),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+            offset: const Offset(0, 4),
             blurRadius: 14,
           ),
         ],
@@ -194,7 +246,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
       child: Tooltip(
         message: tooltip,
         child: Material(
-          color: DesignTokens.darkSurfaceFive,
+          color: innerBg,
           shape: const CircleBorder(),
           child: InkWell(
             onTap: onTap,
@@ -204,7 +256,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
               height: 50,
               child: Icon(
                 icon,
-                color: DesignTokens.pureWhite,
+                color: iconColor,
                 size: 22,
               ),
             ),
@@ -216,15 +268,21 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
 }
 
 class _PeaPodMetaballPainter extends CustomPainter {
-  const _PeaPodMetaballPainter({required this.nodeCount});
+  const _PeaPodMetaballPainter({
+    required this.nodeCount,
+    required this.isDark,
+  });
 
   final int nodeCount;
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (nodeCount <= 0) return;
     final Paint paint = Paint()
-      ..color = DesignTokens.darkSurfaceTwo
+      ..color = isDark
+          ? DesignTokens.darkSurfaceTwo
+          : const Color(0xFFE4E4E7)
       ..style = PaintingStyle.fill;
 
     final double centerY = size.height / 2;
@@ -252,11 +310,16 @@ class _PeaPodMetaballPainter extends CustomPainter {
       }
     }
 
-    canvas.drawShadow(path, const Color(0x80000000), 8.0, true);
+    canvas.drawShadow(
+      path,
+      Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
+      8.0,
+      true,
+    );
     canvas.drawPath(path, paint);
   }
 
   @override
   bool shouldRepaint(covariant _PeaPodMetaballPainter oldDelegate) =>
-      oldDelegate.nodeCount != nodeCount;
+      oldDelegate.nodeCount != nodeCount || oldDelegate.isDark != isDark;
 }

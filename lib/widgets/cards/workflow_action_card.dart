@@ -10,10 +10,10 @@ enum WorkflowCardTheme {
 class WorkflowActionCard extends StatefulWidget {
   const WorkflowActionCard({
     required this.title,
-    required this.subtitle,
     required this.icon,
     required this.theme,
     required this.onTap,
+    this.subtitle = '',
     this.emojiIcon,
     this.useEmoji = false,
     this.badgeText,
@@ -42,7 +42,6 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
     final Color textColor;
     final Color arrowBadgeBackground;
     final Color arrowBadgeForeground;
-    final Color subtitleColor;
 
     switch (widget.theme) {
       case WorkflowCardTheme.yellow:
@@ -50,19 +49,16 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
         textColor = DesignTokens.onyx;
         arrowBadgeBackground = DesignTokens.pureWhite;
         arrowBadgeForeground = DesignTokens.onyx;
-        subtitleColor = DesignTokens.onyx.withValues(alpha: 0.68);
       case WorkflowCardTheme.dark:
         backgroundColor = DesignTokens.onyx;
         textColor = DesignTokens.pureWhite;
         arrowBadgeBackground = DesignTokens.darkSurfaceFour;
         arrowBadgeForeground = DesignTokens.pureWhite;
-        subtitleColor = DesignTokens.neutralGrayFourHundred;
       case WorkflowCardTheme.light:
         backgroundColor = DesignTokens.pureWhite;
         textColor = DesignTokens.onyx;
         arrowBadgeBackground = const Color(0xFFF2F2F2);
         arrowBadgeForeground = DesignTokens.onyx;
-        subtitleColor = DesignTokens.neutralGraySevenHundred;
     }
 
     return MouseRegion(
@@ -115,8 +111,8 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
                 children: <Widget>[
                   if (widget.theme == WorkflowCardTheme.dark)
                     Container(
-                      width: 34,
-                      height: 34,
+                      width: 36,
+                      height: 36,
                       decoration: const BoxDecoration(
                         color: DesignTokens.pureWhite,
                         shape: BoxShape.circle,
@@ -124,103 +120,49 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
                       child: Icon(
                         widget.icon,
                         color: DesignTokens.onyx,
-                        size: 19,
+                        size: 20,
                       ),
                     )
                   else
                     Icon(
                       widget.icon,
                       color: DesignTokens.onyx,
-                      size: 25,
+                      size: 26,
                     ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        if (widget.badgeText != null) ...<Widget>[
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: arrowBadgeBackground.withValues(alpha: 0.85),
-                                borderRadius: BorderRadius.circular(
-                                  DesignTokens.radiusPill,
-                                ),
-                              ),
-                              child: Text(
-                                widget.badgeText!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: arrowBadgeForeground,
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          transform: Matrix4.translationValues(
-                            _isHovered ? 2.0 : 0.0,
-                            _isHovered ? -2.0 : 0.0,
-                            0.0,
-                          ),
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: arrowBadgeBackground,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.north_east_rounded,
-                            color: arrowBadgeForeground,
-                            size: 16,
-                          ),
-                        ),
-                      ],
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    transform: Matrix4.translationValues(
+                      _isHovered ? 2.0 : 0.0,
+                      _isHovered ? -2.0 : 0.0,
+                      0.0,
+                    ),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: arrowBadgeBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.north_east_rounded,
+                      color: arrowBadgeForeground,
+                      size: 16,
                     ),
                   ),
                 ],
               ),
 
-              // Bottom Label + Consumer Subtitle
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    widget.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.2,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    widget.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: subtitleColor,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w500,
-                      height: 1.25,
-                    ),
-                  ),
-                ],
+              // Bottom Label: Title only, no description
+              Text(
+                widget.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                  height: 1.2,
+                ),
               ),
             ],
           ),

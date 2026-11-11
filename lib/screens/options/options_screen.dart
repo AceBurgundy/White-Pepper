@@ -8,7 +8,7 @@ import '../../widgets/peapod/pea_pod_drawer.dart';
 import '../../widgets/peapod/pea_pod_widget.dart';
 import '../../widgets/preview/platen_preview_canvas.dart';
 
-/// Dark #212121 Options Control Deck replicating Screen 2 of DesktopMockup.js (lines 520–652)
+/// Options Control Deck replicating Screen 2 with All-Day Theme default & 1.5x borderless options.
 class OptionsScreen extends StatelessWidget {
   const OptionsScreen({super.key});
 
@@ -23,6 +23,7 @@ class OptionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppState state = context.watch<AppState>();
+    final bool isDark = state.isDarkMode;
     final int workflowIndex =
         WorkflowType.values.indexOf(state.config.workflowType) + 1;
     final int totalWorkflows = WorkflowType.values.length;
@@ -34,94 +35,228 @@ class OptionsScreen extends StatelessWidget {
 
         if (isCompact) {
           return Container(
-            color: DesignTokens.onyx,
+            color: isDark
+                ? DesignTokens.onyx
+                : DesignTokens.neutralLightSurface,
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16.0, 38.0, 16.0, 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   SizedBox(
-                    height: 360,
+                    height: 380,
                     child: _buildLeftPreviewCard(
                       context,
                       state,
                       workflowIndex,
                       totalWorkflows,
+                      isDark,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildControlDeckHeading(state),
-                  const SizedBox(height: 14),
+                  _buildControlDeckHeading(state, isDark),
+                  const SizedBox(height: 16),
                   Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: PeaPodWidget(
-                        tools: state.availableTools,
-                        selectedTool: state.activeTool,
-                        onToolSelected: (PeaPodToolType tool) {
-                          state.setActiveTool(tool);
-                        },
-                      ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Transform.scale(
+                            scale: 1.5,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: PeaPodWidget(
+                                isDarkMode: isDark,
+                                tools: state.availableTools,
+                                selectedTool: state.activeTool,
+                                onToolSelected: (PeaPodToolType tool) {
+                                  state.setActiveTool(tool);
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          state.activeTool.displayTitle,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? DesignTokens.pureWhite
+                                : DesignTokens.onyx,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _buildDrawerAndSummaryBar(state),
+                  _buildDrawerAndSummaryBar(state, isDark),
                   const SizedBox(height: 16),
-                  _buildBottomActionRow(context, state),
+                  _buildBottomActionRow(context, state, isDark),
                 ],
               ),
             ),
           );
         }
 
-        return Container(
-          color: DesignTokens.onyx,
-          padding: const EdgeInsets.fromLTRB(28.0, 38.0, 28.0, 28.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // Left Column (340px): #2A2A2A Live Document Preview & Printer Platen
-              SizedBox(
-                width: 340,
-                child: _buildLeftPreviewCard(
-                  context,
-                  state,
-                  workflowIndex,
-                  totalWorkflows,
-                ),
-              ),
-              const SizedBox(width: 28),
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final bool isNarrow = constraints.maxWidth < 800;
 
-              // Right Column: Dedicated Control Panel (Pea Pod + Active Drawer + Summary + Start)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    _buildControlDeckHeading(state),
-                    Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: PeaPodWidget(
-                          tools: state.availableTools,
-                          selectedTool: state.activeTool,
-                          onToolSelected: (PeaPodToolType tool) {
-                            state.setActiveTool(tool);
-                          },
+            if (isNarrow) {
+              return Container(
+                color: isDark
+                    ? DesignTokens.onyx
+                    : DesignTokens.neutralLightSurface,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 380,
+                        child: _buildLeftPreviewCard(
+                          context,
+                          state,
+                          workflowIndex,
+                          totalWorkflows,
+                          isDark,
                         ),
                       ),
-                    ),
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: _buildDrawerAndSummaryBar(state),
+                      const SizedBox(height: 20),
+                      _buildControlDeckHeading(state, isDark),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Transform.scale(
+                                scale: 1.5,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 20),
+                                  child: PeaPodWidget(
+                                    isDarkMode: isDark,
+                                    tools: state.availableTools,
+                                    selectedTool: state.activeTool,
+                                    onToolSelected: (PeaPodToolType tool) {
+                                      state.setActiveTool(tool);
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              state.activeTool.displayTitle,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? DesignTokens.pureWhite
+                                    : DesignTokens.onyx,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    _buildBottomActionRow(context, state),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildDrawerAndSummaryBar(state, isDark),
+                      const SizedBox(height: 20),
+                      _buildBottomActionRow(context, state, isDark),
+                    ],
+                  ),
                 ),
+              );
+            }
+
+            return Container(
+              color: isDark
+                  ? DesignTokens.onyx
+                  : DesignTokens.neutralLightSurface,
+              padding: const EdgeInsets.fromLTRB(28.0, 38.0, 28.0, 28.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  // Left Column (390px): Widened Live Document Preview & Optical Platen
+                  SizedBox(
+                    width: 390,
+                    child: _buildLeftPreviewCard(
+                      context,
+                      state,
+                      workflowIndex,
+                      totalWorkflows,
+                      isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 28),
+
+                  // Right Column: Dedicated Control Panel (Pea Pod + Active Drawer + Summary + Start)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        _buildControlDeckHeading(state, isDark),
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Transform.scale(
+                                  scale: 1.5,
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 20),
+                                    child: PeaPodWidget(
+                                      isDarkMode: isDark,
+                                      tools: state.availableTools,
+                                      selectedTool: state.activeTool,
+                                      onToolSelected: (PeaPodToolType tool) {
+                                        state.setActiveTool(tool);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                state.activeTool.displayTitle,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? DesignTokens.pureWhite
+                                      : DesignTokens.onyx,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: _buildDrawerAndSummaryBar(state, isDark),
+                          ),
+                        ),
+                        _buildBottomActionRow(context, state, isDark),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -132,12 +267,30 @@ class OptionsScreen extends StatelessWidget {
     AppState state,
     int workflowIndex,
     int totalWorkflows,
+    bool isDark,
   ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: DesignTokens.darkSurfaceOne,
+        color: isDark
+            ? DesignTokens.darkSurfaceOne
+            : DesignTokens.pureWhite,
         borderRadius: BorderRadius.circular(28.0),
+        border: Border.all(
+          color: isDark
+              ? DesignTokens.darkSurfaceThree
+              : DesignTokens.neutralGrayThreeHundred,
+          width: 1.0,
+        ),
+        boxShadow: isDark
+            ? null
+            : <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,17 +302,21 @@ class OptionsScreen extends StatelessWidget {
               Tooltip(
                 message: 'Back to Dashboard',
                 child: Material(
-                  color: DesignTokens.darkSurfaceFour,
+                  color: isDark
+                      ? DesignTokens.darkSurfaceFour
+                      : const Color(0xFFE4E4E7),
                   shape: const CircleBorder(),
                   child: InkWell(
                     onTap: () => _navigateBackToDashboard(context, state),
                     customBorder: const CircleBorder(),
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: 44,
                       height: 44,
                       child: Icon(
                         Icons.chevron_left_rounded,
-                        color: DesignTokens.pureWhite,
+                        color: isDark
+                            ? DesignTokens.pureWhite
+                            : DesignTokens.onyx,
                         size: 22,
                       ),
                     ),
@@ -174,9 +331,16 @@ class OptionsScreen extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: DesignTokens.darkSurfaceFour,
+                    color: isDark
+                        ? DesignTokens.darkSurfaceFour
+                        : const Color(0xFFF4F4F6),
                     borderRadius: BorderRadius.circular(
                       DesignTokens.radiusPill,
+                    ),
+                    border: Border.all(
+                      color: isDark
+                          ? DesignTokens.darkSurfaceFive
+                          : const Color(0xFFE4E4E7),
                     ),
                   ),
                   child: Column(
@@ -186,8 +350,10 @@ class OptionsScreen extends StatelessWidget {
                         state.config.workflowType.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: DesignTokens.pureWhite,
+                        style: TextStyle(
+                          color: isDark
+                              ? DesignTokens.pureWhite
+                              : DesignTokens.onyx,
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
                         ),
@@ -200,18 +366,20 @@ class OptionsScreen extends StatelessWidget {
                             width: 6,
                             height: 6,
                             decoration: const BoxDecoration(
-                              color: DesignTokens.accentYellow,
+                              color: DesignTokens.statusOnlineGreen,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 5),
-                          const Flexible(
+                          Flexible(
                             child: Text(
                               'Ready to Configure',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: DesignTokens.accentYellow,
+                                color: isDark
+                                    ? DesignTokens.accentYellow
+                                    : const Color(0xFF15803D),
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -225,8 +393,10 @@ class OptionsScreen extends StatelessWidget {
               ),
               Text(
                 '$workflowIndex/$totalWorkflows',
-                style: const TextStyle(
-                  color: DesignTokens.neutralGraySixHundred,
+                style: TextStyle(
+                  color: isDark
+                      ? DesignTokens.neutralGraySixHundred
+                      : DesignTokens.neutralGraySevenHundred,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -235,9 +405,10 @@ class OptionsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // 3D Printer Pill + Paper Sheet Preview
+          // Widened Optical Platen Bed
           Expanded(
             child: PlatenPreviewCanvas(
+              isDarkMode: isDark,
               paperPreset: state.config.paperSize,
               dpi: state.config.dpi,
               rotation: state.config.rotation,
@@ -253,35 +424,37 @@ class OptionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildControlDeckHeading(AppState state) {
+  Widget _buildControlDeckHeading(AppState state, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text(
+        Text(
           'SCAN SETTINGS',
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: DesignTokens.accentYellow,
+            fontWeight: FontWeight.w800,
+            color: isDark ? DesignTokens.accentYellow : const Color(0xFFB45309),
             letterSpacing: 0.8,
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
+        const SizedBox(height: 4),
+        Text(
           'Tool & Parameter Adjustments',
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: DesignTokens.pureWhite,
+            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
             letterSpacing: -0.3,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'Choose a category below to customize paper size, scan quality, color tone, and save location for ${state.config.workflowType.title}.',
-          style: const TextStyle(
-            fontSize: 13.5,
-            color: DesignTokens.neutralGrayFiveHundred,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark
+                ? DesignTokens.neutralGrayFiveHundred
+                : DesignTokens.neutralGraySevenHundred,
             height: 1.35,
           ),
         ),
@@ -289,7 +462,7 @@ class OptionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDrawerAndSummaryBar(AppState state) {
+  Widget _buildDrawerAndSummaryBar(AppState state, bool isDark) {
     final ScanConfigurationModel config = state.config;
     final String dpiLabel =
         config.dpi <= 0 ? 'Auto Quality' : '${config.dpi} DPI';
@@ -298,61 +471,58 @@ class OptionsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         PeaPodDrawer(
+          isDarkMode: isDark,
           selectedTool: state.activeTool,
           config: config,
           onConfigChanged: (ScanConfigurationModel cfg) {
             state.updateConfig(cfg);
           },
         ),
-        const SizedBox(height: 10),
-        // Active Scan Configuration Summary Bar
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 10,
-          ),
-          decoration: BoxDecoration(
-            color: DesignTokens.darkSurfaceOne,
-            borderRadius: BorderRadius.circular(DesignTokens.radiusCardInner),
-            border: Border.all(
-              color: DesignTokens.darkSurfaceFive,
-            ),
-          ),
+        const SizedBox(height: 14),
+        // Active Scan Configuration Summary Bar - Borderless without parent background
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           child: Row(
             children: <Widget>[
-              const Icon(
+              Icon(
                 Icons.tune_rounded,
                 size: 16,
-                color: DesignTokens.accentYellow,
+                color: isDark
+                    ? DesignTokens.accentYellow
+                    : const Color(0xFFD4AC0D),
               ),
-              const SizedBox(width: 10),
-              const Text(
+              const SizedBox(width: 8),
+              Text(
                 'Active Settings:',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: DesignTokens.pureWhite,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Wrap(
                   spacing: 8,
-                  runSpacing: 4,
+                  runSpacing: 6,
                   children: <Widget>[
                     _buildSummaryBadge(
+                      isDark: isDark,
                       label: 'Paper',
-                      value: config.paperSize.toUpperCase(),
+                      value: PeaPodDrawer.formatPresetTitle(config.paperSize),
                     ),
                     _buildSummaryBadge(
+                      isDark: isDark,
                       label: 'Quality',
                       value: dpiLabel,
                     ),
                     _buildSummaryBadge(
+                      isDark: isDark,
                       label: 'Color',
-                      value: config.colorMode.toUpperCase(),
+                      value: PeaPodDrawer.formatPresetTitle(config.colorMode),
                     ),
                     _buildSummaryBadge(
+                      isDark: isDark,
                       label: 'Format',
                       value: '.${config.format.toUpperCase()}',
                     ),
@@ -367,30 +537,35 @@ class OptionsScreen extends StatelessWidget {
   }
 
   Widget _buildSummaryBadge({
+    required bool isDark,
     required String label,
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: DesignTokens.darkSurfaceFour,
+        color: isDark
+            ? DesignTokens.darkSurfaceFour
+            : const Color(0xFFE4E4E7),
         borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Text.rich(
         TextSpan(
           text: '$label: ',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: DesignTokens.neutralGrayFiveHundred,
+            color: isDark
+                ? DesignTokens.neutralGrayFiveHundred
+                : DesignTokens.neutralGrayEightHundred,
           ),
           children: <InlineSpan>[
             TextSpan(
               text: value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: DesignTokens.pureWhite,
+                color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
               ),
             ),
           ],
@@ -399,68 +574,41 @@ class OptionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomActionRow(BuildContext context, AppState state) {
+  Widget _buildBottomActionRow(
+    BuildContext context,
+    AppState state,
+    bool isDark,
+  ) {
     return Row(
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: DesignTokens.darkSurfaceTwo,
-            borderRadius: BorderRadius.circular(
-              DesignTokens.radiusPill,
+        Tooltip(
+          message: 'Return to Workflow Cards',
+          child: Material(
+            color: isDark
+                ? DesignTokens.darkSurfaceTwo
+                : const Color(0xFFE4E4E7),
+            shape: const CircleBorder(),
+            child: InkWell(
+              onTap: () => _navigateBackToDashboard(context, state),
+              customBorder: const CircleBorder(),
+              child: SizedBox(
+                width: 58,
+                height: 58,
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                  color: isDark
+                      ? DesignTokens.pureWhite
+                      : DesignTokens.onyx,
+                  size: 24,
+                ),
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Tooltip(
-                message: 'Reset Workflow Defaults',
-                child: Material(
-                  color: DesignTokens.darkSurfaceFive,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    onTap: () => state.resetCurrentWorkflowDefaults(),
-                    customBorder: const CircleBorder(),
-                    child: const SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Icon(
-                        Icons.undo_rounded,
-                        color: DesignTokens.pureWhite,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Tooltip(
-                message: 'Return to Workflow Cards',
-                child: Material(
-                  color: DesignTokens.darkSurfaceFive,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    onTap: () => _navigateBackToDashboard(context, state),
-                    customBorder: const CircleBorder(),
-                    child: const SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Icon(
-                        Icons.grid_view_rounded,
-                        color: DesignTokens.neutralGrayFiveHundred,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
         ),
         const SizedBox(width: 14),
         Expanded(
           child: SizedBox(
-            height: 60,
+            height: 58,
             child: ElevatedButton(
               onPressed: () {
                 state.beginInstructionsWorkflow();
