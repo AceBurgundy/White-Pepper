@@ -6,7 +6,7 @@ enum WorkflowType {
     cliSummary: 'scan_cli.py flatbed --paper-size a4 --dpi 300',
     iconName: 'description',
     emojiIcon: '📄',
-    useEmoji: true,
+    useEmoji: false,
   ),
   photoScan(
     identifier: 'photo-scan',
@@ -42,7 +42,7 @@ enum WorkflowType {
     cliSummary: 'process_cli.py cards --dpi 600',
     iconName: 'view_carousel',
     emojiIcon: '🔍',
-    useEmoji: true,
+    useEmoji: false,
   ),
   compilePdf(
     identifier: 'compile-pdf',

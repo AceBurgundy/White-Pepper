@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/cards/workflow_action_card.dart';
 
-class WorkflowGrid extends StatelessWidget {
+class WorkflowGrid extends StatefulWidget {
   const WorkflowGrid({
     required this.onSelectWorkflow,
     super.key,
@@ -12,30 +13,75 @@ class WorkflowGrid extends StatelessWidget {
 
   final ValueChanged<WorkflowType> onSelectWorkflow;
 
-  IconData _resolveIcon(String iconName) {
-    switch (iconName) {
-      case 'description':
-        return Icons.description_rounded;
-      case 'badge':
-        return Icons.badge_rounded;
-      case 'vertical_split':
-        return Icons.vertical_split_rounded;
-      case 'auto_stories':
-        return Icons.auto_stories_rounded;
-      case 'receipt_long':
-        return Icons.receipt_long_rounded;
-      case 'image':
-        return Icons.image_rounded;
-      case 'picture_as_pdf':
-        return Icons.picture_as_pdf_rounded;
-      case 'view_carousel':
-        return Icons.view_carousel_rounded;
-      default:
-        return Icons.folder_rounded;
+  @override
+  State<WorkflowGrid> createState() => _WorkflowGridState();
+}
+
+class _WorkflowGridState extends State<WorkflowGrid> {
+  final ScrollController _scrollController = ScrollController();
+  double _scrollFraction = 0.0;
+  double _thumbFraction = 0.35;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScrollChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _handleScrollChanged());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_handleScrollChanged);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _handleScrollChanged() {
+    if (!mounted || !_scrollController.hasClients) return;
+    final ScrollPosition position = _scrollController.position;
+    final double maxExtent = position.maxScrollExtent;
+    final double viewport = position.viewportDimension;
+    final double totalContent = viewport + (maxExtent > 0 ? maxExtent : 0.0);
+
+    final double newThumbFraction = totalContent > 0
+        ? (viewport / totalContent).clamp(0.18, 0.55)
+        : 0.35;
+    final double newScrollFraction = maxExtent > 0
+        ? (position.pixels / maxExtent).clamp(0.0, 1.0)
+        : 0.0;
+
+    if ((newScrollFraction - _scrollFraction).abs() > 0.002 ||
+        (newThumbFraction - _thumbFraction).abs() > 0.002) {
+      setState(() {
+        _scrollFraction = newScrollFraction;
+        _thumbFraction = newThumbFraction;
+      });
     }
   }
 
-  /// Matches the exact 2x4 card theme alternating pattern in minimalist/WorkflowActionCard.js
+  IconData _resolveIcon(String iconName) {
+    switch (iconName) {
+      case 'description':
+        return Icons.description_outlined;
+      case 'badge':
+        return Icons.badge_outlined;
+      case 'vertical_split':
+        return Icons.vertical_split_outlined;
+      case 'auto_stories':
+        return Icons.auto_stories_outlined;
+      case 'receipt_long':
+        return Icons.receipt_long_outlined;
+      case 'image':
+        return Icons.image_outlined;
+      case 'picture_as_pdf':
+        return Icons.picture_as_pdf_outlined;
+      case 'view_carousel':
+        return Icons.crop_free_outlined;
+      default:
+        return Icons.folder_outlined;
+    }
+  }
+
   WorkflowCardTheme _resolveTheme(WorkflowType type) {
     switch (type) {
       case WorkflowType.flatbed:
@@ -85,43 +131,105 @@ class WorkflowGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         const int crossAxisCount = 2;
-        const int rowCount = 4;
         const double spacing = 12.0;
+        const double cardHeight = 166.0;
 
-        final double availableWidth =
-            (constraints.maxWidth - spacing).clamp(200.0, 4000.0);
-        final double itemWidth = availableWidth / crossAxisCount;
-        final double availableHeight =
-            (constraints.maxHeight - (spacing * (rowCount - 1))).clamp(320.0, 4000.0);
-        final double itemHeight = (availableHeight / rowCount).clamp(96.0, 220.0);
-        final double aspectRatio = (itemWidth / itemHeight).clamp(1.2, 3.8);
+        final double trackHeight =
+            constraints.maxHeight.clamp(120.0, 4000.0);
+        final double thumbHeight =
+            (trackHeight * _thumbFraction).clamp(36.0, trackHeight * 0.65);
+        final double availableThumbTravel =
+            (trackHeight - thumbHeight).clamp(0.0, 4000.0);
+        final double thumbTop = availableThumbTravel * _scrollFraction;
 
-        return GridView.builder(
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: spacing,
-            childAspectRatio: aspectRatio,
-          ),
-          itemCount: workflows.length,
-          itemBuilder: (BuildContext context, int index) {
-            final WorkflowType workflow = workflows[index];
-            return WorkflowActionCard(
-              title: workflow.title,
-              subtitle: workflow.subtitle,
-              icon: _resolveIcon(workflow.iconName),
-              emojiIcon: workflow.emojiIcon,
-              useEmoji: workflow.useEmoji,
-              theme: _resolveTheme(workflow),
-              badgeText: _resolveBadge(workflow),
-              onTap: () {
-                context.read<AppState>().selectWorkflow(workflow);
-                onSelectWorkflow(workflow);
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Expanded(
+              child: NotificationListener<ScrollMetricsNotification>(
+                onNotification: (ScrollMetricsNotification notification) {
+                  _handleScrollChanged();
+                  return false;
+                },
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    scrollbars: false,
+                  ),
+                  child: GridView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: spacing,
+                      mainAxisSpacing: spacing,
+                      mainAxisExtent: cardHeight,
+                    ),
+                    itemCount: workflows.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final WorkflowType workflow = workflows[index];
+                      return WorkflowActionCard(
+                        title: workflow.title,
+                        subtitle: workflow.subtitle,
+                        icon: _resolveIcon(workflow.iconName),
+                        emojiIcon: workflow.emojiIcon,
+                        useEmoji: workflow.useEmoji,
+                        theme: _resolveTheme(workflow),
+                        badgeText: _resolveBadge(workflow),
+                        onTap: () {
+                          context.read<AppState>().selectWorkflow(workflow);
+                          widget.onSelectWorkflow(workflow);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Thin custom scroll thumb (no native scrollbar trough)
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onVerticalDragUpdate: (DragUpdateDetails details) {
+                if (!_scrollController.hasClients) return;
+                final double maxExtent =
+                    _scrollController.position.maxScrollExtent;
+                if (maxExtent <= 0 || availableThumbTravel <= 0) return;
+                final double deltaScroll =
+                    (details.delta.dy / availableThumbTravel) * maxExtent;
+                _scrollController.jumpTo(
+                  (_scrollController.offset + deltaScroll)
+                      .clamp(0.0, maxExtent),
+                );
               },
-            );
-          },
+              child: SizedBox(
+                width: 6,
+                height: trackHeight,
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      top: thumbTop,
+                      right: 1,
+                      child: Container(
+                        key: const Key('workflow_grid_scroll_thumb'),
+                        width: 3.5,
+                        height: thumbHeight,
+                        decoration: BoxDecoration(
+                          color: DesignTokens.onyx.withValues(alpha: 0.36),
+                          borderRadius:
+                              BorderRadius.circular(DesignTokens.radiusPill),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

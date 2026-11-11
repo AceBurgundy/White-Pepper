@@ -109,19 +109,28 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              // Top row: Icon/Emoji + North-East Circular Arrow Badge
+              // Top row: Black Line Icon + North-East Circular Arrow Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  if (widget.useEmoji && widget.emojiIcon != null)
-                    Text(
-                      widget.emojiIcon!,
-                      style: const TextStyle(fontSize: 25, height: 1.0),
+                  if (widget.theme == WorkflowCardTheme.dark)
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(
+                        color: DesignTokens.pureWhite,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        widget.icon,
+                        color: DesignTokens.onyx,
+                        size: 19,
+                      ),
                     )
                   else
                     Icon(
                       widget.icon,
-                      color: textColor,
+                      color: DesignTokens.onyx,
                       size: 25,
                     ),
                   const SizedBox(width: 6),
@@ -182,7 +191,7 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
                 ],
               ),
 
-              // Bottom Label + CLI Preset Summary
+              // Bottom Label + Consumer Subtitle
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
