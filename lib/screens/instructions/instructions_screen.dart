@@ -72,7 +72,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               children: <Widget>[
                 Container(
                   color: DesignTokens.neutralLightSurface,
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(20, 38, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -117,7 +117,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               child: Container(
                 color: DesignTokens.neutralLightSurface,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+                    const EdgeInsets.fromLTRB(32, 38, 32, 28),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -161,7 +161,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               child: Container(
                 color: DesignTokens.onyx,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+                    const EdgeInsets.fromLTRB(32, 38, 32, 28),
                 child: _buildDarkExecutionPaneContent(
                   state,
                   currentStep,

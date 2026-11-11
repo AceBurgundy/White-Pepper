@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../core/theme/design_tokens.dart';
 
-/// Frameless native window title bar integrated directly into the parent container.
+/// Seamless frameless window top bar integrated directly into the parent window body.
 ///
 /// Features:
-/// - Application name "White Pepper" (text only, no logo icon)
-/// - Draggable window title region with double-click to maximize/restore
-/// - Integrated Minimize, Maximize/Restore, and Close action buttons
-/// - Adapts smoothly to light and dark screen surfaces
-/// - Safe across desktop platforms and test environments
+/// - Zero bottom border/divider so the top bar looks like part of the body
+/// - No app name in the top bar (app name is displayed in the sidebar headline)
+/// - Full-width draggable region with double-click to maximize/restore
+/// - Right-most aligned Minimize, Maximize/Restore, and Close action buttons
 class WindowTitleBar extends StatefulWidget {
   const WindowTitleBar({
     required this.isDark,
@@ -97,66 +96,19 @@ class _WindowTitleBarState extends State<WindowTitleBar> with WindowListener {
   Widget build(BuildContext context) {
     final Color foregroundColor =
         widget.isDark ? DesignTokens.pureWhite : DesignTokens.onyx;
-    final Color subtleColor = widget.isDark
-        ? DesignTokens.neutralGrayFourHundred
-        : DesignTokens.neutralGraySevenHundred;
     final Color hoverBgColor = widget.isDark
         ? DesignTokens.pureWhite.withValues(alpha: 0.12)
         : DesignTokens.onyx.withValues(alpha: 0.08);
 
     return Container(
-      height: 42,
-      padding: const EdgeInsets.only(left: 18, right: 6),
-      decoration: BoxDecoration(
-        color: widget.isDark ? DesignTokens.onyx : DesignTokens.neutralLightSurface,
-        border: Border(
-          bottom: BorderSide(
-            color: widget.isDark
-                ? DesignTokens.darkSurfaceThree
-                : DesignTokens.neutralGrayTwoHundred,
-            width: 1.0,
-          ),
-        ),
-      ),
+      width: double.infinity,
+      height: 36,
+      padding: const EdgeInsets.only(left: 12, right: 10, top: 4),
+      color: Colors.transparent,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          // App Title (Name only, bold text, no icon)
-          Text(
-            'White Pepper',
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w800,
-              color: foregroundColor,
-              letterSpacing: -0.2,
-            ),
-          ),
-          if (widget.subtitle != null && widget.subtitle!.isNotEmpty) ...<Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Container(
-                width: 3.5,
-                height: 3.5,
-                decoration: BoxDecoration(
-                  color: subtleColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Flexible(
-              child: Text(
-                widget.subtitle!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.w500,
-                  color: subtleColor,
-                ),
-              ),
-            ),
-          ],
-
-          // Draggable central area
+          // Full-width draggable area occupying 100% of space to the left of action buttons
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -166,13 +118,11 @@ class _WindowTitleBarState extends State<WindowTitleBar> with WindowListener {
                 }
               },
               onDoubleTap: _toggleMaximize,
-              child: const SizedBox(
-                height: double.infinity,
-              ),
+              child: const SizedBox.expand(),
             ),
           ),
 
-          // Window action buttons
+          // Right-most Window Action Buttons
           _WindowActionButton(
             icon: Icons.remove_rounded,
             tooltip: 'Minimize',
@@ -182,7 +132,9 @@ class _WindowTitleBarState extends State<WindowTitleBar> with WindowListener {
           ),
           const SizedBox(width: 4),
           _WindowActionButton(
-            icon: _isMaximized ? Icons.filter_none_rounded : Icons.crop_square_rounded,
+            icon: _isMaximized
+                ? Icons.filter_none_rounded
+                : Icons.crop_square_rounded,
             tooltip: _isMaximized ? 'Restore' : 'Maximize',
             iconSize: _isMaximized ? 13 : 15,
             iconColor: foregroundColor,
@@ -252,7 +204,7 @@ class _WindowActionButtonState extends State<_WindowActionButton> {
             height: 28,
             decoration: BoxDecoration(
               color: _isHovered ? widget.hoverColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               widget.icon,

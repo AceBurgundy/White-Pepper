@@ -36,7 +36,7 @@ class OptionsScreen extends StatelessWidget {
           return Container(
             color: DesignTokens.onyx,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 38.0, 16.0, 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -76,7 +76,7 @@ class OptionsScreen extends StatelessWidget {
 
         return Container(
           color: DesignTokens.onyx,
-          padding: const EdgeInsets.all(28.0),
+          padding: const EdgeInsets.fromLTRB(28.0, 38.0, 28.0, 28.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[

@@ -45,16 +45,10 @@ class DashboardScreen extends StatelessWidget {
             boxShadow: DesignTokens.shadowWorkstation,
           ),
           clipBehavior: Clip.antiAlias,
-          child: Column(
+          child: Stack(
             children: <Widget>[
-              // Integrated Frameless Window Title Bar
-              WindowTitleBar(
-                isDark: isDarkScreen,
-                subtitle: viewSubtitle,
-              ),
-
-              // Main Application Content
-              Expanded(
+              // Main Application Content filling 100% of the window body
+              Positioned.fill(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 240),
                   switchInCurve: Curves.easeOutCubic,
@@ -68,6 +62,17 @@ class DashboardScreen extends StatelessWidget {
                         key: ValueKey<String>('screen_instructions'),
                       ),
                   },
+                ),
+              ),
+
+              // Seamless Top Bar integrated directly into the top of the body
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: WindowTitleBar(
+                  isDark: isDarkScreen,
+                  subtitle: viewSubtitle,
                 ),
               ),
             ],
@@ -85,7 +90,7 @@ class DashboardScreen extends StatelessWidget {
             constraints.maxWidth < 800 || constraints.maxHeight < 580;
         if (isCompact) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 38.0, 16.0, 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -105,7 +110,7 @@ class DashboardScreen extends StatelessWidget {
         }
 
         return Padding(
-          padding: const EdgeInsets.all(28.0),
+          padding: const EdgeInsets.fromLTRB(28.0, 38.0, 28.0, 28.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -220,9 +225,9 @@ class DashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 18),
 
-        // Headline ("Printer / Scanner Module")
+        // Headline ("White Pepper" replacing "Scanner Module")
         const Text(
-          'Scanner\nModule',
+          'White Pepper',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
