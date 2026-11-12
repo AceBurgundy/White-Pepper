@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:white_pepper/main.dart';
+import 'package:white_pepper/models/scanner_device_model.dart';
 import 'package:white_pepper/providers/app_state.dart';
 
 void main() {
   testWidgets(
-    'WhitePepperApp renders All-Day default theme, simplified dashboard controls, View Printer dialog, and borderless 1.5x options deck',
+    'WhitePepperApp renders All-Day default theme, Switch Scanner button, View Printer dialog, and borderless 1.5x options deck',
     (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
       final AppState appState = AppState();
@@ -36,7 +37,26 @@ void main() {
       await tester.pumpAndSettle();
       expect(appState.isDarkMode, isFalse);
 
-      // 4. Left printer card has pointer hand cursor and 'View Printer' tooltip
+      // 4. Left printer card has Switch Scanner button with encircling icon
+      final Finder switchScannerBtn = find.byTooltip('Switch Scanner');
+      expect(switchScannerBtn, findsOneWidget);
+
+      // Tap 'Switch Scanner' to open ScannerSelectorDialog
+      await tester.tap(switchScannerBtn);
+      await tester.pumpAndSettle();
+      expect(find.text('Select Scanner'), findsOneWidget);
+      expect(find.text('Scan for Printers'), findsOneWidget);
+
+      // Close ScannerSelectorDialog
+      await tester.tap(
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.byIcon(Icons.close_rounded),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 5. Left printer card has pointer hand cursor and 'View Printer' tooltip
       final Finder viewPrinterBtn = find.byTooltip('View Printer');
       expect(viewPrinterBtn, findsOneWidget);
 
@@ -46,7 +66,17 @@ void main() {
       expect(find.textContaining('Printer Details'), findsOneWidget);
       expect(find.text('INK LEVELS'), findsOneWidget);
       expect(find.text('HARDWARE DIAGNOSTICS'), findsOneWidget);
-      expect(find.text('Check Scanner Connection'), findsOneWidget);
+      expect(find.text('Check Scanner'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.text('Switch Scanner'),
+        ),
+        findsOneWidget,
+      );
+
+      // Assert zero raw IP addresses (e.g., 192.168.) are visible anywhere in the UI
+      expect(find.textContaining('192.168.'), findsNothing);
 
       // Close dialog
       await tester.tap(
@@ -57,7 +87,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 5. Docked bottom pill has Settings button and Instructions button
+      // 6. Docked bottom pill has Settings button and Instructions button
       expect(find.byTooltip('Settings'), findsOneWidget);
       expect(find.byTooltip('Step-by-Step Instructions'), findsOneWidget);
 
@@ -75,11 +105,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 6. Workflow cards have descriptions and pills removed
+      // 7. Workflow cards have descriptions and pills removed
       expect(find.text('Flatbed Document'), findsOneWidget);
       expect(find.text('Standard document & photo scanning'), findsNothing);
 
-      // 7. Clicking 'Flatbed Document' transitions to Options Control Deck
+      // 8. Clicking 'Flatbed Document' transitions to Options Control Deck
       await tester.tap(find.text('Flatbed Document'));
       await tester.pumpAndSettle();
 
@@ -87,15 +117,15 @@ void main() {
       expect(find.text('Tool & Parameter Adjustments'), findsOneWidget);
       expect(find.text('Start Flatbed Document'), findsOneWidget);
 
-      // 8. Active option title is centered below the options button
+      // 9. Active option title is centered below the options button
       expect(find.text(appState.activeTool.displayTitle), findsWidgets);
 
-      // 9. Paper size pills are in Title Case (e.g. 'ID Card', 'A4', 'Letter')
+      // 10. Paper size pills are in Title Case (e.g. 'ID Card', 'A4', 'Letter')
       expect(find.text('ID Card'), findsWidgets);
       expect(find.text('A4'), findsWidgets);
       expect(find.text('Letter'), findsWidgets);
 
-      // 10. Return to workflow cards has only the Back button (menu button removed)
+      // 11. Return to workflow cards has only the Back button (menu button removed)
       final Finder returnBackBtn = find.byTooltip('Return to Workflow Cards');
       expect(returnBackBtn, findsOneWidget);
       expect(
@@ -106,7 +136,7 @@ void main() {
         findsOneWidget,
       );
 
-      // 11. Clicking 'Start Flatbed Document' transitions to Step-by-Step Instructions Screen
+      // 12. Clicking 'Start Flatbed Document' transitions to Step-by-Step Instructions Screen
       await tester.tap(find.text('Start Flatbed Document'));
       await tester.pumpAndSettle();
 
@@ -118,6 +148,7 @@ void main() {
       expect(find.textContaining('process_cli'), findsNothing);
       expect(find.textContaining('LIVE CLI'), findsNothing);
       expect(find.textContaining('Executing Python'), findsNothing);
+      expect(find.textContaining('192.168.'), findsNothing);
     },
   );
 
@@ -134,6 +165,20 @@ void main() {
           ChangeNotifierProvider<AppState>.value(
             value: appState,
             child: const WhitePepperApp(),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
+        // Switch Scanner Dialog opens cleanly without overflow at mobile size
+        await tester.tap(find.byTooltip('Switch Scanner'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Select Scanner'), findsOneWidget);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(Dialog),
+            matching: find.byIcon(Icons.close_rounded),
           ),
         );
         await tester.pumpAndSettle();

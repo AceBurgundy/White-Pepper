@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/ipc_event.dart';
 import '../models/peapod_tool.dart';
 import '../models/scan_configuration_model.dart';
+import '../models/scanner_device_model.dart';
 import '../services/cli_command_builder.dart';
 import '../services/scanner_process_service.dart';
 import '../widgets/buttons/progress_button.dart';
@@ -56,9 +57,13 @@ class AppState extends ChangeNotifier {
   bool _pendingLegalInitialConfirmation = false;
 
   bool _isScannerOnline = true;
-  final String _scannerModel = 'HP DeskJet / Wireless eSCL';
-  final String _scannerEndpoint = '192.168.1.150:8080';
+  String _scannerModel = 'HP DeskJet / Wireless eSCL';
+  String _scannerEndpoint = '192.168.1.150:8080';
   bool _isDarkMode = false;
+
+  List<ScannerDeviceModel> _availableScanners = const <ScannerDeviceModel>[];
+  ScannerDeviceModel? _activeScanner;
+  bool _isDiscoveringScanners = false;
 
   // Getters
   AppScreen get currentScreen => _currentScreen;
@@ -75,6 +80,18 @@ class AppState extends ChangeNotifier {
   String get scannerModel => _scannerModel;
   String get scannerEndpoint => _scannerEndpoint;
   bool get isDarkMode => _isDarkMode;
+
+  List<ScannerDeviceModel> get availableScanners => _availableScanners;
+  ScannerDeviceModel? get activeScanner => _activeScanner;
+  bool get isDiscoveringScanners => _isDiscoveringScanners;
+
+  String get scannerConnectionLabel {
+    if (_activeScanner != null) {
+      final String status = _isScannerOnline ? 'Ready' : 'Offline';
+      return '${_activeScanner!.connectionLabel} • $status';
+    }
+    return _isScannerOnline ? 'Wi-Fi • Ready' : 'Offline';
+  }
 
   void toggleDarkMode() {
     _isDarkMode = !_isDarkMode;
@@ -600,18 +617,114 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> runDiagnostics() async {
-    _consoleLogs.add('[DIAGNOSTICS] Probing hardware endpoint $_scannerEndpoint...');
+  void selectScanner(ScannerDeviceModel scanner, {bool triggerDiscovery = false}) {
+    _activeScanner = scanner;
+    _isScannerOnline = scanner.isOnline;
+    _scannerModel = scanner.name;
+    if (scanner.connectionType == ScannerConnectionType.wifi && scanner.host.isNotEmpty) {
+      _scannerEndpoint = '${scanner.host}:${scanner.port}';
+    }
+
+    _config = _config.copyWith(
+      selectedBackend: scanner.connectionType == ScannerConnectionType.wifi ? 'escl' : 'wia',
+      selectedHost: scanner.host.isNotEmpty ? scanner.host : null,
+      selectedPort: scanner.port > 0 ? scanner.port : null,
+      selectedDeviceId: scanner.deviceId.isNotEmpty ? scanner.deviceId : null,
+    );
     notifyListeners();
 
-    final Map<String, dynamic> report = await _processService.runDiagnostics(
-      ip: '192.168.1.150',
-      port: 8080,
-    );
+    if (triggerDiscovery) {
+      discoverScanners(notify: true);
+    }
+  }
 
-    final bool success = (report['success'] as bool?) ?? false;
-    _isScannerOnline = success;
-    _consoleLogs.add('[DIAGNOSTICS REPORT] $report');
+  Future<void> discoverScanners({bool notify = true}) async {
+    _isDiscoveringScanners = true;
+    if (notify) {
+      notifyListeners();
+    }
+
+    try {
+      final String hostCandidate =
+          (_activeScanner != null && _activeScanner!.host.isNotEmpty)
+              ? _activeScanner!.host
+              : '192.168.1.150';
+      final int portCandidate =
+          (_activeScanner != null && _activeScanner!.port > 0)
+              ? _activeScanner!.port
+              : 8080;
+
+      final Map<String, dynamic> report = await _processService.runDiagnostics(
+        ip: hostCandidate,
+        port: portCandidate,
+      );
+
+      final List<dynamic>? rawScanners = report['discovered_scanners'] as List<dynamic>?;
+      if (rawScanners != null && rawScanners.isNotEmpty) {
+        _availableScanners = rawScanners
+            .map((dynamic item) => ScannerDeviceModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      } else {
+        final Map<String, dynamic>? escl = report['escl'] as Map<String, dynamic>?;
+        if (escl != null && (escl['reachable'] as bool? ?? false)) {
+          final String modelName = (escl['make_and_model'] as String? ?? '').trim();
+          final String friendlyName = (modelName.isEmpty || modelName.toLowerCase() == 'xxxx')
+              ? 'HP DeskJet Wireless Scanner'
+              : modelName;
+          final String uuid = (escl['uuid'] as String? ?? '');
+          _availableScanners = [
+            ScannerDeviceModel(
+              id: uuid.isNotEmpty ? 'escl:$uuid' : 'escl:192.168.1.150_8080',
+              name: friendlyName,
+              connectionType: ScannerConnectionType.wifi,
+              host: (escl['host'] as String? ?? '192.168.1.150'),
+              port: (escl['port'] as num?)?.toInt() ?? 8080,
+              isOnline: true,
+            ),
+          ];
+        } else {
+          _availableScanners = const <ScannerDeviceModel>[];
+        }
+      }
+
+      // Zero-Touch Auto-Connect:
+      // 1. If active scanner is still present, retain it.
+      ScannerDeviceModel? matchedScanner;
+      if (_activeScanner != null) {
+        for (final ScannerDeviceModel candidate in _availableScanners) {
+          if (candidate.id == _activeScanner!.id) {
+            matchedScanner = candidate;
+            break;
+          }
+        }
+      }
+
+      if (matchedScanner != null) {
+        _activeScanner = matchedScanner;
+        _isScannerOnline = matchedScanner.isOnline;
+        _scannerModel = matchedScanner.name;
+      } else if (_availableScanners.isNotEmpty) {
+        // Auto-connect to first available scanner immediately
+        selectScanner(_availableScanners.first, triggerDiscovery: false);
+      } else {
+        _activeScanner = null;
+        _isScannerOnline = false;
+      }
+    } catch (e) {
+      _consoleLogs.add('[DISCOVERY EXCEPTION] $e');
+    } finally {
+      _isDiscoveringScanners = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> runDiagnostics() async {
+    _consoleLogs.add('[DIAGNOSTICS] Probing available hardware scanners...');
+    notifyListeners();
+
+    await discoverScanners(notify: false);
+
+    _consoleLogs.add('[DIAGNOSTICS] Found ${_availableScanners.length} available scanner(s).');
     notifyListeners();
   }
 }

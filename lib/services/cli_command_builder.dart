@@ -22,6 +22,26 @@ class CliCommandPlan {
 }
 
 class CliCommandBuilder {
+  static void _appendDeviceTargetingFlags(
+    List<String> args,
+    ScanConfigurationModel config,
+  ) {
+    if (config.selectedBackend == 'escl') {
+      args.addAll(['--backend', 'escl']);
+      if (config.selectedHost != null && config.selectedHost!.isNotEmpty) {
+        args.addAll(['--ip', config.selectedHost!]);
+      }
+      if (config.selectedPort != null && config.selectedPort! > 0) {
+        args.addAll(['--port', '${config.selectedPort!}']);
+      }
+    } else if (config.selectedBackend == 'wia') {
+      args.addAll(['--backend', 'wia']);
+      if (config.selectedDeviceId != null && config.selectedDeviceId!.isNotEmpty) {
+        args.addAll(['--device-id', config.selectedDeviceId!]);
+      }
+    }
+  }
+
   static CliCommandPlan build(
     ScanConfigurationModel config, {
     String? cardSideSuffix,
@@ -70,6 +90,7 @@ class CliCommandBuilder {
             '${config.offsetY}',
           ]);
         }
+        _appendDeviceTargetingFlags(args, config);
         return CliCommandPlan(
           scriptRelativePath: p.join('scripts', 'scan_cli.py'),
           arguments: args,
@@ -105,6 +126,7 @@ class CliCommandBuilder {
         if (config.noDeskew) {
           args.add('--no-deskew');
         }
+        _appendDeviceTargetingFlags(args, config);
         return CliCommandPlan(
           scriptRelativePath: p.join('scripts', 'scan_cli.py'),
           arguments: args,
@@ -128,6 +150,7 @@ class CliCommandBuilder {
         if (config.ipcMode) {
           args.add('--ipc-mode');
         }
+        _appendDeviceTargetingFlags(args, config);
         return CliCommandPlan(
           scriptRelativePath: p.join('scripts', 'scan_cli.py'),
           arguments: args,
@@ -152,6 +175,7 @@ class CliCommandBuilder {
         if (config.maxScans > 0) {
           args.addAll(['--max-scans', '${config.maxScans}']);
         }
+        _appendDeviceTargetingFlags(args, config);
         return CliCommandPlan(
           scriptRelativePath: p.join('scripts', 'scan_cli.py'),
           arguments: args,
@@ -188,6 +212,7 @@ class CliCommandBuilder {
         if (config.autoCrop) {
           args.add('--auto-crop');
         }
+        _appendDeviceTargetingFlags(args, config);
         return CliCommandPlan(
           scriptRelativePath: p.join('scripts', 'scan_cli.py'),
           arguments: args,
@@ -224,6 +249,7 @@ class CliCommandBuilder {
         if (config.autoCrop) {
           args.add('--auto-crop');
         }
+        _appendDeviceTargetingFlags(args, config);
         return CliCommandPlan(
           scriptRelativePath: p.join('scripts', 'scan_cli.py'),
           arguments: args,

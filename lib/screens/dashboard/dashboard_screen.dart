@@ -5,6 +5,7 @@ import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/dialogs/app_settings_dialog.dart';
 import '../../widgets/dialogs/hardware_connect_dialog.dart';
+import '../../widgets/dialogs/scanner_selector_dialog.dart';
 import '../../widgets/window/window_title_bar.dart';
 import '../instructions/instructions_screen.dart';
 import '../options/options_screen.dart';
@@ -442,32 +443,69 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }).toList(),
                 ),
-                Tooltip(
-                  message: 'View Printer',
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) => const HardwareConnectDialog(),
-                        );
-                      },
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: DesignTokens.accentYellow,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.chevron_right_rounded,
-                          color: DesignTokens.onyx,
-                          size: 22,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Tooltip(
+                      message: 'Switch Scanner',
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const ScannerSelectorDialog(),
+                            );
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: DesignTokens.darkSurfaceFour,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: DesignTokens.pureWhite.withValues(alpha: 0.15),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.sync_rounded,
+                              color: DesignTokens.pureWhite,
+                              size: 20,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Tooltip(
+                      message: 'View Printer',
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) => const HardwareConnectDialog(),
+                            );
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: const BoxDecoration(
+                              color: DesignTokens.accentYellow,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.chevron_right_rounded,
+                              color: DesignTokens.onyx,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

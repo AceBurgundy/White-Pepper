@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../providers/app_state.dart';
+import 'scanner_selector_dialog.dart';
 
 class HardwareConnectDialog extends StatefulWidget {
   const HardwareConnectDialog({super.key});
@@ -427,8 +428,9 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
 
               _buildCheckItem(
                 title: 'Wireless Network Scanner',
-                subtitle:
-                    'Status: ${state.isScannerOnline ? "Connected" : "Searching"} (${state.scannerEndpoint})',
+                subtitle: state.isScannerOnline
+                    ? 'Connected via wireless network'
+                    : 'Searching for wireless network scanners...',
                 isSuccess: state.isScannerOnline,
                 isPending: _isProbing,
                 isDark: isDark,
@@ -449,33 +451,69 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
               ),
               const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: _isProbing ? null : _handleProbe,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: DesignTokens.accentYellow,
-                  foregroundColor: DesignTokens.onyx,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
-                  ),
-                  elevation: 0,
-                ),
-                child: _isProbing
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(DesignTokens.onyx),
-                        ),
-                      )
-                    : const Text(
-                        'Check Scanner Connection',
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => const ScannerSelectorDialog(),
+                        );
+                      },
+                      icon: const Icon(Icons.sync_rounded, size: 16),
+                      label: const Text(
+                        'Switch Scanner',
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                        side: BorderSide(
+                          color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.neutralGrayThreeHundred,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isProbing ? null : _handleProbe,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DesignTokens.accentYellow,
+                        foregroundColor: DesignTokens.onyx,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isProbing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(DesignTokens.onyx),
+                              ),
+                            )
+                          : const Text(
+                              'Check Scanner',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

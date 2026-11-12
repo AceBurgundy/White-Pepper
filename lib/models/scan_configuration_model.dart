@@ -119,6 +119,10 @@ class ScanConfigurationModel {
     this.maxScans = 0,
     this.noDeskew = false,
     this.ipcMode = true,
+    this.selectedBackend,
+    this.selectedHost,
+    this.selectedPort,
+    this.selectedDeviceId,
   });
 
   WorkflowType workflowType;
@@ -147,6 +151,10 @@ class ScanConfigurationModel {
   int maxScans;
   bool noDeskew;
   bool ipcMode;
+  String? selectedBackend;
+  String? selectedHost;
+  int? selectedPort;
+  String? selectedDeviceId;
 
   ScanConfigurationModel copyWith({
     WorkflowType? workflowType,
@@ -175,6 +183,10 @@ class ScanConfigurationModel {
     int? maxScans,
     bool? noDeskew,
     bool? ipcMode,
+    String? selectedBackend,
+    String? selectedHost,
+    int? selectedPort,
+    String? selectedDeviceId,
   }) {
     return ScanConfigurationModel(
       workflowType: workflowType ?? this.workflowType,
@@ -203,6 +215,10 @@ class ScanConfigurationModel {
       maxScans: maxScans ?? this.maxScans,
       noDeskew: noDeskew ?? this.noDeskew,
       ipcMode: ipcMode ?? this.ipcMode,
+      selectedBackend: selectedBackend ?? this.selectedBackend,
+      selectedHost: selectedHost ?? this.selectedHost,
+      selectedPort: selectedPort ?? this.selectedPort,
+      selectedDeviceId: selectedDeviceId ?? this.selectedDeviceId,
     );
   }
 }
