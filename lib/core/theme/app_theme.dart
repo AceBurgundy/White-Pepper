@@ -6,7 +6,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: DesignTokens.neutralLightSurface,
-      fontFamily: 'Segoe UI',
+      fontFamily: 'Google Sans',
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
         primary: DesignTokens.onyx,

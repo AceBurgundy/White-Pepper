@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:white_pepper/main.dart';
-import 'package:white_pepper/models/scanner_device_model.dart';
 import 'package:white_pepper/providers/app_state.dart';
 
 void main() {
