@@ -134,12 +134,9 @@ class _WorkflowGridState extends State<WorkflowGrid> {
         const double spacing = 12.0;
         const double cardHeight = 136.0;
 
-        final double trackHeight =
-            constraints.maxHeight.clamp(120.0, 4000.0);
-        final double thumbHeight =
-            (trackHeight * _thumbFraction).clamp(36.0, trackHeight * 0.65);
-        final double availableThumbTravel =
-            (trackHeight - thumbHeight).clamp(0.0, 4000.0);
+        final double trackHeight = constraints.maxHeight.clamp(120.0, 4000.0);
+        final double thumbHeight = (trackHeight * _thumbFraction).clamp(36.0, trackHeight * 0.65);
+        final double availableThumbTravel = (trackHeight - thumbHeight).clamp(0.0, 4000.0);
         final double thumbTop = availableThumbTravel * _scrollFraction;
 
         return Row(
@@ -196,11 +193,9 @@ class _WorkflowGridState extends State<WorkflowGrid> {
               behavior: HitTestBehavior.translucent,
               onVerticalDragUpdate: (DragUpdateDetails details) {
                 if (!_scrollController.hasClients) return;
-                final double maxExtent =
-                    _scrollController.position.maxScrollExtent;
+                final double maxExtent = _scrollController.position.maxScrollExtent;
                 if (maxExtent <= 0 || availableThumbTravel <= 0) return;
-                final double deltaScroll =
-                    (details.delta.dy / availableThumbTravel) * maxExtent;
+                final double deltaScroll = (details.delta.dy / availableThumbTravel) * maxExtent;
                 _scrollController.jumpTo(
                   (_scrollController.offset + deltaScroll)
                       .clamp(0.0, maxExtent),

@@ -11,19 +11,19 @@ class AppSettingsDialog extends StatefulWidget {
 }
 
 class _AppSettingsDialogState extends State<AppSettingsDialog> {
-  late final TextEditingController _dirController;
+  late final TextEditingController _directoryController;
 
   @override
   void initState() {
     super.initState();
-    _dirController = TextEditingController(
+    _directoryController = TextEditingController(
       text: context.read<AppState>().config.outputDirectory,
     );
   }
 
   @override
   void dispose() {
-    _dirController.dispose();
+    _directoryController.dispose();
     super.dispose();
   }
 
@@ -76,10 +76,9 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
     final AppState state = context.watch<AppState>();
     final bool isDark = state.isDarkMode;
 
-    final Color cardBg = isDark ? DesignTokens.darkSurfaceOne : DesignTokens.pureWhite;
+    final Color cardBackgroundColor = isDark ? DesignTokens.darkSurfaceOne : DesignTokens.pureWhite;
     final Color textColor = isDark ? DesignTokens.pureWhite : DesignTokens.onyx;
-    final Color subtleColor =
-        isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySevenHundred;
+    final Color subtleColor = isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySevenHundred;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -87,7 +86,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
         width: 520,
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: cardBg,
+          color: cardBackgroundColor,
           borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
           boxShadow: DesignTokens.shadowWorkstation,
           border: Border.all(
@@ -218,9 +217,9 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
             _buildSectionHeader('DEFAULT SAVE FOLDER', subtleColor),
             const SizedBox(height: 10),
             TextField(
-              controller: _dirController,
-              onChanged: (String val) {
-                state.config.outputDirectory = val;
+              controller: _directoryController,
+              onChanged: (String value) {
+                state.config.outputDirectory = value;
                 state.updateConfig(state.config);
               },
               style: TextStyle(

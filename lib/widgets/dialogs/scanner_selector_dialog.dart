@@ -12,15 +12,10 @@ class ScannerSelectorDialog extends StatelessWidget {
     final AppState state = context.watch<AppState>();
     final bool isDark = state.isDarkMode;
 
-    final Color backgroundColor =
-        isDark ? DesignTokens.darkSurfaceOne : DesignTokens.pureWhite;
+    final Color backgroundColor = isDark ? DesignTokens.darkSurfaceOne : DesignTokens.pureWhite;
     final Color textColor = isDark ? DesignTokens.pureWhite : DesignTokens.onyx;
-    final Color subtleColor = isDark
-        ? DesignTokens.neutralGrayFourHundred
-        : DesignTokens.neutralGraySevenHundred;
-    final Color borderColor = isDark
-        ? DesignTokens.darkSurfaceThree
-        : DesignTokens.neutralGrayTwoHundred;
+    final Color subtleColor = isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySevenHundred;
+    final Color borderColor = isDark ? DesignTokens.darkSurfaceThree : DesignTokens.neutralGrayTwoHundred;
 
     final List<ScannerDeviceModel> scanners = state.availableScanners;
     final bool isDiscovering = state.isDiscoveringScanners;
@@ -252,8 +247,7 @@ class ScannerSelectorDialog extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final bool isWifi = scanner.connectionType == ScannerConnectionType.wifi;
-    final IconData transportIcon =
-        isWifi ? Icons.wifi_rounded : Icons.usb_rounded;
+    final IconData transportIcon = isWifi ? Icons.wifi_rounded : Icons.usb_rounded;
 
     final Color cardBackground = isSelected
         ? (isDark

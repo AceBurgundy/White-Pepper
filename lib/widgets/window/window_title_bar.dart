@@ -94,9 +94,8 @@ class _WindowTitleBarState extends State<WindowTitleBar> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    final Color foregroundColor =
-        widget.isDark ? DesignTokens.pureWhite : DesignTokens.onyx;
-    final Color hoverBgColor = widget.isDark
+    final Color foregroundColor = widget.isDark ? DesignTokens.pureWhite : DesignTokens.onyx;
+    final Color hoverBackgroundColor = widget.isDark
         ? DesignTokens.pureWhite.withValues(alpha: 0.12)
         : DesignTokens.onyx.withValues(alpha: 0.08);
 
@@ -127,7 +126,7 @@ class _WindowTitleBarState extends State<WindowTitleBar> with WindowListener {
             icon: Icons.remove_rounded,
             tooltip: 'Minimize',
             iconColor: foregroundColor,
-            hoverColor: hoverBgColor,
+            hoverColor: hoverBackgroundColor,
             onPressed: _minimizeWindow,
           ),
           const SizedBox(width: 4),
@@ -138,7 +137,7 @@ class _WindowTitleBarState extends State<WindowTitleBar> with WindowListener {
             tooltip: _isMaximized ? 'Restore' : 'Maximize',
             iconSize: _isMaximized ? 13 : 15,
             iconColor: foregroundColor,
-            hoverColor: hoverBgColor,
+            hoverColor: hoverBackgroundColor,
             onPressed: _toggleMaximize,
           ),
           const SizedBox(width: 4),
@@ -184,10 +183,9 @@ class _WindowActionButtonState extends State<_WindowActionButton> {
 
   @override
   Widget build(BuildContext context) {
-    final Color currentIconColor =
-        _isHovered && widget.hoverIconColor != null
-            ? widget.hoverIconColor!
-            : widget.iconColor;
+    final Color currentIconColor = (_isHovered && widget.hoverIconColor != null)
+        ? widget.hoverIconColor!
+        : widget.iconColor;
 
     return Tooltip(
       message: widget.tooltip,

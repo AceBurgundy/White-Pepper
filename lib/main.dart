@@ -29,8 +29,8 @@ Future<void> main() async {
         await windowManager.show();
         await windowManager.focus();
       });
-    } catch (e) {
-      debugPrint('Window manager initialization notice: $e');
+    } catch (exception) {
+      debugPrint('Window manager initialization notice: $exception');
     }
   }
 

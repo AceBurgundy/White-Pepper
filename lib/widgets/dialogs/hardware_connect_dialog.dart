@@ -105,7 +105,7 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
 
   Widget _buildInkChannel({
     required String label,
-    required double pct,
+    required double percentage,
     required Color color,
     required bool isDark,
   }) {
@@ -121,7 +121,7 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
           alignment: Alignment.bottomCenter,
           child: Container(
             width: 16,
-            height: 48 * pct,
+            height: 48 * percentage,
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(8),
@@ -138,7 +138,7 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
           ),
         ),
         Text(
-          '${(pct * 100).toInt()}%',
+          '${(percentage * 100).toInt()}%',
           style: TextStyle(
             fontSize: 9.5,
             fontWeight: FontWeight.w600,
@@ -223,16 +223,15 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
     final AppState state = context.watch<AppState>();
     final bool isDark = state.isDarkMode;
 
-    final Color dialogBg = isDark ? DesignTokens.darkSurfaceOne : DesignTokens.pureWhite;
+    final Color dialogBackgroundColor = isDark ? DesignTokens.darkSurfaceOne : DesignTokens.pureWhite;
     final Color textColor = isDark ? DesignTokens.pureWhite : DesignTokens.onyx;
-    final Color subtleColor =
-        isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySevenHundred;
+    final Color subtleColor = isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySevenHundred;
 
     final List<Map<String, Object>> channels = <Map<String, Object>>[
-      <String, Object>{'label': 'C', 'pct': 0.85, 'color': DesignTokens.inkCyan},
-      <String, Object>{'label': 'M', 'pct': 0.72, 'color': DesignTokens.inkMagenta},
-      <String, Object>{'label': 'Y', 'pct': 0.92, 'color': DesignTokens.inkYellow},
-      <String, Object>{'label': 'K', 'pct': 0.64, 'color': isDark ? DesignTokens.pureWhite : DesignTokens.onyx},
+      <String, Object>{'label': 'C', 'percentage': 0.85, 'color': DesignTokens.inkCyan},
+      <String, Object>{'label': 'M', 'percentage': 0.72, 'color': DesignTokens.inkMagenta},
+      <String, Object>{'label': 'Y', 'percentage': 0.92, 'color': DesignTokens.inkYellow},
+      <String, Object>{'label': 'K', 'percentage': 0.64, 'color': isDark ? DesignTokens.pureWhite : DesignTokens.onyx},
     ];
 
     return Dialog(
@@ -241,7 +240,7 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
         width: 540,
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: dialogBg,
+          color: dialogBackgroundColor,
           borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
           boxShadow: DesignTokens.shadowWorkstation,
           border: Border.all(
@@ -395,13 +394,13 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: channels.map((Map<String, Object> ch) {
+                          children: channels.map((Map<String, Object> channel) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8),
                               child: _buildInkChannel(
-                                label: ch['label']! as String,
-                                pct: ch['pct']! as double,
-                                color: ch['color']! as Color,
+                                label: channel['label']! as String,
+                                percentage: channel['percentage']! as double,
+                                color: channel['color']! as Color,
                                 isDark: isDark,
                               ),
                             );

@@ -42,7 +42,7 @@ class PeaPodDrawer extends StatefulWidget {
 
 class _PeaPodDrawerState extends State<PeaPodDrawer> {
   late final TextEditingController _prefixController;
-  late final TextEditingController _outputDirController;
+  late final TextEditingController _outputDirectoryController;
 
   ScanConfigurationModel get config => widget.config;
   ValueChanged<ScanConfigurationModel> get onConfigChanged =>
@@ -53,8 +53,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   void initState() {
     super.initState();
     _prefixController = TextEditingController(text: widget.config.fileNamePrefix);
-    _outputDirController =
-        TextEditingController(text: widget.config.outputDirectory);
+    _outputDirectoryController = TextEditingController(text: widget.config.outputDirectory);
   }
 
   @override
@@ -68,8 +67,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
         ),
       );
     }
-    if (widget.config.outputDirectory != _outputDirController.text) {
-      _outputDirController.value = TextEditingValue(
+    if (widget.config.outputDirectory != _outputDirectoryController.text) {
+      _outputDirectoryController.value = TextEditingValue(
         text: widget.config.outputDirectory,
         selection: TextSelection.collapsed(
           offset: widget.config.outputDirectory.length,
@@ -81,7 +80,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   @override
   void dispose() {
     _prefixController.dispose();
-    _outputDirController.dispose();
+    _outputDirectoryController.dispose();
     super.dispose();
   }
 
@@ -541,10 +540,9 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   }
 
   Widget _buildContrastControls(bool isDark) {
-    final bool supportsToneSliders =
-        config.workflowType == WorkflowType.flatbed ||
-            config.workflowType == WorkflowType.photoScan ||
-            config.workflowType == WorkflowType.receiptArchive;
+    final bool supportsToneSliders = (config.workflowType == WorkflowType.flatbed ||
+        config.workflowType == WorkflowType.photoScan ||
+        config.workflowType == WorkflowType.receiptArchive);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -724,9 +722,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                       min: 0.0,
                       max: 3.0,
                       divisions: 30,
-                      onChanged: (double v) {
-                        config.safetyInsetMm =
-                            double.parse(v.toStringAsFixed(1));
+                      onChanged: (double value) {
+                        config.safetyInsetMm = double.parse(value.toStringAsFixed(1));
                         onConfigChanged(config);
                       },
                     ),
@@ -753,9 +750,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                       min: 0.0,
                       max: 6.0,
                       divisions: 60,
-                      onChanged: (double v) {
-                        config.cornerRadiusMm =
-                            double.parse(v.toStringAsFixed(2));
+                      onChanged: (double value) {
+                        config.cornerRadiusMm = double.parse(value.toStringAsFixed(2));
                         onConfigChanged(config);
                       },
                     ),
@@ -800,8 +796,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                       min: 2,
                       max: 45,
                       divisions: 43,
-                      onChanged: (double v) {
-                        config.intervalSeconds = v.round();
+                      onChanged: (double value) {
+                        config.intervalSeconds = value.round();
                         onConfigChanged(config);
                       },
                     ),
@@ -828,8 +824,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                       min: 0,
                       max: 40,
                       divisions: 40,
-                      onChanged: (double v) {
-                        config.maxScans = v.round();
+                      onChanged: (double value) {
+                        config.maxScans = value.round();
                         onConfigChanged(config);
                       },
                     ),
@@ -932,13 +928,13 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: allowedFormats.map((String fmt) {
+          children: allowedFormats.map((String formatName) {
             return _buildChip(
               isDark: isDark,
-              label: fmt.toUpperCase(),
-              isSelected: config.format == fmt,
+              label: formatName.toUpperCase(),
+              isSelected: config.format == formatName,
               onTap: () {
-                config.format = fmt;
+                config.format = formatName;
                 onConfigChanged(config);
               },
             );
@@ -950,8 +946,8 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             Expanded(
               child: TextField(
                 controller: _prefixController,
-                onChanged: (String val) {
-                  config.fileNamePrefix = val;
+                onChanged: (String value) {
+                  config.fileNamePrefix = value;
                   onConfigChanged(config);
                 },
                 style: TextStyle(
@@ -1000,9 +996,9 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             const SizedBox(width: 10),
             Expanded(
               child: TextField(
-                controller: _outputDirController,
-                onChanged: (String val) {
-                  config.outputDirectory = val;
+                controller: _outputDirectoryController,
+                onChanged: (String value) {
+                  config.outputDirectory = value;
                   onConfigChanged(config);
                 },
                 style: TextStyle(

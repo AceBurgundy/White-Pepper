@@ -75,13 +75,12 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
     if (_windowStartIndex > maxStart) {
       _windowStartIndex = maxStart;
     }
-    final int selectedIdx = widget.tools.indexOf(widget.selectedTool);
-    if (selectedIdx != -1) {
-      if (selectedIdx < _windowStartIndex) {
-        _windowStartIndex = selectedIdx;
-      } else if (selectedIdx >= _windowStartIndex + _visibleSlots) {
-        _windowStartIndex =
-            (selectedIdx - _visibleSlots + 1).clamp(0, maxStart);
+    final int selectedIndex = widget.tools.indexOf(widget.selectedTool);
+    if (selectedIndex != -1) {
+      if (selectedIndex < _windowStartIndex) {
+        _windowStartIndex = selectedIndex;
+      } else if (selectedIndex >= _windowStartIndex + _visibleSlots) {
+        _windowStartIndex = (selectedIndex - _visibleSlots + 1).clamp(0, maxStart);
       }
     }
   }
@@ -93,13 +92,12 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
   }
 
   void _stepDirection(int delta) {
-    final int selectedIdx = widget.tools.indexOf(widget.selectedTool);
-    if (selectedIdx == -1) return;
-    final int targetIdx =
-        (selectedIdx + delta).clamp(0, widget.tools.length - 1);
-    if (targetIdx != selectedIdx) {
+    final int selectedIndex = widget.tools.indexOf(widget.selectedTool);
+    if (selectedIndex == -1) return;
+    final int targetIndex = (selectedIndex + delta).clamp(0, widget.tools.length - 1);
+    if (targetIndex != selectedIndex) {
       _dropletController.forward(from: 0.0);
-      widget.onToolSelected(widget.tools[targetIdx]);
+      widget.onToolSelected(widget.tools[targetIndex]);
     }
   }
 
@@ -109,8 +107,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
     final int slotCount = widget.tools.length < _visibleSlots
         ? widget.tools.length
         : _visibleSlots;
-    final List<PeaPodToolType> visibleTools =
-        widget.tools.skip(_windowStartIndex).take(slotCount).toList();
+    final List<PeaPodToolType> visibleTools = widget.tools.skip(_windowStartIndex).take(slotCount).toList();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -292,18 +289,18 @@ class _PeaPodMetaballPainter extends CustomPainter {
     const double nodeRadius = 32.0;
 
     final Path path = Path();
-    for (int i = 0; i < nodeCount; i++) {
-      final double cx =
-          horizontalPad + (buttonDiameter / 2) + i * (buttonDiameter + buttonSpacing);
+    for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++) {
+      final double centerCoordinateX = horizontalPad + (buttonDiameter / 2) +
+          nodeIndex * (buttonDiameter + buttonSpacing);
       path.addOval(
-        Rect.fromCircle(center: Offset(cx, centerY), radius: nodeRadius),
+        Rect.fromCircle(center: Offset(centerCoordinateX, centerY), radius: nodeRadius),
       );
-      if (i < nodeCount - 1) {
-        final double nextCx =
-            horizontalPad + (buttonDiameter / 2) + (i + 1) * (buttonDiameter + buttonSpacing);
+      if (nodeIndex < nodeCount - 1) {
+        final double nextCenterCoordinateX = horizontalPad + (buttonDiameter / 2) +
+            (nodeIndex + 1) * (buttonDiameter + buttonSpacing);
         path.addRRect(
           RRect.fromRectAndRadius(
-            Rect.fromLTRB(cx, centerY - 21, nextCx, centerY + 21),
+            Rect.fromLTRB(centerCoordinateX, centerY - 21, nextCenterCoordinateX, centerY + 21),
             const Radius.circular(10),
           ),
         );

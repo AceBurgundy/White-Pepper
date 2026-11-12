@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Design tokens port from minimalist/components/tokens/design-tokens.js
 abstract final class DesignTokens {
-  // ---------------------------------------------------------------------------
-  // Color Palette Tokens (25 tokens)
-  // ---------------------------------------------------------------------------
+  /// Color Palette Tokens (25 tokens)
   static const Color onyx = Color(0xFF212121);
   static const Color accentYellow = Color(0xFFFFFF1E);
   static const Color neutralLightSurface = Color(0xFFEEEEEE);
@@ -36,9 +34,7 @@ abstract final class DesignTokens {
   static const Color inkYellow = Color(0xFFFFFF1E);
   static const Color inkBlack = Color(0xFF212121);
 
-  // ---------------------------------------------------------------------------
-  // Corner Radius Tokens (Calibrated for native frameless window & sleek cards)
-  // ---------------------------------------------------------------------------
+  /// Corner Radius Tokens (Calibrated for native frameless window & sleek cards)
   static const double radiusPill = 100.0;
   static const double radiusCircle = 999.0;
   static const double radiusViewportDesktop = 16.0;
@@ -49,16 +45,12 @@ abstract final class DesignTokens {
   static const double radiusModuleContainer = 14.0;
   static const double radiusControlSmall = 10.0;
 
-  // ---------------------------------------------------------------------------
-  // Dimensions & Spacing
-  // ---------------------------------------------------------------------------
+  /// Dimensions & Spacing
   static const double desktopWidth = 1080.0;
   static const double desktopHeight = 780.0;
   static const double platenCapsuleWidthDesktop = 340.0;
 
-  // ---------------------------------------------------------------------------
-  // Shadows
-  // ---------------------------------------------------------------------------
+  /// Shadows
   static const List<BoxShadow> shadowCard = [
     BoxShadow(
       color: Color(0x0F000000),

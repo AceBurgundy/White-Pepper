@@ -88,8 +88,7 @@ class DashboardScreen extends StatelessWidget {
     return LayoutBuilder(
       key: const ValueKey<String>('screen_dashboard'),
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isCompact =
-            constraints.maxWidth < 800 || constraints.maxHeight < 580;
+        final bool isCompact = (constraints.maxWidth < 800 || constraints.maxHeight < 580);
         if (isCompact) {
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16.0, 38.0, 16.0, 16.0),

@@ -535,8 +535,10 @@ class AppState extends ChangeNotifier {
           _consoleLogs.add(line);
           _extractSavedFilePathFromLog(line);
           if (line.startsWith('[exit] Process completed with code ')) {
-            final String codeStr =
-                line.replaceFirst('[exit] Process completed with code ', '').trim();
+            final String codeStr = line.replaceFirst(
+              '[exit] Process completed with code ',
+              '',
+            ).trim();
             final int? exitCode = int.tryParse(codeStr);
             if (exitCode != null && exitCode != 0) {
               _scanButtonState = ProgressButtonState.error;
@@ -564,8 +566,8 @@ class AppState extends ChangeNotifier {
           notifyListeners();
         },
       );
-    } catch (e) {
-      _consoleLogs.add('[EXECUTION EXCEPTION] $e');
+    } catch (exception) {
+      _consoleLogs.add('[EXECUTION EXCEPTION] $exception');
       _scanButtonState = ProgressButtonState.error;
       _isAwaitingUserConfirmation = true;
       notifyListeners();
@@ -645,14 +647,12 @@ class AppState extends ChangeNotifier {
     }
 
     try {
-      final String hostCandidate =
-          (_activeScanner != null && _activeScanner!.host.isNotEmpty)
-              ? _activeScanner!.host
-              : '192.168.1.150';
-      final int portCandidate =
-          (_activeScanner != null && _activeScanner!.port > 0)
-              ? _activeScanner!.port
-              : 8080;
+      final String hostCandidate = (_activeScanner != null && _activeScanner!.host.isNotEmpty)
+          ? _activeScanner!.host
+          : '192.168.1.150';
+      final int portCandidate = (_activeScanner != null && _activeScanner!.port > 0)
+          ? _activeScanner!.port
+          : 8080;
 
       final Map<String, dynamic> report = await _processService.runDiagnostics(
         ip: hostCandidate,
@@ -710,8 +710,8 @@ class AppState extends ChangeNotifier {
         _activeScanner = null;
         _isScannerOnline = false;
       }
-    } catch (e) {
-      _consoleLogs.add('[DISCOVERY EXCEPTION] $e');
+    } catch (exception) {
+      _consoleLogs.add('[DISCOVERY EXCEPTION] $exception');
     } finally {
       _isDiscoveringScanners = false;
       notifyListeners();

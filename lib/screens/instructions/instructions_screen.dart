@@ -54,18 +54,15 @@ class _InstructionsScreenState extends State<InstructionsScreen>
     final AppState state = context.watch<AppState>();
     final List<WorkflowInstructionStep> steps = state.workflowSteps;
     final WorkflowInstructionStep currentStep = state.currentInstructionStep;
-    final bool isProcessing =
-        state.scanButtonState == ProgressButtonState.processing &&
-            !state.isAwaitingUserConfirmation;
-    final bool isCompleted =
-        state.scanButtonState == ProgressButtonState.completed;
+    final bool isProcessing = (state.scanButtonState == ProgressButtonState.processing &&
+        !state.isAwaitingUserConfirmation);
+    final bool isCompleted = (state.scanButtonState == ProgressButtonState.completed);
     final bool isError = state.scanButtonState == ProgressButtonState.error;
     final bool isDark = state.isDarkMode;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isCompact =
-            constraints.maxWidth < 800 || constraints.maxHeight < 620;
+        final bool isCompact = (constraints.maxWidth < 800 || constraints.maxHeight < 620);
         if (isCompact) {
           return SingleChildScrollView(
             child: Column(
@@ -288,8 +285,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
         ...List<Widget>.generate(steps.length, (int index) {
           final WorkflowInstructionStep stepItem = steps[index];
           final bool stepDone = isCompleted || index < state.currentStepIndex;
-          final bool stepActive =
-              !isCompleted && index == state.currentStepIndex;
+          final bool stepActive = (!isCompleted && index == state.currentStepIndex);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
@@ -631,21 +627,19 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         : ListView.builder(
                             reverse: true,
                             itemCount: state.consoleLogs.length,
-                            itemBuilder: (BuildContext context, int idx) {
+                            itemBuilder: (BuildContext context, int index) {
                               final String rawLine = state.consoleLogs[
-                                  state.consoleLogs.length - 1 - idx];
+                                  state.consoleLogs.length - 1 - index];
                               if (rawLine.startsWith('\$') ||
                                   rawLine.contains('scan_cli.py') ||
                                   rawLine.contains('process_cli.py')) {
                                 return const SizedBox.shrink();
                               }
-                              final bool isSuccessLine =
-                                  rawLine.contains('[Success]') ||
-                                      rawLine.contains('[SAVED]') ||
-                                      rawLine.contains('completed');
-                              final bool isErrorLine =
-                                  rawLine.contains('[ERROR]') ||
-                                      rawLine.contains('[stderr]');
+                              final bool isSuccessLine = rawLine.contains('[Success]') ||
+                                  rawLine.contains('[SAVED]') ||
+                                  rawLine.contains('completed');
+                              final bool isErrorLine = rawLine.contains('[ERROR]') ||
+                                  rawLine.contains('[stderr]');
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 2.0),

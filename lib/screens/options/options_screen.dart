@@ -24,14 +24,12 @@ class OptionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppState state = context.watch<AppState>();
     final bool isDark = state.isDarkMode;
-    final int workflowIndex =
-        WorkflowType.values.indexOf(state.config.workflowType) + 1;
+    final int workflowIndex = WorkflowType.values.indexOf(state.config.workflowType) + 1;
     final int totalWorkflows = WorkflowType.values.length;
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isCompact =
-            constraints.maxWidth < 800 || constraints.maxHeight < 620;
+        final bool isCompact = (constraints.maxWidth < 800 || constraints.maxHeight < 620);
 
         if (isCompact) {
           return Container(
@@ -464,8 +462,7 @@ class OptionsScreen extends StatelessWidget {
 
   Widget _buildDrawerAndSummaryBar(AppState state, bool isDark) {
     final ScanConfigurationModel config = state.config;
-    final String dpiLabel =
-        config.dpi <= 0 ? 'Auto Quality' : '${config.dpi} DPI';
+    final String dpiLabel = config.dpi <= 0 ? 'Auto Quality' : '${config.dpi} DPI';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

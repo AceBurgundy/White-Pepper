@@ -176,10 +176,10 @@ class ScannerProcessService {
             ? result.stderr.toString()
             : 'Diagnostics failed with code ${result.exitCode}',
       };
-    } catch (e) {
+    } catch (exception) {
       return <String, dynamic>{
         'success': false,
-        'message': e.toString(),
+        'message': exception.toString(),
       };
     }
   }
