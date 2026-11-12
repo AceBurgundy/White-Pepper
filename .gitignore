@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Nested scripts standalone git directory
+scripts/.git/
+scripts/.old.git*/
+.old.git*/
+
+# Distribution / packaging
+build/
+dist/
+installer/output/
+*.egg-info/
+.eggs/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE and Editor artifacts
+.vscode/
+.idea/
+
+# Testing & Logs
+.pytest_cache/
+*.log
+scratch/
+test_output/
