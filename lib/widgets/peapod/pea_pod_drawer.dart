@@ -542,7 +542,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   Widget _buildContrastControls(bool isDark) {
     final bool supportsToneSliders = (config.workflowType == WorkflowType.flatbed ||
         config.workflowType == WorkflowType.photoScan ||
-        config.workflowType == WorkflowType.receiptArchive);
+        config.workflowType == WorkflowType.receiptArchive ||
+        config.workflowType == WorkflowType.customPlaten ||
+        config.workflowType == WorkflowType.highResArchive ||
+        config.workflowType == WorkflowType.grayscaleDocument);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -913,6 +916,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       case WorkflowType.bookletBatch:
       case WorkflowType.receiptArchive:
       case WorkflowType.photoScan:
+      case WorkflowType.customPlaten:
+      case WorkflowType.highResArchive:
+      case WorkflowType.grayscaleDocument:
+      case WorkflowType.quickPreview:
         allowedFormats = const <String>['pdf', 'png', 'jpg', 'tiff', 'bmp'];
     }
 

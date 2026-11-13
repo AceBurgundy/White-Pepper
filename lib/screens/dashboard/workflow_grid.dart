@@ -77,6 +77,14 @@ class _WorkflowGridState extends State<WorkflowGrid> {
         return Icons.picture_as_pdf_outlined;
       case 'view_carousel':
         return Icons.crop_free_outlined;
+      case 'crop':
+        return Icons.crop_outlined;
+      case 'high_res':
+        return Icons.high_quality_outlined;
+      case 'filter_b_and_w':
+        return Icons.filter_b_and_w_outlined;
+      case 'visibility':
+        return Icons.visibility_outlined;
       default:
         return Icons.folder_outlined;
     }
@@ -100,6 +108,14 @@ class _WorkflowGridState extends State<WorkflowGrid> {
         return WorkflowCardTheme.light;
       case WorkflowType.legalStitch:
         return WorkflowCardTheme.yellow;
+      case WorkflowType.customPlaten:
+        return WorkflowCardTheme.light;
+      case WorkflowType.highResArchive:
+        return WorkflowCardTheme.yellow;
+      case WorkflowType.grayscaleDocument:
+        return WorkflowCardTheme.dark;
+      case WorkflowType.quickPreview:
+        return WorkflowCardTheme.light;
     }
   }
 
@@ -121,6 +137,14 @@ class _WorkflowGridState extends State<WorkflowGrid> {
         return 'HALF PLATEN';
       case WorkflowType.legalStitch:
         return '2-PASS 14"';
+      case WorkflowType.customPlaten:
+        return 'CUSTOM IN/MM';
+      case WorkflowType.highResArchive:
+        return '1200 DPI TIFF';
+      case WorkflowType.grayscaleDocument:
+        return 'B&W • 300 DPI';
+      case WorkflowType.quickPreview:
+        return '75 DPI PREVIEW';
     }
   }
 
@@ -132,7 +156,7 @@ class _WorkflowGridState extends State<WorkflowGrid> {
       builder: (BuildContext context, BoxConstraints constraints) {
         final int crossAxisCount = constraints.maxWidth < 420 ? 1 : 2;
         const double spacing = 12.0;
-        const double cardHeight = 136.0;
+        const double cardHeight = 142.0;
 
         final double trackHeight = constraints.maxHeight.clamp(120.0, 4000.0);
         final double thumbHeight = (trackHeight * _thumbFraction).clamp(36.0, trackHeight * 0.65);

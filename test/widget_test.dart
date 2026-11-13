@@ -25,9 +25,9 @@ void main() {
       expect(find.byTooltip('Workstation Menu'), findsNothing);
 
       // 3. Night Mode toggle button is present in the top-right of the left sidebar
-      final Finder nightModeBtn = find.byTooltip('Night Mode');
-      expect(nightModeBtn, findsOneWidget);
-      await tester.tap(nightModeBtn);
+      final Finder nightModeButton = find.byTooltip('Night Mode');
+      expect(nightModeButton, findsOneWidget);
+      await tester.tap(nightModeButton);
       await tester.pumpAndSettle();
       expect(appState.isDarkMode, isTrue);
 
@@ -37,11 +37,11 @@ void main() {
       expect(appState.isDarkMode, isFalse);
 
       // 4. Left printer card has Switch Scanner button with encircling icon
-      final Finder switchScannerBtn = find.byTooltip('Switch Scanner');
-      expect(switchScannerBtn, findsOneWidget);
+      final Finder switchScannerButton = find.byTooltip('Switch Scanner');
+      expect(switchScannerButton, findsOneWidget);
 
       // Tap 'Switch Scanner' to open ScannerSelectorDialog
-      await tester.tap(switchScannerBtn);
+      await tester.tap(switchScannerButton);
       await tester.pumpAndSettle();
       expect(find.text('Select Scanner'), findsOneWidget);
       expect(find.text('Scan for Printers'), findsOneWidget);
@@ -56,11 +56,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // 5. Left printer card has pointer hand cursor and 'View Printer' tooltip
-      final Finder viewPrinterBtn = find.byTooltip('View Printer');
-      expect(viewPrinterBtn, findsOneWidget);
+      final Finder viewPrinterButton = find.byTooltip('View Printer');
+      expect(viewPrinterButton, findsOneWidget);
 
       // Tap 'View Printer' to open dialog with C/M/Y/K ink levels & hardware diagnostics
-      await tester.tap(viewPrinterBtn);
+      await tester.tap(viewPrinterButton);
       await tester.pumpAndSettle();
       expect(find.textContaining('Printer Details'), findsOneWidget);
       expect(find.text('INK LEVELS'), findsOneWidget);
@@ -104,8 +104,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 7. Workflow cards have descriptions and pills removed
+      // 7. Workflow cards have concise single-line subtitles
       expect(find.text('Flatbed Document'), findsOneWidget);
+      expect(find.text('Single page scan'), findsOneWidget);
       expect(find.text('Standard document & photo scanning'), findsNothing);
 
       // 8. Clicking 'Flatbed Document' transitions to Options Control Deck
@@ -125,11 +126,11 @@ void main() {
       expect(find.text('Letter'), findsWidgets);
 
       // 11. Return to workflow cards has only the Back button (menu button removed)
-      final Finder returnBackBtn = find.byTooltip('Return to Workflow Cards');
-      expect(returnBackBtn, findsOneWidget);
+      final Finder returnBackButton = find.byTooltip('Return to Workflow Cards');
+      expect(returnBackButton, findsOneWidget);
       expect(
         find.descendant(
-          of: returnBackBtn,
+          of: returnBackButton,
           matching: find.byIcon(Icons.arrow_back_rounded),
         ),
         findsOneWidget,

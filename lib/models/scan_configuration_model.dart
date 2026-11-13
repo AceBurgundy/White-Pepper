@@ -2,7 +2,7 @@ enum WorkflowType {
   flatbed(
     identifier: 'flatbed-document',
     title: 'Flatbed Document',
-    subtitle: 'Standard document & photo scanning',
+    subtitle: 'Single page scan',
     cliSummary: 'scan_cli.py flatbed --paper-size a4 --dpi 300',
     iconName: 'description',
     emojiIcon: '📄',
@@ -11,7 +11,7 @@ enum WorkflowType {
   photoScan(
     identifier: 'photo-scan',
     title: 'Photo Scan',
-    subtitle: 'High-resolution color photo scan',
+    subtitle: 'High-res color photo',
     cliSummary: 'scan_cli.py flatbed --preset photo-4x6 --dpi 600',
     iconName: 'image',
     emojiIcon: '🖼️',
@@ -20,7 +20,7 @@ enum WorkflowType {
   bookletBatch(
     identifier: 'booklet-batch',
     title: 'Booklet Batch',
-    subtitle: 'Continuous dual-page book scanning',
+    subtitle: 'Dual-page spread split',
     cliSummary: 'scan_cli.py booklet --interval 10 --dpi 300',
     iconName: 'auto_stories',
     emojiIcon: '📖',
@@ -29,7 +29,7 @@ enum WorkflowType {
   cardDuplex(
     identifier: 'id-card-duplex',
     title: 'ID Card Duplex',
-    subtitle: 'Front & back ID card alignment',
+    subtitle: 'Front & back ID align',
     cliSummary: 'scan_cli.py card --dpi 600 --safety-inset-mm 0.5',
     iconName: 'badge',
     emojiIcon: '🪪',
@@ -38,7 +38,7 @@ enum WorkflowType {
   batchCardDeskew(
     identifier: 'batch-card-deskew',
     title: 'Batch Card Deskewer',
-    subtitle: 'Auto-straighten & crop card images',
+    subtitle: 'Batch deskew & crop',
     cliSummary: 'process_cli.py cards --dpi 600',
     iconName: 'view_carousel',
     emojiIcon: '🔍',
@@ -47,7 +47,7 @@ enum WorkflowType {
   compilePdf(
     identifier: 'compile-pdf',
     title: 'Compile PDF',
-    subtitle: 'Combine scanned pages into PDF',
+    subtitle: 'Merge images to PDF',
     cliSummary: 'process_cli.py compile-pdf --fit-mode contain',
     iconName: 'picture_as_pdf',
     emojiIcon: '📑',
@@ -56,7 +56,7 @@ enum WorkflowType {
   receiptArchive(
     identifier: 'receipt-archive',
     title: 'Receipt Archive',
-    subtitle: 'Quick receipt & invoice capture',
+    subtitle: 'Quick receipt capture',
     cliSummary: 'scan_cli.py flatbed --preset boy-gatas-receipts',
     iconName: 'receipt_long',
     emojiIcon: '🧾',
@@ -65,10 +65,46 @@ enum WorkflowType {
   legalStitch(
     identifier: 'legal-two-pass',
     title: 'Legal 2-Pass Stitch',
-    subtitle: 'Two-pass full legal paper merge',
+    subtitle: '2-pass legal document',
     cliSummary: 'scan_cli.py legal-stitch --resolution 300 --ipc-mode',
     iconName: 'vertical_split',
     emojiIcon: '📐',
+    useEmoji: false,
+  ),
+  customPlaten(
+    identifier: 'custom-region',
+    title: 'Custom Region',
+    subtitle: 'Custom bounds & offset',
+    cliSummary: 'scan_cli.py flatbed --paper-size custom --units in',
+    iconName: 'crop',
+    emojiIcon: '📐',
+    useEmoji: false,
+  ),
+  highResArchive(
+    identifier: 'high-res-archive',
+    title: '1200 DPI Archive',
+    subtitle: 'Lossless master scan',
+    cliSummary: 'scan_cli.py flatbed --dpi 1200 --format tiff',
+    iconName: 'high_res',
+    emojiIcon: '🔬',
+    useEmoji: false,
+  ),
+  grayscaleDocument(
+    identifier: 'bw-document',
+    title: 'B&W Text Document',
+    subtitle: 'High-contrast text PDF',
+    cliSummary: 'scan_cli.py flatbed --color-mode bw --format pdf',
+    iconName: 'filter_b_and_w',
+    emojiIcon: '📄',
+    useEmoji: false,
+  ),
+  quickPreview(
+    identifier: 'platen-preview',
+    title: 'Platen Preview',
+    subtitle: 'Fast low-res overview',
+    cliSummary: 'scan_cli.py flatbed --dpi 75 --intent preview',
+    iconName: 'visibility',
+    emojiIcon: '👁️',
     useEmoji: false,
   );
 
@@ -119,6 +155,7 @@ class ScanConfigurationModel {
     this.maxScans = 0,
     this.noDeskew = false,
     this.ipcMode = true,
+    this.intent = 'document',
     this.selectedBackend,
     this.selectedHost,
     this.selectedPort,
@@ -151,6 +188,7 @@ class ScanConfigurationModel {
   int maxScans;
   bool noDeskew;
   bool ipcMode;
+  String intent;
   String? selectedBackend;
   String? selectedHost;
   int? selectedPort;
@@ -183,6 +221,7 @@ class ScanConfigurationModel {
     int? maxScans,
     bool? noDeskew,
     bool? ipcMode,
+    String? intent,
     String? selectedBackend,
     String? selectedHost,
     int? selectedPort,
@@ -215,6 +254,7 @@ class ScanConfigurationModel {
       maxScans: maxScans ?? this.maxScans,
       noDeskew: noDeskew ?? this.noDeskew,
       ipcMode: ipcMode ?? this.ipcMode,
+      intent: intent ?? this.intent,
       selectedBackend: selectedBackend ?? this.selectedBackend,
       selectedHost: selectedHost ?? this.selectedHost,
       selectedPort: selectedPort ?? this.selectedPort,

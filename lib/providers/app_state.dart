@@ -295,6 +295,10 @@ class AppState extends ChangeNotifier {
       case WorkflowType.flatbed:
       case WorkflowType.receiptArchive:
       case WorkflowType.photoScan:
+      case WorkflowType.customPlaten:
+      case WorkflowType.highResArchive:
+      case WorkflowType.grayscaleDocument:
+      case WorkflowType.quickPreview:
         return <WorkflowInstructionStep>[
           WorkflowInstructionStep(
             stepNumber: 1,
@@ -375,6 +379,29 @@ class AppState extends ChangeNotifier {
       case WorkflowType.batchCardDeskew:
         _config.paperSize = 'id-card';
         _config.dpi = 600;
+        _config.format = 'png';
+      case WorkflowType.customPlaten:
+        _config.paperSize = 'custom';
+        _config.units = 'in';
+        _config.customWidth = 6.0;
+        _config.customHeight = 8.0;
+        _config.dpi = 300;
+        _config.format = 'pdf';
+      case WorkflowType.highResArchive:
+        _config.paperSize = 'a4';
+        _config.dpi = 1200;
+        _config.format = 'tiff';
+        _config.colorMode = 'color';
+      case WorkflowType.grayscaleDocument:
+        _config.paperSize = 'a4';
+        _config.dpi = 300;
+        _config.format = 'pdf';
+        _config.colorMode = 'bw';
+        _config.autoCrop = true;
+      case WorkflowType.quickPreview:
+        _config.paperSize = 'full';
+        _config.dpi = 75;
+        _config.intent = 'preview';
         _config.format = 'png';
     }
 

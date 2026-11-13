@@ -151,18 +151,42 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
                 ],
               ),
 
-              // Bottom Label: Title only, no description
-              Text(
-                widget.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
-                  height: 1.2,
-                ),
+              // Bottom Label: Title and short subtitle description
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    widget.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      height: 1.2,
+                    ),
+                  ),
+                  if (widget.subtitle.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 3),
+                    Text(
+                      widget.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: widget.theme == WorkflowCardTheme.dark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : (widget.theme == WorkflowCardTheme.yellow
+                                ? DesignTokens.onyx.withValues(alpha: 0.72)
+                                : DesignTokens.neutralGraySixHundred),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

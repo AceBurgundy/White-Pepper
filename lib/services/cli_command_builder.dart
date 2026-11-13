@@ -48,6 +48,10 @@ class CliCommandBuilder {
   }) {
     switch (config.workflowType) {
       case WorkflowType.flatbed:
+      case WorkflowType.customPlaten:
+      case WorkflowType.highResArchive:
+      case WorkflowType.grayscaleDocument:
+      case WorkflowType.quickPreview:
         final List<String> args = [
           'flatbed',
           '--paper-size',
@@ -61,6 +65,9 @@ class CliCommandBuilder {
           '--output-dir',
           config.outputDirectory,
         ];
+        if (config.intent != 'document') {
+          args.addAll(['--intent', config.intent]);
+        }
         if (config.fileNamePrefix.trim().isNotEmpty) {
           args.addAll(['--prefix', config.fileNamePrefix.trim()]);
         }

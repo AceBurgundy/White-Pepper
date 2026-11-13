@@ -56,6 +56,9 @@ enum PeaPodToolType {
     switch (workflow) {
       case WorkflowType.flatbed:
       case WorkflowType.photoScan:
+      case WorkflowType.customPlaten:
+      case WorkflowType.highResArchive:
+      case WorkflowType.grayscaleDocument:
         return const <PeaPodToolType>[
           PeaPodToolType.layout,
           PeaPodToolType.tune,
@@ -97,6 +100,12 @@ enum PeaPodToolType {
         return const <PeaPodToolType>[
           PeaPodToolType.tune,
           PeaPodToolType.crop,
+          PeaPodToolType.title,
+        ];
+      case WorkflowType.quickPreview:
+        return const <PeaPodToolType>[
+          PeaPodToolType.layout,
+          PeaPodToolType.rotate,
           PeaPodToolType.title,
         ];
     }
