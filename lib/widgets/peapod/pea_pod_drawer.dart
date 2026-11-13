@@ -322,7 +322,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Width: ${config.customWidth.toStringAsFixed(0)} ${config.units}',
+                      'Width: ${config.units == 'in' ? config.customWidth.toStringAsFixed(1) : config.customWidth.toStringAsFixed(0)} ${config.units}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark
@@ -333,10 +333,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                     _buildYellowSlider(
                       isDark: isDark,
                       value: config.customWidth,
-                      min: 20,
-                      max: 216,
-                      onChanged: (double v) {
-                        config.customWidth = v;
+                      min: config.units == 'in' ? 1.0 : 20.0,
+                      max: config.units == 'in' ? 8.5 : 216.0,
+                      onChanged: (double sliderValue) {
+                        config.customWidth = sliderValue;
                         onConfigChanged(config);
                       },
                     ),
@@ -349,7 +349,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Height: ${config.customHeight.toStringAsFixed(0)} ${config.units}',
+                      'Height: ${config.units == 'in' ? config.customHeight.toStringAsFixed(1) : config.customHeight.toStringAsFixed(0)} ${config.units}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark
@@ -360,10 +360,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                     _buildYellowSlider(
                       isDark: isDark,
                       value: config.customHeight,
-                      min: 20,
-                      max: 297,
-                      onChanged: (double v) {
-                        config.customHeight = v;
+                      min: config.units == 'in' ? 1.0 : 20.0,
+                      max: config.units == 'in' ? 11.7 : 297.0,
+                      onChanged: (double sliderValue) {
+                        config.customHeight = sliderValue;
                         onConfigChanged(config);
                       },
                     ),
@@ -380,7 +380,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Left Offset: ${config.offsetX.toStringAsFixed(0)} ${config.units}',
+                      'Left Offset: ${config.units == 'in' ? config.offsetX.toStringAsFixed(1) : config.offsetX.toStringAsFixed(0)} ${config.units}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark
@@ -391,10 +391,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                     _buildYellowSlider(
                       isDark: isDark,
                       value: config.offsetX,
-                      min: 0,
-                      max: 150,
-                      onChanged: (double v) {
-                        config.offsetX = v;
+                      min: 0.0,
+                      max: config.units == 'in' ? 6.0 : 150.0,
+                      onChanged: (double sliderValue) {
+                        config.offsetX = sliderValue;
                         onConfigChanged(config);
                       },
                     ),
@@ -407,7 +407,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Top Offset: ${config.offsetY.toStringAsFixed(0)} ${config.units}',
+                      'Top Offset: ${config.units == 'in' ? config.offsetY.toStringAsFixed(1) : config.offsetY.toStringAsFixed(0)} ${config.units}',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark
@@ -418,10 +418,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                     _buildYellowSlider(
                       isDark: isDark,
                       value: config.offsetY,
-                      min: 0,
-                      max: 200,
-                      onChanged: (double v) {
-                        config.offsetY = v;
+                      min: 0.0,
+                      max: config.units == 'in' ? 9.0 : 200.0,
+                      onChanged: (double sliderValue) {
+                        config.offsetY = sliderValue;
                         onConfigChanged(config);
                       },
                     ),
@@ -437,7 +437,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
 
   Widget _buildTuneControls(bool isDark) {
     if (config.workflowType == WorkflowType.compilePdf) {
-      const List<int> pdfDpiOptions = <int>[0, 150, 300, 600, 1200];
+      const List<int> pdfDpiOptions = <int>[0, 75, 100, 200, 300, 600, 1200];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -451,13 +451,13 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: pdfDpiOptions.map((int val) {
+            children: pdfDpiOptions.map((int optionDpi) {
               return _buildChip(
                 isDark: isDark,
-                label: val == 0 ? 'AUTO (ORIGINAL)' : '$val DPI',
-                isSelected: config.dpi == val,
+                label: optionDpi == 0 ? 'AUTO (ORIGINAL)' : '$optionDpi DPI',
+                isSelected: config.dpi == optionDpi,
                 onTap: () {
-                  config.dpi = val;
+                  config.dpi = optionDpi;
                   onConfigChanged(config);
                 },
               );

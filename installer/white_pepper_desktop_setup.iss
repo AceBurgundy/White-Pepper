@@ -31,6 +31,13 @@ UninstallDisplayIcon={app}\app_icon.ico
 UninstallDisplayName={#MyAppName}
 CloseApplications=yes
 RestartApplications=no
+VersionInfoVersion=1.3.0.0
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription=White Pepper Scanner Suite Setup
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoCopyright=Copyright (C) 2026 AceBurgundy
+VersionInfoProductName=White Pepper Scanner Suite
+VersionInfoProductVersion=1.3.0.0
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

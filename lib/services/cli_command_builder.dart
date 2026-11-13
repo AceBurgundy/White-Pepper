@@ -210,6 +210,23 @@ class CliCommandBuilder {
         if (config.fileNamePrefix.trim().isNotEmpty) {
           args.addAll(['--prefix', config.fileNamePrefix.trim()]);
         }
+        if (config.paperSize == 'custom') {
+          args.addAll([
+            '--width',
+            '${config.customWidth}',
+            '--height',
+            '${config.customHeight}',
+            '--units',
+            config.units,
+            '--offset-x',
+            '${config.offsetX}',
+            '--offset-y',
+            '${config.offsetY}',
+          ]);
+        }
+        if (config.rotation != 0) {
+          args.addAll(['--rotate', '${config.rotation}']);
+        }
         if (config.brightness != 0) {
           args.addAll(['--brightness', '${config.brightness}']);
         }
@@ -243,6 +260,20 @@ class CliCommandBuilder {
         ];
         if (config.fileNamePrefix.trim().isNotEmpty) {
           args.addAll(['--prefix', config.fileNamePrefix.trim()]);
+        }
+        if (config.paperSize == 'custom') {
+          args.addAll([
+            '--width',
+            '${config.customWidth}',
+            '--height',
+            '${config.customHeight}',
+            '--units',
+            config.units,
+            '--offset-x',
+            '${config.offsetX}',
+            '--offset-y',
+            '${config.offsetY}',
+          ]);
         }
         if (config.rotation != 0) {
           args.addAll(['--rotate', '${config.rotation}']);

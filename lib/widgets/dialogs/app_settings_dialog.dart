@@ -174,6 +174,12 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
                   label: 'Millimeters (mm)',
                   isSelected: state.config.units == 'mm',
                   onTap: () {
+                    if (state.config.units == 'in') {
+                      state.config.customWidth = (state.config.customWidth * 25.4).clamp(20.0, 216.0);
+                      state.config.customHeight = (state.config.customHeight * 25.4).clamp(20.0, 297.0);
+                      state.config.offsetX = (state.config.offsetX * 25.4).clamp(0.0, 150.0);
+                      state.config.offsetY = (state.config.offsetY * 25.4).clamp(0.0, 200.0);
+                    }
                     state.config.units = 'mm';
                     state.updateConfig(state.config);
                   },
@@ -184,6 +190,12 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
                   label: 'Inches (in)',
                   isSelected: state.config.units == 'in',
                   onTap: () {
+                    if (state.config.units == 'mm') {
+                      state.config.customWidth = (state.config.customWidth / 25.4).clamp(1.0, 8.5);
+                      state.config.customHeight = (state.config.customHeight / 25.4).clamp(1.0, 11.7);
+                      state.config.offsetX = (state.config.offsetX / 25.4).clamp(0.0, 6.0);
+                      state.config.offsetY = (state.config.offsetY / 25.4).clamp(0.0, 9.0);
+                    }
                     state.config.units = 'in';
                     state.updateConfig(state.config);
                   },
@@ -199,7 +211,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: <int>[150, 300, 600, 1200].map((int dpi) {
+              children: <int>[75, 100, 200, 300, 600, 1200].map((int dpi) {
                 return _buildToggleChip(
                   label: '$dpi DPI',
                   isSelected: state.config.dpi == dpi,

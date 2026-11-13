@@ -412,6 +412,7 @@ class OptionsScreen extends StatelessWidget {
               rotation: state.config.rotation,
               customWidth: state.config.customWidth,
               customHeight: state.config.customHeight,
+              units: state.config.units,
               fileNamePrefix: state.config.fileNamePrefix,
               colorMode: state.config.colorMode,
               format: state.config.format,

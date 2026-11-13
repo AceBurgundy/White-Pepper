@@ -157,6 +157,34 @@ void main() {
       expect(state.scannerConnectionLabel, equals('USB • Ready'));
       expect(state.config.selectedBackend, equals('wia'));
       expect(state.config.selectedDeviceId, equals('device-guid-xyz'));
+
+      // Selecting a workflow must preserve active scanner targeting
+      state.selectWorkflow(WorkflowType.highResArchive);
+      expect(state.config.dpi, equals(1200));
+      expect(state.config.format, equals('tiff'));
+      expect(state.config.selectedBackend, equals('wia'));
+      expect(state.config.selectedDeviceId, equals('device-guid-xyz'));
+    });
+
+    test('Changing DPI and High-Res Archive workflow propagates exact optical resolution to CLI', () {
+      for (final int expectedDpi in <int>[75, 100, 200, 300, 600, 1200]) {
+        final ScanConfigurationModel config = ScanConfigurationModel(
+          workflowType: WorkflowType.flatbed,
+          dpi: expectedDpi,
+        );
+        final CliCommandPlan plan = CliCommandBuilder.build(config);
+        final int dpiFlagIndex = plan.arguments.indexOf('--dpi');
+        expect(dpiFlagIndex, isNot(-1));
+        expect(plan.arguments[dpiFlagIndex + 1], equals('$expectedDpi'));
+      }
+
+      final AppState state = AppState();
+      state.selectWorkflow(WorkflowType.highResArchive);
+      final CliCommandPlan archivePlan = CliCommandBuilder.build(state.config);
+      expect(archivePlan.arguments, contains('--dpi'));
+      expect(archivePlan.arguments, contains('1200'));
+      expect(archivePlan.arguments, contains('--format'));
+      expect(archivePlan.arguments, contains('tiff'));
     });
   });
 }

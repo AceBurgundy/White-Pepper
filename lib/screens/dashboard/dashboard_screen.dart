@@ -223,7 +223,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'All Workflows (8)',
+                  'All Workflows (${WorkflowType.values.length})',
                   style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,

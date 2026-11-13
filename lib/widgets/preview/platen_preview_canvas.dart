@@ -11,6 +11,7 @@ class PlatenPreviewCanvas extends StatelessWidget {
     this.rotation = 0,
     this.customWidth = 210.0,
     this.customHeight = 297.0,
+    this.units = 'mm',
     this.fileNamePrefix = '',
     this.colorMode = 'color',
     this.format = 'png',
@@ -23,6 +24,7 @@ class PlatenPreviewCanvas extends StatelessWidget {
   final int rotation;
   final double customWidth;
   final double customHeight;
+  final String units;
   final String fileNamePrefix;
   final String colorMode;
   final String format;
@@ -53,6 +55,7 @@ class PlatenPreviewCanvas extends StatelessWidget {
       effectivePreset,
       customWidth: customWidth,
       customHeight: customHeight,
+      units: units,
     );
 
     final int effectiveDpi = dpi <= 0 ? 300 : dpi;

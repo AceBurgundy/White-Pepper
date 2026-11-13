@@ -340,11 +340,26 @@ class AppState extends ChangeNotifier {
   }
 
   void selectWorkflow(WorkflowType workflow) {
-    _config = ScanConfigurationModel(workflowType: workflow);
+    final String previousUnits = _config.units;
+    final String previousOutputDirectory = _config.outputDirectory;
+    final String? previousBackend = _config.selectedBackend;
+    final String? previousHost = _config.selectedHost;
+    final int? previousPort = _config.selectedPort;
+    final String? previousDeviceId = _config.selectedDeviceId;
+
+    _config = ScanConfigurationModel(
+      workflowType: workflow,
+      units: previousUnits,
+      outputDirectory: previousOutputDirectory,
+      selectedBackend: previousBackend,
+      selectedHost: previousHost,
+      selectedPort: previousPort,
+      selectedDeviceId: previousDeviceId,
+    );
 
     switch (workflow) {
       case WorkflowType.flatbed:
-        _config.paperSize = 'a4';
+        _config.paperSize = 'full';
         _config.dpi = 300;
         _config.format = 'pdf';
       case WorkflowType.cardDuplex:
@@ -382,9 +397,13 @@ class AppState extends ChangeNotifier {
         _config.format = 'png';
       case WorkflowType.customPlaten:
         _config.paperSize = 'custom';
-        _config.units = 'in';
-        _config.customWidth = 6.0;
-        _config.customHeight = 8.0;
+        if (_config.units == 'in') {
+          _config.customWidth = 6.0;
+          _config.customHeight = 8.0;
+        } else {
+          _config.customWidth = 152.0;
+          _config.customHeight = 203.0;
+        }
         _config.dpi = 300;
         _config.format = 'pdf';
       case WorkflowType.highResArchive:
@@ -604,10 +623,15 @@ class AppState extends ChangeNotifier {
   void _extractSavedFilePathFromLog(String line) {
     final List<String> markers = <String>[
       '[Success] Scanned file saved:',
+      '[Success] Saved:',
       '[Success] Extracted ID-1 Card:',
+      '[Success] Raw card capture saved:',
       '[Success] Stitched US Legal Document:',
       '[Success] Compiled PDF document:',
+      '[Success] Compiled booklet PDF:',
+      '-> Extracted ID-1 card:',
       '[SAVED]',
+      '[Saved]',
       'saved to:',
     ];
     for (final String marker in markers) {
