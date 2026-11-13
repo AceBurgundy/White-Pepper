@@ -4,6 +4,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/cards/workflow_action_card.dart';
+import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 
 class WorkflowGrid extends StatefulWidget {
   const WorkflowGrid({
@@ -148,6 +149,23 @@ class _WorkflowGridState extends State<WorkflowGrid> {
     }
   }
 
+  LineIconType _resolveLineIconType(WorkflowType workflow) {
+    return switch (workflow) {
+      WorkflowType.flatbed => LineIconType.flatbed,
+      WorkflowType.photoScan => LineIconType.photoScan,
+      WorkflowType.bookletBatch => LineIconType.bookletBatch,
+      WorkflowType.cardDuplex => LineIconType.cardDuplex,
+      WorkflowType.batchCardDeskew => LineIconType.batchCardDeskew,
+      WorkflowType.compilePdf => LineIconType.compilePdf,
+      WorkflowType.receiptArchive => LineIconType.receiptArchive,
+      WorkflowType.legalStitch => LineIconType.legalStitch,
+      WorkflowType.customPlaten => LineIconType.customRegion,
+      WorkflowType.highResArchive => LineIconType.highResArchive,
+      WorkflowType.grayscaleDocument => LineIconType.grayscaleDocument,
+      WorkflowType.quickPreview => LineIconType.quickPreview,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     const List<WorkflowType> workflows = WorkflowType.values;
@@ -196,6 +214,7 @@ class _WorkflowGridState extends State<WorkflowGrid> {
                         title: workflow.title,
                         subtitle: workflow.subtitle,
                         icon: _resolveIcon(workflow.iconName),
+                        lineIconType: _resolveLineIconType(workflow),
                         emojiIcon: workflow.emojiIcon,
                         useEmoji: workflow.useEmoji,
                         theme: _resolveTheme(workflow),

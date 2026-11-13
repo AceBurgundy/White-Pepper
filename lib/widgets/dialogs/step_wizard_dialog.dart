@@ -5,6 +5,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../models/ipc_event.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/buttons/progress_button.dart';
+import '../icons/animated_line_icons/animated_line_icons.dart';
 
 class StepWizardDialog extends StatelessWidget {
   const StepWizardDialog({super.key});
@@ -75,17 +76,14 @@ class StepWizardDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                IconButton(
-                  onPressed: () {
+                DialogCloseButton(
+                  onTap: () {
                     if (state.scanButtonState == ProgressButtonState.processing) {
                       state.cancelScan();
                     }
                     Navigator.of(context).pop();
                   },
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: DesignTokens.neutralGrayEightHundred,
-                  ),
+                  isDark: false,
                 ),
               ],
             ),

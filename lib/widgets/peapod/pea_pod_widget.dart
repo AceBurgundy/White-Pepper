@@ -1,6 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../models/peapod_tool.dart';
+import '../icons/animated_line_icons/animated_line_icons.dart';
 
 /// Contoured liquid tool selector replicating minimalist/components/pea-pod/PeaPod.js
 class PeaPodWidget extends StatefulWidget {
@@ -151,9 +153,9 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         // Left Navigation Arrow Pod (.pea-pod__nav-pod)
-        _buildNavPod(
+        _PeaPodNavButton(
           isDark: isDark,
-          icon: Icons.chevron_left_rounded,
+          isRight: false,
           tooltip: 'Previous parameter',
           onTap: () => _stepDirection(-1),
         ),
@@ -187,52 +189,18 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
                     final PeaPodToolType tool = visibleTools[iterationIndex];
                     final bool isActive = tool == widget.selectedTool;
 
-                    final Color buttonBg = isActive
-                        ? (isDark ? DesignTokens.pureWhite : DesignTokens.onyx)
-                        : (isDark ? DesignTokens.darkSurfaceFive : DesignTokens.pureWhite);
-                    final Color iconColor = isActive
-                        ? (isDark ? DesignTokens.onyx : DesignTokens.pureWhite)
-                        : (isDark ? DesignTokens.pureWhite : DesignTokens.onyx);
-
                     return Padding(
                       padding: EdgeInsets.only(
                         right: iterationIndex < visibleTools.length - 1 ? 12 : 0,
                       ),
-                      child: Tooltip(
-                        message: tool.label,
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: GestureDetector(
-                            onTap: () {
-                              _dropletController.forward(from: 0.0);
-                              widget.onToolSelected(tool);
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeOutCubic,
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: buttonBg,
-                                shape: BoxShape.circle,
-                                boxShadow: isDark
-                                    ? null
-                                    : <BoxShadow>[
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.08),
-                                          offset: const Offset(0, 2),
-                                          blurRadius: 6,
-                                        ),
-                                      ],
-                              ),
-                              child: Icon(
-                                tool.icon,
-                                size: 22,
-                                color: iconColor,
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: _PeaPodButton(
+                        tool: tool,
+                        isActive: isActive,
+                        isDark: isDark,
+                        onTap: () {
+                          _dropletController.forward(from: 0.0);
+                          widget.onToolSelected(tool);
+                        },
                       ),
                     );
                   }),
@@ -244,25 +212,127 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
 
         const SizedBox(width: 12),
         // Right Navigation Arrow Pod (.pea-pod__nav-pod)
-        _buildNavPod(
+        _PeaPodNavButton(
           isDark: isDark,
-          icon: Icons.chevron_right_rounded,
+          isRight: true,
           tooltip: 'Next parameter',
           onTap: () => _stepDirection(1),
         ),
       ],
     );
   }
+}
 
-  Widget _buildNavPod({
-    required bool isDark,
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-  }) {
+class _PeaPodButton extends StatefulWidget {
+  const _PeaPodButton({
+    required this.tool,
+    required this.isActive,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final PeaPodToolType tool;
+  final bool isActive;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  State<_PeaPodButton> createState() => _PeaPodButtonState();
+}
+
+class _PeaPodButtonState extends State<_PeaPodButton> {
+  bool _isHovered = false;
+
+  LineIconType _resolveToolLineIconType(PeaPodToolType tool) {
+    return switch (tool) {
+      PeaPodToolType.layout => LineIconType.layout,
+      PeaPodToolType.tune => LineIconType.tune,
+      PeaPodToolType.timer => LineIconType.timer,
+      PeaPodToolType.rotate => LineIconType.rotate,
+      PeaPodToolType.contrast => LineIconType.contrast,
+      PeaPodToolType.crop => LineIconType.crop,
+      PeaPodToolType.title => LineIconType.title,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isActive = widget.isActive;
+    final bool isDark = widget.isDark;
+
+    // Background color is strictly steady: does NOT change on hover!
+    final Color buttonBg = isActive
+        ? (isDark ? DesignTokens.pureWhite : DesignTokens.onyx)
+        : (isDark ? DesignTokens.darkSurfaceFive : DesignTokens.pureWhite);
+    final Color iconColor = isActive
+        ? (isDark ? DesignTokens.onyx : DesignTokens.pureWhite)
+        : (isDark ? DesignTokens.pureWhite : DesignTokens.onyx);
+
+    return Tooltip(
+      message: widget.tool.label,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: buttonBg,
+              shape: BoxShape.circle,
+              boxShadow: isDark
+                  ? null
+                  : const <BoxShadow>[
+                      BoxShadow(
+                        color: Color(0x14000000),
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
+            ),
+            child: Center(
+              child: AnimatedLineIcon(
+                type: _resolveToolLineIconType(widget.tool),
+                isHovered: _isHovered,
+                color: iconColor,
+                size: 22,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PeaPodNavButton extends StatefulWidget {
+  const _PeaPodNavButton({
+    required this.isDark,
+    required this.isRight,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final bool isRight;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  State<_PeaPodNavButton> createState() => _PeaPodNavButtonState();
+}
+
+class _PeaPodNavButtonState extends State<_PeaPodNavButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = widget.isDark;
     final Color podBg = isDark
         ? DesignTokens.darkSurfaceTwo
-        : const Color(0xFFE4E4E7);
+        : DesignTokens.neutralGrayOneHundred;
     final Color innerBg = isDark
         ? DesignTokens.darkSurfaceFive
         : DesignTokens.pureWhite;
@@ -284,21 +354,39 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
         ],
       ),
       child: Tooltip(
-        message: tooltip,
-        child: Material(
-          color: innerBg,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: onTap,
-            mouseCursor: SystemMouseCursors.click,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 50,
-              height: 50,
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 22,
+        message: widget.tooltip,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: Material(
+            color: innerBg,
+            shape: const CircleBorder(),
+            child: InkWell(
+              onTap: widget.onTap,
+              mouseCursor: SystemMouseCursors.click,
+              customBorder: const CircleBorder(),
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: Center(
+                  child: widget.isRight
+                      ? AnimatedLineIcon(
+                          type: LineIconType.chevronRight,
+                          isHovered: _isHovered,
+                          color: iconColor,
+                          size: 22,
+                        )
+                      : Transform.rotate(
+                          angle: math.pi,
+                          child: AnimatedLineIcon(
+                            type: LineIconType.chevronRight,
+                            isHovered: _isHovered,
+                            color: iconColor,
+                            size: 22,
+                          ),
+                        ),
+                ),
               ),
             ),
           ),

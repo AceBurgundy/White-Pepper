@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../models/scanner_device_model.dart';
 import '../../providers/app_state.dart';
+import '../icons/animated_line_icons/animated_line_icons.dart';
 
 class ScannerSelectorDialog extends StatelessWidget {
   const ScannerSelectorDialog({super.key});
@@ -86,26 +87,9 @@ class ScannerSelectorDialog extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isDark
-                                ? DesignTokens.darkSurfaceFour
-                                : DesignTokens.neutralGrayOneHundred,
-                          ),
-                          child: Icon(
-                            Icons.close_rounded,
-                            size: 18,
-                            color: subtleColor,
-                          ),
-                        ),
-                      ),
+                    DialogCloseButton(
+                      onTap: () => Navigator.of(context).pop(),
+                      isDark: isDark,
                     ),
                   ],
                 ),

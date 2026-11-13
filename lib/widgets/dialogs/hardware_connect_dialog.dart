@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../providers/app_state.dart';
+import '../icons/animated_line_icons/animated_line_icons.dart';
 import 'scanner_selector_dialog.dart';
 
 class HardwareConnectDialog extends StatefulWidget {
@@ -287,12 +288,9 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: subtleColor,
-                    ),
+                  DialogCloseButton(
+                    onTap: () => Navigator.of(context).pop(),
+                    isDark: isDark,
                   ),
                 ],
               ),

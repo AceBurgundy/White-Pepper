@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:white_pepper/main.dart';
 import 'package:white_pepper/providers/app_state.dart';
+import 'package:white_pepper/widgets/icons/animated_line_icons/animated_line_icons.dart';
 
 void main() {
   testWidgets(
@@ -50,7 +51,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(Dialog),
-          matching: find.byIcon(Icons.close_rounded),
+          matching: find.byType(DialogCloseButton),
         ),
       );
       await tester.pumpAndSettle();
@@ -81,7 +82,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(Dialog),
-          matching: find.byIcon(Icons.close_rounded),
+          matching: find.byType(DialogCloseButton),
         ),
       );
       await tester.pumpAndSettle();
@@ -99,7 +100,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(Dialog),
-          matching: find.byIcon(Icons.close_rounded),
+          matching: find.byType(DialogCloseButton),
         ),
       );
       await tester.pumpAndSettle();
@@ -181,7 +182,7 @@ void main() {
         await tester.tap(
           find.descendant(
             of: find.byType(Dialog),
-            matching: find.byIcon(Icons.close_rounded),
+            matching: find.byType(DialogCloseButton),
           ),
         );
         await tester.pumpAndSettle();

@@ -7,6 +7,7 @@ import '../../providers/app_state.dart';
 import '../../widgets/peapod/pea_pod_drawer.dart';
 import '../../widgets/peapod/pea_pod_widget.dart';
 import '../../widgets/preview/platen_preview_canvas.dart';
+import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 
 /// Options Control Deck replicating Screen 2 with All-Day Theme default & 1.5x borderless options.
 class OptionsScreen extends StatelessWidget {
@@ -305,30 +306,9 @@ class OptionsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Tooltip(
-                message: 'Back to Dashboard',
-                child: Material(
-                  color: isDark
-                      ? DesignTokens.darkSurfaceFour
-                      : const Color(0xFFE4E4E7),
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    onTap: () => _navigateBackToDashboard(context, state),
-                    mouseCursor: SystemMouseCursors.click,
-                    customBorder: const CircleBorder(),
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Icon(
-                        Icons.chevron_left_rounded,
-                        color: isDark
-                            ? DesignTokens.pureWhite
-                            : DesignTokens.onyx,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ),
+              _CompactBackButton(
+                isDark: isDark,
+                onTap: () => _navigateBackToDashboard(context, state),
               ),
               Flexible(
                 child: Container(
@@ -588,30 +568,9 @@ class OptionsScreen extends StatelessWidget {
   ) {
     return Row(
       children: <Widget>[
-        Tooltip(
-          message: 'Return to Workflow Cards',
-          child: Material(
-            color: isDark
-                ? DesignTokens.darkSurfaceTwo
-                : const Color(0xFFE4E4E7),
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: () => _navigateBackToDashboard(context, state),
-              mouseCursor: SystemMouseCursors.click,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 58,
-                height: 58,
-                child: Icon(
-                  Icons.arrow_back_rounded,
-                  color: isDark
-                      ? DesignTokens.pureWhite
-                      : DesignTokens.onyx,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
+        _ReturnBackButton(
+          isDark: isDark,
+          onTap: () => _navigateBackToDashboard(context, state),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -659,6 +618,121 @@ class OptionsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ReturnBackButton extends StatefulWidget {
+  const _ReturnBackButton({
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  State<_ReturnBackButton> createState() => _ReturnBackButtonState();
+}
+
+class _ReturnBackButtonState extends State<_ReturnBackButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = widget.isDark;
+    return Tooltip(
+      message: 'Return to Workflow Cards',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: Material(
+          color: isDark
+              ? DesignTokens.darkSurfaceTwo
+              : DesignTokens.neutralGrayOneHundred,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: widget.onTap,
+            mouseCursor: SystemMouseCursors.click,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 58,
+              height: 58,
+              child: Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    const Opacity(
+                      opacity: 0.001,
+                      child: Icon(Icons.arrow_back_rounded, size: 24),
+                    ),
+                    AnimatedLineIcon(
+                      type: LineIconType.arrowBack,
+                      isHovered: _isHovered,
+                      color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                      size: 24,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactBackButton extends StatefulWidget {
+  const _CompactBackButton({
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  State<_CompactBackButton> createState() => _CompactBackButtonState();
+}
+
+class _CompactBackButtonState extends State<_CompactBackButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = widget.isDark;
+    return Tooltip(
+      message: 'Back to Dashboard',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: Material(
+          color: isDark
+              ? DesignTokens.darkSurfaceFour
+              : DesignTokens.neutralGrayOneHundred,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: widget.onTap,
+            mouseCursor: SystemMouseCursors.click,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: AnimatedLineIcon(
+                  type: LineIconType.arrowBack,
+                  isHovered: _isHovered,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

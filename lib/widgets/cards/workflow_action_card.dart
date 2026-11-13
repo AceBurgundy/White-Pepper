@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/design_tokens.dart';
+import '../icons/animated_line_icons/animated_line_icons.dart';
 
 enum WorkflowCardTheme {
   yellow,
@@ -13,6 +14,7 @@ class WorkflowActionCard extends StatefulWidget {
     required this.icon,
     required this.theme,
     required this.onTap,
+    this.lineIconType,
     this.subtitle = '',
     this.emojiIcon,
     this.useEmoji = false,
@@ -23,6 +25,7 @@ class WorkflowActionCard extends StatefulWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final LineIconType? lineIconType;
   final String? emojiIcon;
   final bool useEmoji;
   final WorkflowCardTheme theme;
@@ -83,33 +86,50 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
                       : Colors.transparent),
               width: 1.0,
             ),
-            boxShadow: _isHovered
-                ? <BoxShadow>[
-                    BoxShadow(
-                      color: DesignTokens.onyx.withValues(alpha: 0.14),
-                      offset: const Offset(0, 10),
-                      blurRadius: 28,
-                    ),
-                  ]
-                : <BoxShadow>[
-                    BoxShadow(
-                      color: DesignTokens.onyx.withValues(
-                        alpha: widget.theme == WorkflowCardTheme.dark ? 0.08 : 0.05,
-                      ),
-                      offset: const Offset(0, 8),
-                      blurRadius: 20,
-                    ),
-                  ],
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: DesignTokens.onyx.withValues(
+                  alpha: widget.theme == WorkflowCardTheme.dark ? 0.08 : 0.05,
+                ),
+                offset: const Offset(0, 8),
+                blurRadius: 20,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              // Top row: Black Line Icon + North-East Circular Arrow Badge
+              // Top row: Vector Line Icon + North-East Circular Arrow Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  if (widget.theme == WorkflowCardTheme.dark)
+                  if (widget.lineIconType != null)
+                    if (widget.theme == WorkflowCardTheme.dark)
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: DesignTokens.pureWhite,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: AnimatedLineIcon(
+                            type: widget.lineIconType!,
+                            isHovered: _isHovered,
+                            color: DesignTokens.onyx,
+                            size: 20,
+                          ),
+                        ),
+                      )
+                    else
+                      AnimatedLineIcon(
+                        type: widget.lineIconType!,
+                        isHovered: _isHovered,
+                        color: DesignTokens.onyx,
+                        size: 26,
+                      )
+                  else if (widget.theme == WorkflowCardTheme.dark)
                     Container(
                       width: 36,
                       height: 36,

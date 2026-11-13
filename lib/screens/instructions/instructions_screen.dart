@@ -6,6 +6,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/buttons/progress_button.dart';
+import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 
 /// Stage 3: Step-by-Step Progressing Instructions & Scanner Activity Screen.
 /// Replicates the Split Wavy Layout (desktop-screen-connect & WavyInstructionCard & LegalStitchWizardModal)
@@ -316,31 +317,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Tooltip(
-              message: 'Back to Options Deck',
-              child: Material(
-                color: const Color(0xFFE4E4E4),
-                shape: const CircleBorder(),
-                child: InkWell(
-                  onTap: () {
-                    if (isProcessing) {
-                      state.cancelScan();
-                    }
-                    state.switchScreen(AppScreen.options);
-                  },
-                  mouseCursor: SystemMouseCursors.click,
-                  customBorder: const CircleBorder(),
-                  child: const SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Icon(
-                      Icons.chevron_left_rounded,
-                      color: DesignTokens.onyx,
-                      size: 22,
-                    ),
-                  ),
-                ),
-              ),
+            _InstructionsBackButton(
+              isProcessing: isProcessing,
+              state: state,
             ),
             const SizedBox(width: 8),
             Flexible(
@@ -1122,5 +1101,60 @@ class _VerticalOrganicWavePainter extends CustomPainter {
   bool shouldRepaint(covariant _VerticalOrganicWavePainter oldDelegate) {
     return oldDelegate.lightColor != lightColor ||
         oldDelegate.darkColor != darkColor;
+  }
+}
+
+class _InstructionsBackButton extends StatefulWidget {
+  const _InstructionsBackButton({
+    required this.isProcessing,
+    required this.state,
+  });
+
+  final bool isProcessing;
+  final AppState state;
+
+  @override
+  State<_InstructionsBackButton> createState() => _InstructionsBackButtonState();
+}
+
+class _InstructionsBackButtonState extends State<_InstructionsBackButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Back to Options Deck',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: Material(
+          color: DesignTokens.neutralGrayOneHundred,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: () {
+              if (widget.isProcessing) {
+                widget.state.cancelScan();
+              }
+              widget.state.switchScreen(AppScreen.options);
+            },
+            mouseCursor: SystemMouseCursors.click,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: AnimatedLineIcon(
+                  type: LineIconType.arrowBack,
+                  isHovered: _isHovered,
+                  color: DesignTokens.onyx,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

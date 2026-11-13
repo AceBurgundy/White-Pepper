@@ -10,6 +10,7 @@ import '../../widgets/window/window_title_bar.dart';
 import '../instructions/instructions_screen.dart';
 import '../options/options_screen.dart';
 import 'workflow_grid.dart';
+import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 
 /// Unified 3-Screen Workstation matching minimalist design system
 class DashboardScreen extends StatelessWidget {
@@ -174,8 +175,8 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
             ),
-            _buildCircleIconButton(
-              icon: state.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            _CircleIconButton(
+              lineIconType: LineIconType.themeToggle,
               tooltip: state.isDarkMode ? 'Day Mode' : 'Night Mode',
               isDark: isDark,
               onTap: () => state.toggleDarkMode(),
@@ -286,15 +287,15 @@ class DashboardScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          _buildDockedNavButton(
-            icon: Icons.print_rounded,
+          _DockedNavButton(
+            lineIconType: LineIconType.flatbed,
             tooltip: 'Dashboard Workflows',
             isActive: state.currentScreen == AppScreen.dashboard,
             onTap: () => state.switchScreen(AppScreen.dashboard),
           ),
           const SizedBox(width: 4),
-          _buildDockedNavButton(
-            icon: Icons.settings_rounded,
+          _DockedNavButton(
+            lineIconType: LineIconType.settings,
             tooltip: 'Settings',
             isActive: false,
             onTap: () {
@@ -305,8 +306,8 @@ class DashboardScreen extends StatelessWidget {
             },
           ),
           const SizedBox(width: 4),
-          _buildDockedNavButton(
-            icon: Icons.checklist_rtl_rounded,
+          _DockedNavButton(
+            lineIconType: LineIconType.instructions,
             tooltip: 'Step-by-Step Instructions',
             isActive: state.currentScreen == AppScreen.instructions,
             onTap: () => state.beginInstructionsWorkflow(),
@@ -444,64 +445,22 @@ class DashboardScreen extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Tooltip(
-                      message: 'Switch Scanner',
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (_) => const ScannerSelectorDialog(),
-                            );
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: DesignTokens.darkSurfaceFour,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: DesignTokens.pureWhite.withValues(alpha: 0.15),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.sync_rounded,
-                              color: DesignTokens.pureWhite,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
+                    _SwitchScannerButton(
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => const ScannerSelectorDialog(),
+                        );
+                      },
                     ),
                     const SizedBox(width: 8),
-                    Tooltip(
-                      message: 'View Printer',
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (_) => const HardwareConnectDialog(),
-                            );
-                          },
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: const BoxDecoration(
-                              color: DesignTokens.accentYellow,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: DesignTokens.onyx,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                      ),
+                    _ViewPrinterButton(
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => const HardwareConnectDialog(),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -513,60 +472,200 @@ class DashboardScreen extends StatelessWidget {
     ),
     );
   }
+}
 
-  Widget _buildCircleIconButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
+class _SwitchScannerButton extends StatefulWidget {
+  const _SwitchScannerButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_SwitchScannerButton> createState() => _SwitchScannerButtonState();
+}
+
+class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
-        shape: const CircleBorder(),
-        child: InkWell(
-          onTap: onTap,
-          mouseCursor: SystemMouseCursors.click,
-          customBorder: const CircleBorder(),
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Icon(
-              icon,
-              color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-              size: 20,
+      message: 'Switch Scanner',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: DesignTokens.darkSurfaceFour,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: DesignTokens.pureWhite.withValues(alpha: 0.15),
+                width: 1.0,
+              ),
+            ),
+            child: Center(
+              child: AnimatedLineIcon(
+                type: LineIconType.switchScanner,
+                isHovered: _isHovered,
+                color: DesignTokens.pureWhite,
+                size: 20,
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildDockedNavButton({
-    required IconData icon,
-    required String tooltip,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
+class _ViewPrinterButton extends StatefulWidget {
+  const _ViewPrinterButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_ViewPrinterButton> createState() => _ViewPrinterButtonState();
+}
+
+class _ViewPrinterButtonState extends State<_ViewPrinterButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltip,
+      message: 'View Printer',
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
         child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
+          onTap: widget.onTap,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: DesignTokens.accentYellow,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: AnimatedLineIcon(
+                type: LineIconType.chevronRight,
+                isHovered: _isHovered,
+                color: DesignTokens.onyx,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CircleIconButton extends StatefulWidget {
+  const _CircleIconButton({
+    required this.lineIconType,
+    required this.tooltip,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  final LineIconType lineIconType;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool isDark;
+
+  @override
+  State<_CircleIconButton> createState() => _CircleIconButtonState();
+}
+
+class _CircleIconButtonState extends State<_CircleIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = widget.isDark;
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: Material(
+          color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: widget.onTap,
+            mouseCursor: SystemMouseCursors.click,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Center(
+                child: AnimatedLineIcon(
+                  type: widget.lineIconType,
+                  isHovered: _isHovered,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DockedNavButton extends StatefulWidget {
+  const _DockedNavButton({
+    required this.lineIconType,
+    required this.tooltip,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final LineIconType lineIconType;
+  final String tooltip;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  State<_DockedNavButton> createState() => _DockedNavButtonState();
+}
+
+class _DockedNavButtonState extends State<_DockedNavButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isActive = widget.isActive;
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
               color: isActive ? DesignTokens.accentYellow : Colors.transparent,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: isActive ? DesignTokens.onyx : DesignTokens.pureWhite,
+            child: Center(
+              child: AnimatedLineIcon(
+                type: widget.lineIconType,
+                isHovered: _isHovered,
+                color: isActive ? DesignTokens.onyx : DesignTokens.pureWhite,
+                size: 20,
+              ),
             ),
           ),
         ),
