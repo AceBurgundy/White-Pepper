@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
 import '../../widgets/buttons/progress_button.dart';
 
@@ -120,6 +121,13 @@ class _InstructionsScreenState extends State<InstructionsScreen>
       }
       return 'Scanning & Processing...';
     }
+    if (state.config.workflowType == WorkflowType.compilePdf &&
+        state.compilePdfPageCount > 0) {
+      if (state.compilePdfCountdownSeconds > 0) {
+        return 'Next Scan in ${state.compilePdfCountdownSeconds}s';
+      }
+      return 'Page ${state.compilePdfPageCount} Ready • Replace Paper';
+    }
     return currentStep.actionButtonLabel;
   }
 
@@ -144,6 +152,10 @@ class _InstructionsScreenState extends State<InstructionsScreen>
     }
     if (isProcessing) {
       return 'Hardware acquisition in progress. Please wait...';
+    }
+    if (state.config.workflowType == WorkflowType.compilePdf &&
+        state.compilePdfPageCount > 0) {
+      return 'Place page ${state.compilePdfPageCount + 1} on platen. Click trigger to scan, or Finish & Compile below.';
     }
     return 'Click or press-and-hold the yellow trigger below to execute this step';
   }
@@ -646,7 +658,10 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                   ? 'Communicating with scanner...'
                   : (isCompleted
                       ? 'Click to return to Dashboard'
-                      : 'Step ${currentStep.stepNumber} of ${currentStep.totalSteps} Ready'),
+                      : (state.config.workflowType == WorkflowType.compilePdf &&
+                              state.compilePdfCountdownSeconds > 0
+                          ? 'Auto-scan starting in ${state.compilePdfCountdownSeconds}s... (or hold the button)'
+                          : 'Hold the button when ready')),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -681,7 +696,90 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                       ),
                     ),
                   )
-                else ...<Widget>[
+                else if (state.config.workflowType == WorkflowType.compilePdf &&
+                    !isCompleted &&
+                    state.compilePdfPageCount > 0) ...<Widget>[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => state.finishAndCompilePdf(),
+                      icon: const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        size: 17,
+                      ),
+                      label: Text(
+                        'Finish & Compile (${state.compilePdfPageCount} ${state.compilePdfPageCount == 1 ? "Page" : "Pages"})',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DesignTokens.accentYellow,
+                        foregroundColor: DesignTokens.onyx,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.radiusPill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => state.triggerCurrentInstructionStep(),
+                      icon: const Icon(
+                        Icons.add_photo_alternate_rounded,
+                        size: 17,
+                      ),
+                      label: Text(
+                        state.compilePdfCountdownSeconds > 0
+                            ? 'Scan Now (${state.compilePdfCountdownSeconds}s)'
+                            : 'Scan Page ${state.compilePdfPageCount + 1}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DesignTokens.darkSurfaceFive,
+                        foregroundColor: DesignTokens.pureWhite,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.radiusPill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (state.compilePdfCountdownSeconds > 0) ...<Widget>[
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => state.cancelCountdownTimer(),
+                      icon: const Icon(
+                        Icons.pause_circle_rounded,
+                        size: 17,
+                      ),
+                      label: const Text(
+                        'Pause',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DesignTokens.darkSurfaceFive,
+                        foregroundColor: DesignTokens.accentYellow,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.radiusPill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ] else if (isCompleted) ...<Widget>[
                   if (state.lastGeneratedFilePath != null) ...<Widget>[
                     Expanded(
                       child: ElevatedButton.icon(
@@ -741,34 +839,44 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (isCompleted) {
-                          state.beginInstructionsWorkflow();
-                        } else {
-                          state.triggerCurrentInstructionStep();
-                        }
-                      },
-                      icon: Icon(
-                        isCompleted
-                            ? Icons.replay_rounded
-                            : Icons.play_arrow_rounded,
-                        size: 18,
-                      ),
-                      label: Text(
-                        isCompleted ? 'Scan Again' : 'Execute Step',
+                      onPressed: () => state.beginInstructionsWorkflow(),
+                      icon: const Icon(Icons.replay_rounded, size: 18),
+                      label: const Text(
+                        'Scan Again',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isCompleted
-                            ? DesignTokens.darkSurfaceFive
-                            : DesignTokens.accentYellow,
-                        foregroundColor: isCompleted
-                            ? DesignTokens.pureWhite
-                            : DesignTokens.onyx,
+                        backgroundColor: DesignTokens.darkSurfaceFive,
+                        foregroundColor: DesignTokens.pureWhite,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            DesignTokens.radiusPill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...<Widget>[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          _openDirectory(state.config.outputDirectory),
+                      icon: const Icon(
+                        Icons.folder_open_rounded,
+                        size: 17,
+                      ),
+                      label: const Text(
+                        'Open Folder',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DesignTokens.darkSurfaceFive,
+                        foregroundColor: DesignTokens.pureWhite,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(

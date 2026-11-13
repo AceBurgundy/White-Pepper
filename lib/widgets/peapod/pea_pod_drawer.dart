@@ -267,6 +267,64 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
               );
             }).toList(),
           ),
+          const SizedBox(height: 14),
+          Text(
+            'PDF Document Name',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? DesignTokens.neutralGrayFourHundred
+                  : DesignTokens.neutralGrayEightHundred,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _prefixController,
+            onChanged: (String value) {
+              config.fileNamePrefix = value;
+              onConfigChanged(config);
+            },
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+              fontWeight: FontWeight.w600,
+            ),
+            decoration: InputDecoration(
+              hintText: 'e.g. Scanned_Document or Tax_Invoice',
+              hintStyle: const TextStyle(
+                fontSize: 12,
+                color: DesignTokens.neutralGraySixHundred,
+              ),
+              suffixText: '.pdf',
+              suffixStyle: const TextStyle(
+                fontWeight: FontWeight.w800,
+                color: DesignTokens.accentYellow,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 10,
+              ),
+              filled: true,
+              fillColor: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? DesignTokens.darkSurfaceSix
+                      : DesignTokens.neutralGrayThreeHundred,
+                  width: 1.2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(
+                  color: DesignTokens.accentYellow,
+                  width: 1.8,
+                ),
+              ),
+            ),
+          ),
         ],
       );
     }
@@ -431,33 +489,133 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             ],
           ),
         ],
+        _buildFileNameSection(isDark),
+      ],
+    );
+  }
+
+  Widget _buildFileNameSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const SizedBox(height: 14),
+        Text(
+          'File Name',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isDark
+                ? DesignTokens.neutralGrayFourHundred
+                : DesignTokens.neutralGrayEightHundred,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _prefixController,
+          onChanged: (String value) {
+            config.fileNamePrefix = value;
+            onConfigChanged(config);
+          },
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(
+            hintText: 'e.g. Scanned_Document or Receipt_01',
+            hintStyle: const TextStyle(
+              fontSize: 12,
+              color: DesignTokens.neutralGraySixHundred,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 10,
+            ),
+            filled: true,
+            fillColor: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: isDark
+                    ? DesignTokens.darkSurfaceSix
+                    : DesignTokens.neutralGrayThreeHundred,
+                width: 1.2,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: DesignTokens.accentYellow,
+                width: 1.8,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildTuneControls(bool isDark) {
     if (config.workflowType == WorkflowType.compilePdf) {
-      const List<int> pdfDpiOptions = <int>[0, 75, 100, 200, 300, 600, 1200];
+      const List<int> pdfDpiOptions = <int>[75, 100, 200, 300, 600, 1200];
+      const List<int> cadenceIntervalOptions = <int>[0, 5, 10, 15, 20, 30];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildDrawerHeader(
             isDark: isDark,
-            title: 'Document Resolution',
-            badgeValue:
-                config.dpi == 0 ? 'AUTO (METADATA)' : '${config.dpi} DPI',
+            title: 'Scan Resolution (DPI)',
+            badgeValue: '${config.dpi <= 0 ? 300 : config.dpi} DPI',
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: pdfDpiOptions.map((int optionDpi) {
               return _buildChip(
                 isDark: isDark,
-                label: optionDpi == 0 ? 'AUTO (ORIGINAL)' : '$optionDpi DPI',
-                isSelected: config.dpi == optionDpi,
+                label: '$optionDpi DPI',
+                isSelected: (config.dpi <= 0 ? 300 : config.dpi) == optionDpi,
                 onTap: () {
                   config.dpi = optionDpi;
+                  onConfigChanged(config);
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          _buildDrawerHeader(
+            isDark: isDark,
+            title: 'Multi-Page Scan Timer',
+            badgeValue: config.intervalSeconds == 0
+                ? 'Manual (Click)'
+                : '${config.intervalSeconds}s Interval',
+          ),
+          const SizedBox(height: 8),
+          _buildYellowSlider(
+            isDark: isDark,
+            value: config.intervalSeconds.toDouble().clamp(0.0, 30.0),
+            min: 0.0,
+            max: 30.0,
+            divisions: 30,
+            onChanged: (double sliderValue) {
+              config.intervalSeconds = sliderValue.round();
+              onConfigChanged(config);
+            },
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: cadenceIntervalOptions.map((int intervalValue) {
+              return _buildChip(
+                isDark: isDark,
+                label: intervalValue == 0
+                    ? 'Manual (Click)'
+                    : '$intervalValue Seconds',
+                isSelected: config.intervalSeconds == intervalValue,
+                onTap: () {
+                  config.intervalSeconds = intervalValue;
                   onConfigChanged(config);
                 },
               );
@@ -506,6 +664,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             );
           }).toList(),
         ),
+        if (config.workflowType == WorkflowType.cardDuplex ||
+            config.workflowType == WorkflowType.legalStitch ||
+            config.workflowType == WorkflowType.batchCardDeskew)
+          _buildFileNameSection(isDark),
       ],
     );
   }
@@ -535,6 +697,10 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             );
           }).toList(),
         ),
+        if (config.workflowType == WorkflowType.cardDuplex ||
+            config.workflowType == WorkflowType.legalStitch ||
+            config.workflowType == WorkflowType.batchCardDeskew)
+          _buildFileNameSection(isDark),
       ],
     );
   }

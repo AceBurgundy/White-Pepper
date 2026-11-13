@@ -294,30 +294,9 @@ class CliCommandBuilder {
         );
 
       case WorkflowType.compilePdf:
-        final String outputFileName = config.fileNamePrefix.trim().isNotEmpty
-            ? (config.fileNamePrefix.trim().toLowerCase().endsWith('.pdf')
-                ? config.fileNamePrefix.trim()
-                : '${config.fileNamePrefix.trim()}.pdf')
-            : 'compiled_document.pdf';
-        final List<String> args = [
-          'compile-pdf',
-          '--input-dir',
+        return buildCompilePdfFinalAssemblyPlan(
+          config,
           config.outputDirectory,
-          '--output-file',
-          p.join(config.outputDirectory, outputFileName),
-          '--paper-size',
-          config.paperSize,
-          '--fit-mode',
-          config.fitMode,
-          '--margin-mm',
-          '${config.marginMm}',
-        ];
-        if (config.dpi > 0) {
-          args.addAll(['--resolution', '${config.dpi}']);
-        }
-        return CliCommandPlan(
-          scriptRelativePath: p.join('scripts', 'process_cli.py'),
-          arguments: args,
         );
 
       case WorkflowType.batchCardDeskew:
@@ -343,5 +322,81 @@ class CliCommandBuilder {
           arguments: args,
         );
     }
+  }
+
+  /// Builds a flatbed scanning plan to acquire a single page into an isolated staging directory.
+  static CliCommandPlan buildCompilePdfPageScanPlan(
+    ScanConfigurationModel config,
+    String stagingDirectoryPath,
+    int pageNumber,
+  ) {
+    final String pagePrefix = 'page_${pageNumber.toString().padLeft(2, '0')}';
+    final List<String> args = [
+      'flatbed',
+      '--paper-size',
+      config.paperSize == 'auto' ? 'full' : config.paperSize,
+      '--dpi',
+      '${config.dpi <= 0 ? 300 : config.dpi}',
+      '--color-mode',
+      config.colorMode,
+      '--format',
+      'png',
+      '--output-dir',
+      stagingDirectoryPath,
+      '--prefix',
+      pagePrefix,
+      '--max-scans',
+      '1',
+    ];
+    if (config.rotation != 0) {
+      args.addAll(['--rotate', '${config.rotation}']);
+    }
+    if (config.brightness != 0) {
+      args.addAll(['--brightness', '${config.brightness}']);
+    }
+    if (config.contrast != 0) {
+      args.addAll(['--contrast', '${config.contrast}']);
+    }
+    if (config.autoCrop) {
+      args.add('--auto-crop');
+    }
+    _appendDeviceTargetingFlags(args, config);
+    return CliCommandPlan(
+      scriptRelativePath: p.join('scripts', 'scan_cli.py'),
+      arguments: args,
+    );
+  }
+
+  /// Builds a final PDF compilation assembly plan reading only pages from the isolated staging directory.
+  static CliCommandPlan buildCompilePdfFinalAssemblyPlan(
+    ScanConfigurationModel config,
+    String stagingDirectoryPath,
+  ) {
+    final String cleanPrefix = config.fileNamePrefix.trim().isNotEmpty
+        ? config.fileNamePrefix.trim()
+        : 'compiled_document';
+    final String targetPdfFileName = cleanPrefix.toLowerCase().endsWith('.pdf')
+        ? cleanPrefix
+        : '$cleanPrefix.pdf';
+    final List<String> args = [
+      'compile-pdf',
+      '--input-dir',
+      stagingDirectoryPath,
+      '--output-file',
+      p.join(config.outputDirectory, targetPdfFileName),
+      '--paper-size',
+      config.paperSize,
+      '--fit-mode',
+      config.fitMode,
+      '--margin-mm',
+      '${config.marginMm}',
+    ];
+    if (config.dpi > 0) {
+      args.addAll(['--resolution', '${config.dpi}']);
+    }
+    return CliCommandPlan(
+      scriptRelativePath: p.join('scripts', 'process_cli.py'),
+      arguments: args,
+    );
   }
 }

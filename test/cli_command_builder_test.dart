@@ -81,6 +81,52 @@ void main() {
       expect(plan.arguments.contains('--resolution'), isFalse);
     });
 
+    test('Builds compile-pdf single page scan plan into isolated staging folder', () {
+      final ScanConfigurationModel config = ScanConfigurationModel(
+        workflowType: WorkflowType.compilePdf,
+        paperSize: 'a4',
+        dpi: 300,
+        colorMode: 'color',
+      );
+
+      final CliCommandPlan plan = CliCommandBuilder.buildCompilePdfPageScanPlan(
+        config,
+        'C:\\temp\\staging_pdf_123',
+        2,
+      );
+
+      expect(plan.scriptRelativePath, contains('scan_cli.py'));
+      expect(plan.arguments, contains('flatbed'));
+      expect(plan.arguments, contains('--output-dir'));
+      expect(plan.arguments, contains('C:\\temp\\staging_pdf_123'));
+      expect(plan.arguments, contains('--prefix'));
+      expect(plan.arguments, contains('page_02'));
+      expect(plan.arguments, contains('--max-scans'));
+      expect(plan.arguments, contains('1'));
+    });
+
+    test('Builds compile-pdf final assembly plan from staging folder to custom named PDF', () {
+      final ScanConfigurationModel config = ScanConfigurationModel(
+        workflowType: WorkflowType.compilePdf,
+        outputDirectory: 'D:\\Pictures\\Scanned',
+        fileNamePrefix: 'Tax_Document',
+        paperSize: 'a4',
+        dpi: 300,
+      );
+
+      final CliCommandPlan plan = CliCommandBuilder.buildCompilePdfFinalAssemblyPlan(
+        config,
+        'D:\\Pictures\\Scanned\\.staging_pdf_123',
+      );
+
+      expect(plan.scriptRelativePath, contains('process_cli.py'));
+      expect(plan.arguments, contains('compile-pdf'));
+      expect(plan.arguments, contains('--input-dir'));
+      expect(plan.arguments, contains('D:\\Pictures\\Scanned\\.staging_pdf_123'));
+      expect(plan.arguments, contains('--output-file'));
+      expect(plan.arguments, contains('D:\\Pictures\\Scanned\\Tax_Document.pdf'));
+    });
+
     test('Appends eSCL Wi-Fi device targeting arguments when active', () {
       final ScanConfigurationModel config = ScanConfigurationModel(
         workflowType: WorkflowType.flatbed,

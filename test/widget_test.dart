@@ -124,6 +124,7 @@ void main() {
       expect(find.text('ID Card'), findsWidgets);
       expect(find.text('A4'), findsWidgets);
       expect(find.text('Letter'), findsWidgets);
+      expect(find.text('File Name'), findsWidgets);
 
       // 11. Return to workflow cards has only the Back button (menu button removed)
       final Finder returnBackButton = find.byTooltip('Return to Workflow Cards');
@@ -142,6 +143,8 @@ void main() {
 
       expect(find.textContaining('Step 1 of 2'), findsWidgets);
       expect(find.text('Start Optical Scan'), findsOneWidget);
+      expect(find.text('Hold the button when ready'), findsOneWidget);
+      expect(find.text('Execute Step'), findsNothing);
 
       // Assert zero developer/CLI jargon is visible in the UI
       expect(find.textContaining('scan_cli'), findsNothing);

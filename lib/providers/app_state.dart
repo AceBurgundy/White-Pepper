@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import '../models/ipc_event.dart';
 import '../models/peapod_tool.dart';
 import '../models/scan_configuration_model.dart';
@@ -65,6 +67,11 @@ class AppState extends ChangeNotifier {
   ScannerDeviceModel? _activeScanner;
   bool _isDiscoveringScanners = false;
 
+  int _compilePdfPageCount = 0;
+  String? _compilePdfStagingPath;
+  Timer? _compilePdfCountdownTimer;
+  int _compilePdfCountdownSeconds = 0;
+
   // Getters
   AppScreen get currentScreen => _currentScreen;
   ScanConfigurationModel get config => _config;
@@ -84,6 +91,9 @@ class AppState extends ChangeNotifier {
   List<ScannerDeviceModel> get availableScanners => _availableScanners;
   ScannerDeviceModel? get activeScanner => _activeScanner;
   bool get isDiscoveringScanners => _isDiscoveringScanners;
+  int get compilePdfPageCount => _compilePdfPageCount;
+  String? get compilePdfStagingPath => _compilePdfStagingPath;
+  int get compilePdfCountdownSeconds => _compilePdfCountdownSeconds;
 
   String get scannerConnectionLabel {
     if (_activeScanner != null) {
@@ -262,18 +272,90 @@ class AppState extends ChangeNotifier {
         ];
 
       case WorkflowType.compilePdf:
+        if (_compilePdfPageCount == 0) {
+          return <WorkflowInstructionStep>[
+            WorkflowInstructionStep(
+              stepNumber: 1,
+              totalSteps: 2,
+              badgeLabel:
+                  'Page 1 Setup • ${_config.paperSize.toUpperCase()} @ ${_config.dpi <= 0 ? 300 : _config.dpi} DPI',
+              headline: 'Place Page 1\non Platen Glass',
+              physicalInstruction:
+                  'Place the first document page face-down against the top-left platen corner (0,0) and close the scanner lid.',
+              subInstruction: _config.intervalSeconds > 0
+                  ? 'Auto-scan timer: ${_config.intervalSeconds}s cadence enabled between pages.'
+                  : 'Manual multi-page mode: Click trigger to scan each page.',
+              actionButtonLabel: 'Scan Page 1',
+              schematicMode: 'platen_sheet',
+            ),
+            const WorkflowInstructionStep(
+              stepNumber: 2,
+              totalSteps: 2,
+              badgeLabel: 'Pipeline Complete',
+              headline: 'Multi-Page PDF\nCompiled!',
+              physicalInstruction:
+                  'All scanned pages have been compiled into a unified PDF document.',
+              subInstruction: 'Open the generated PDF document below.',
+              actionButtonLabel: 'Done',
+              schematicMode: 'completed',
+            ),
+          ];
+        } else if (_scanButtonState != ProgressButtonState.completed) {
+          final int nextPageNumber = _compilePdfPageCount + 1;
+          final String autoNote = _compilePdfCountdownSeconds > 0
+              ? 'Auto-scan starting in ${_compilePdfCountdownSeconds}s... '
+              : '';
+          return <WorkflowInstructionStep>[
+            WorkflowInstructionStep(
+              stepNumber: nextPageNumber,
+              totalSteps: nextPageNumber + 1,
+              badgeLabel:
+                  'Page $nextPageNumber • $_compilePdfPageCount Page${_compilePdfPageCount == 1 ? "" : "s"} Captured',
+              headline: 'Replace Paper\nfor Page $nextPageNumber',
+              physicalInstruction:
+                  'Remove the scanned sheet and place page $nextPageNumber on the platen glass.',
+              subInstruction:
+                  '${autoNote}Click "Scan Page $nextPageNumber" to continue, or "Finish & Compile PDF" to finalize.',
+              actionButtonLabel: 'Scan Page $nextPageNumber',
+              schematicMode: 'platen_sheet',
+            ),
+            const WorkflowInstructionStep(
+              stepNumber: 2,
+              totalSteps: 2,
+              badgeLabel: 'Pipeline Complete',
+              headline: 'Multi-Page PDF\nCompiled!',
+              physicalInstruction:
+                  'All scanned pages have been compiled into a unified PDF document.',
+              subInstruction: 'Open the generated PDF document below.',
+              actionButtonLabel: 'Done',
+              schematicMode: 'completed',
+            ),
+          ];
+        } else {
+          return <WorkflowInstructionStep>[
+            WorkflowInstructionStep(
+              stepNumber: 1,
+              totalSteps: 1,
+              badgeLabel: 'PDF Compiled • $_compilePdfPageCount Pages',
+              headline: 'Multi-Page PDF\nCompiled!',
+              physicalInstruction:
+                  'All $_compilePdfPageCount pages have been assembled into a single vector-structured PDF.',
+              subInstruction: 'Open the generated PDF document below.',
+              actionButtonLabel: 'Done',
+              schematicMode: 'completed',
+            ),
+          ];
+        }
+
       case WorkflowType.batchCardDeskew:
         return <WorkflowInstructionStep>[
           WorkflowInstructionStep(
             stepNumber: 1,
             totalSteps: 2,
             badgeLabel: 'Step 1 of 2 • Verify Processing Pipeline',
-            headline: wf == WorkflowType.compilePdf
-                ? 'Compile Images\nto PDF'
-                : 'Batch Card\nVision Deskew',
-            physicalInstruction: wf == WorkflowType.compilePdf
-                ? 'Verify target folder (${_config.outputDirectory}) and layout settings (${_config.paperSize.toUpperCase()} • fit=${_config.fitMode}).'
-                : 'Verify source folder (${_config.outputDirectory}) for batch ID-1 contour isolation at ${_config.dpi} DPI.',
+            headline: 'Batch Card\nVision Deskew',
+            physicalInstruction:
+                'Verify source folder (${_config.outputDirectory}) for batch ID-1 contour isolation at ${_config.dpi} DPI.',
             subInstruction:
                 'Press the yellow start button on the right to begin processing your documents.',
             actionButtonLabel: 'Run Processing Pipeline',
@@ -387,10 +469,16 @@ class AppState extends ChangeNotifier {
         _config.dpi = 600;
         _config.format = 'png';
       case WorkflowType.compilePdf:
-        _config.paperSize = 'auto';
-        _config.dpi = 0; // Auto (Embedded DPI)
+        _config.paperSize = 'full';
+        _config.dpi = 300;
         _config.fitMode = 'contain';
         _config.format = 'pdf';
+        _config.intervalSeconds = 0;
+        _config.fileNamePrefix = 'compiled_document';
+        _compilePdfPageCount = 0;
+        _compilePdfCountdownSeconds = 0;
+        _cancelCompilePdfTimer();
+        _cleanUpCompilePdfStaging();
       case WorkflowType.batchCardDeskew:
         _config.paperSize = 'id-card';
         _config.dpi = 600;
@@ -464,6 +552,12 @@ class AppState extends ChangeNotifier {
     _currentStepIndex = 0;
     _isAwaitingUserConfirmation = true;
     _pendingLegalInitialConfirmation = false;
+    if (_config.workflowType == WorkflowType.compilePdf) {
+      _compilePdfPageCount = 0;
+      _compilePdfCountdownSeconds = 0;
+      _cancelCompilePdfTimer();
+      _cleanUpCompilePdfStaging();
+    }
     _currentScreen = AppScreen.instructions;
     notifyListeners();
   }
@@ -522,7 +616,39 @@ class AppState extends ChangeNotifier {
       return;
     }
 
-    // Standard single-command workflow (Flatbed, Photo, Receipt, Booklet, Compile PDF, Batch Cards, Single-Sided Card)
+    // Multi-page guided PDF compilation workflow
+    if (_config.workflowType == WorkflowType.compilePdf) {
+      if (_processService.isRunning) return;
+      _cancelCompilePdfTimer();
+      _isAwaitingUserConfirmation = false;
+      _ensureCompilePdfStagingDirectory();
+
+      final int targetPageNumber = _compilePdfPageCount + 1;
+      final CliCommandPlan pageScanPlan = CliCommandBuilder.buildCompilePdfPageScanPlan(
+        _config,
+        _compilePdfStagingPath!,
+        targetPageNumber,
+      );
+
+      _launchSubprocess(
+        pageScanPlan,
+        onStepProcessSuccess: () {
+          _compilePdfPageCount = targetPageNumber;
+          _scanButtonState = ProgressButtonState.idle;
+          _isAwaitingUserConfirmation = true;
+          _consoleLogs.add(
+            '[PAGE $targetPageNumber CAPTURED] Page $targetPageNumber added to session staging buffer.',
+          );
+          if (_config.intervalSeconds > 0) {
+            _startCompilePdfCountdown();
+          }
+          notifyListeners();
+        },
+      );
+      return;
+    }
+
+    // Standard single-command workflow (Flatbed, Photo, Receipt, Booklet, Batch Cards, Single-Sided Card)
     if (!_processService.isRunning) {
       _isAwaitingUserConfirmation = false;
       if (workflowSteps.length > 2) {
@@ -662,12 +788,113 @@ class AppState extends ChangeNotifier {
     _processService.sendStdinLine('');
   }
 
+  /// Finalizes the multi-page PDF compilation session by bundling all scanned pages in staging.
+  void finishAndCompilePdf() {
+    if (_processService.isRunning) return;
+    _cancelCompilePdfTimer();
+    if (_compilePdfStagingPath == null || _compilePdfPageCount == 0) {
+      _consoleLogs.add('[WARNING] No pages scanned yet to compile into PDF.');
+      return;
+    }
+
+    _isAwaitingUserConfirmation = false;
+    final CliCommandPlan assemblyPlan = CliCommandBuilder.buildCompilePdfFinalAssemblyPlan(
+      _config,
+      _compilePdfStagingPath!,
+    );
+
+    _launchSubprocess(
+      assemblyPlan,
+      onStepProcessSuccess: () {
+        _scanButtonState = ProgressButtonState.completed;
+        _isAwaitingUserConfirmation = false;
+        _consoleLogs.add(
+          '[SUCCESS] All $_compilePdfPageCount pages compiled into unified PDF document.',
+        );
+        _cleanUpCompilePdfStaging();
+        notifyListeners();
+      },
+    );
+  }
+
+  void _ensureCompilePdfStagingDirectory() {
+    if (_compilePdfStagingPath == null) {
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      _compilePdfStagingPath = p.join(
+        _config.outputDirectory,
+        '.staging_pdf_$timestamp',
+      );
+      final Directory stagingDirectory = Directory(_compilePdfStagingPath!);
+      if (!stagingDirectory.existsSync()) {
+        stagingDirectory.createSync(recursive: true);
+      }
+    }
+  }
+
+  void _startCompilePdfCountdown() {
+    _cancelCompilePdfTimer();
+    _compilePdfCountdownSeconds = _config.intervalSeconds;
+    notifyListeners();
+
+    _compilePdfCountdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) {
+        if (_compilePdfCountdownSeconds <= 1) {
+          _cancelCompilePdfTimer();
+          if (_scanButtonState != ProgressButtonState.processing &&
+              _config.workflowType == WorkflowType.compilePdf &&
+              _currentScreen == AppScreen.instructions) {
+            triggerCurrentInstructionStep();
+          }
+        } else {
+          _compilePdfCountdownSeconds -= 1;
+          notifyListeners();
+        }
+      },
+    );
+  }
+
+  void cancelCountdownTimer() {
+    _cancelCompilePdfTimer();
+    notifyListeners();
+  }
+
+  void _cancelCompilePdfTimer() {
+    _compilePdfCountdownTimer?.cancel();
+    _compilePdfCountdownTimer = null;
+    _compilePdfCountdownSeconds = 0;
+  }
+
+  void _cleanUpCompilePdfStaging() {
+    if (_compilePdfStagingPath != null) {
+      try {
+        final Directory stagingDirectory = Directory(_compilePdfStagingPath!);
+        if (stagingDirectory.existsSync()) {
+          stagingDirectory.deleteSync(recursive: true);
+        }
+      } catch (cleanUpException) {
+        _consoleLogs.add('[CLEANUP EXCEPTION] $cleanUpException');
+      }
+      _compilePdfStagingPath = null;
+    }
+  }
+
   void cancelScan() {
+    _cancelCompilePdfTimer();
+    _cleanUpCompilePdfStaging();
+    _compilePdfPageCount = 0;
     _processService.cancelActiveProcess();
     _scanButtonState = ProgressButtonState.idle;
     _activeIpcEvent = null;
     _isAwaitingUserConfirmation = true;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _cancelCompilePdfTimer();
+    _cleanUpCompilePdfStaging();
+    super.dispose();
   }
 
   void selectScanner(ScannerDeviceModel scanner, {bool triggerDiscovery = false}) {
