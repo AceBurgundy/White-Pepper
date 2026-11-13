@@ -49,9 +49,6 @@ class CliCommandBuilder {
     switch (config.workflowType) {
       case WorkflowType.flatbed:
       case WorkflowType.customPlaten:
-      case WorkflowType.highResArchive:
-      case WorkflowType.grayscaleDocument:
-      case WorkflowType.quickPreview:
         final List<String> args = [
           'flatbed',
           '--paper-size',
@@ -106,9 +103,9 @@ class CliCommandBuilder {
       case WorkflowType.cardDuplex:
         final String basePrefix = config.fileNamePrefix.trim().isNotEmpty
             ? config.fileNamePrefix.trim()
-            : 'card';
+            : 'Card';
         final String effectivePrefix = cardSideSuffix != null
-            ? '${basePrefix}_$cardSideSuffix'
+            ? '$basePrefix - $cardSideSuffix'
             : basePrefix;
         final List<String> args = [
           'card',
@@ -117,9 +114,9 @@ class CliCommandBuilder {
           '--color-mode',
           config.colorMode,
           '--format',
-          config.format,
+          'png',
           '--background',
-          config.cardBackground,
+          'transparent',
           '--output-dir',
           config.outputDirectory,
           '--safety-inset-mm',
@@ -163,163 +160,10 @@ class CliCommandBuilder {
           arguments: args,
         );
 
-      case WorkflowType.bookletBatch:
-        final List<String> args = [
-          'booklet',
-          '--paper-size',
-          config.paperSize,
-          '--dpi',
-          '${config.dpi}',
-          '--color-mode',
-          config.colorMode,
-          '--format',
-          config.format,
-          '--output-dir',
-          config.outputDirectory,
-          '--interval',
-          '${config.intervalSeconds}',
-        ];
-        if (config.maxScans > 0) {
-          args.addAll(['--max-scans', '${config.maxScans}']);
-        }
-        _appendDeviceTargetingFlags(args, config);
-        return CliCommandPlan(
-          scriptRelativePath: p.join('scripts', 'scan_cli.py'),
-          arguments: args,
-        );
-
-      case WorkflowType.receiptArchive:
-        final int effectiveMaxScans = config.maxScans > 0 ? config.maxScans : 1;
-        final List<String> args = [
-          'flatbed',
-          '--preset',
-          'boy-gatas-receipts',
-          '--paper-size',
-          config.paperSize,
-          '--dpi',
-          '${config.dpi}',
-          '--color-mode',
-          config.colorMode,
-          '--format',
-          config.format,
-          '--output-dir',
-          config.outputDirectory,
-          '--max-scans',
-          '$effectiveMaxScans',
-        ];
-        if (config.fileNamePrefix.trim().isNotEmpty) {
-          args.addAll(['--prefix', config.fileNamePrefix.trim()]);
-        }
-        if (config.paperSize == 'custom') {
-          args.addAll([
-            '--width',
-            '${config.customWidth}',
-            '--height',
-            '${config.customHeight}',
-            '--units',
-            config.units,
-            '--offset-x',
-            '${config.offsetX}',
-            '--offset-y',
-            '${config.offsetY}',
-          ]);
-        }
-        if (config.rotation != 0) {
-          args.addAll(['--rotate', '${config.rotation}']);
-        }
-        if (config.brightness != 0) {
-          args.addAll(['--brightness', '${config.brightness}']);
-        }
-        if (config.contrast != 0) {
-          args.addAll(['--contrast', '${config.contrast}']);
-        }
-        if (config.autoCrop) {
-          args.add('--auto-crop');
-        }
-        _appendDeviceTargetingFlags(args, config);
-        return CliCommandPlan(
-          scriptRelativePath: p.join('scripts', 'scan_cli.py'),
-          arguments: args,
-        );
-
-      case WorkflowType.photoScan:
-        final List<String> args = [
-          'flatbed',
-          '--preset',
-          'photo-4x6',
-          '--paper-size',
-          config.paperSize,
-          '--dpi',
-          '${config.dpi}',
-          '--color-mode',
-          config.colorMode,
-          '--format',
-          config.format,
-          '--output-dir',
-          config.outputDirectory,
-        ];
-        if (config.fileNamePrefix.trim().isNotEmpty) {
-          args.addAll(['--prefix', config.fileNamePrefix.trim()]);
-        }
-        if (config.paperSize == 'custom') {
-          args.addAll([
-            '--width',
-            '${config.customWidth}',
-            '--height',
-            '${config.customHeight}',
-            '--units',
-            config.units,
-            '--offset-x',
-            '${config.offsetX}',
-            '--offset-y',
-            '${config.offsetY}',
-          ]);
-        }
-        if (config.rotation != 0) {
-          args.addAll(['--rotate', '${config.rotation}']);
-        }
-        if (config.brightness != 0) {
-          args.addAll(['--brightness', '${config.brightness}']);
-        }
-        if (config.contrast != 0) {
-          args.addAll(['--contrast', '${config.contrast}']);
-        }
-        if (config.autoCrop) {
-          args.add('--auto-crop');
-        }
-        _appendDeviceTargetingFlags(args, config);
-        return CliCommandPlan(
-          scriptRelativePath: p.join('scripts', 'scan_cli.py'),
-          arguments: args,
-        );
-
       case WorkflowType.compilePdf:
         return buildCompilePdfFinalAssemblyPlan(
           config,
           config.outputDirectory,
-        );
-
-      case WorkflowType.batchCardDeskew:
-        final List<String> args = [
-          'cards',
-          '--input-dir',
-          config.outputDirectory,
-          '--output-dir',
-          config.outputDirectory,
-          '--dpi',
-          '${config.dpi}',
-          '--format',
-          config.format,
-          '--background',
-          config.cardBackground,
-          '--safety-inset-mm',
-          '${config.safetyInsetMm}',
-          '--corner-radius-mm',
-          '${config.cornerRadiusMm}',
-        ];
-        return CliCommandPlan(
-          scriptRelativePath: p.join('scripts', 'process_cli.py'),
-          arguments: args,
         );
     }
   }

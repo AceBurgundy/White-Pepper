@@ -339,9 +339,37 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
         'stretch',
         'original',
       ];
+      const List<String> exportFormats = <String>[
+        'pdf',
+        'png',
+        'jpg',
+        'tiff',
+      ];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          _buildDrawerHeader(
+            isDark: isDark,
+            title: 'Batch Output Format',
+            badgeValue: '.${config.format.toUpperCase()}',
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: exportFormats.map((String formatOption) {
+              return _buildChip(
+                isDark: isDark,
+                label: formatOption.toUpperCase(),
+                isSelected: config.format.toLowerCase() == formatOption,
+                onTap: () {
+                  config.format = formatOption;
+                  onConfigChanged(config);
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
           _buildDrawerHeader(
             isDark: isDark,
             title: 'Document Page Size & Fit Mode',
@@ -404,7 +432,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           Row(
             children: <Widget>[
               Text(
-                'PDF Document Name',
+                'Batch Output Name',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -433,12 +461,12 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
               fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
-              hintText: 'e.g. Scanned_Document or Tax_Invoice',
+              hintText: 'e.g. Scanned_Batch or Tax_Invoices',
               hintStyle: const TextStyle(
                 fontSize: 12,
                 color: DesignTokens.neutralGraySixHundred,
               ),
-              suffixText: '.pdf',
+              suffixText: '.${config.format.toLowerCase()}',
               suffixStyle: TextStyle(
                 fontWeight: FontWeight.w800,
                 color: isDark ? DesignTokens.accentYellow : DesignTokens.onyx,
@@ -489,9 +517,61 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       'custom',
     ];
 
+    final String basicPresetLabel = (config.colorMode == 'bw' || config.colorMode == 'grayscale')
+        ? 'Black & White'
+        : (config.dpi >= 600 ? 'High Quality' : 'Quick Scan');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        if (config.workflowType == WorkflowType.flatbed) ...<Widget>[
+          _buildDrawerHeader(
+            isDark: isDark,
+            title: 'Basic Scan Preset',
+            badgeValue: basicPresetLabel,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              _buildChip(
+                isDark: isDark,
+                label: 'High Quality (600 DPI)',
+                isSelected: config.dpi >= 600 && config.colorMode == 'color',
+                onTap: () {
+                  config.dpi = 600;
+                  config.colorMode = 'color';
+                  config.contrast = 0;
+                  onConfigChanged(config);
+                },
+              ),
+              _buildChip(
+                isDark: isDark,
+                label: 'Black & White (300 DPI)',
+                isSelected: config.colorMode == 'bw' || config.colorMode == 'grayscale',
+                onTap: () {
+                  config.dpi = 300;
+                  config.colorMode = 'bw';
+                  config.contrast = 20;
+                  onConfigChanged(config);
+                },
+              ),
+              _buildChip(
+                isDark: isDark,
+                label: 'Quick Scan (300 DPI)',
+                isSelected: config.dpi == 300 && config.colorMode == 'color',
+                onTap: () {
+                  config.dpi = 300;
+                  config.colorMode = 'color';
+                  config.contrast = 0;
+                  onConfigChanged(config);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
         _buildDrawerHeader(
           isDark: isDark,
           title: 'Scanner Paper Size',
@@ -777,8 +857,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           }).toList(),
         ),
         if (config.workflowType == WorkflowType.cardDuplex ||
-            config.workflowType == WorkflowType.legalStitch ||
-            config.workflowType == WorkflowType.batchCardDeskew)
+            config.workflowType == WorkflowType.legalStitch)
           _buildFileNameSection(isDark),
       ],
     );
@@ -810,8 +889,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
           }).toList(),
         ),
         if (config.workflowType == WorkflowType.cardDuplex ||
-            config.workflowType == WorkflowType.legalStitch ||
-            config.workflowType == WorkflowType.batchCardDeskew)
+            config.workflowType == WorkflowType.legalStitch)
           _buildFileNameSection(isDark),
       ],
     );
@@ -819,11 +897,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
 
   Widget _buildContrastControls(bool isDark) {
     final bool supportsToneSliders = (config.workflowType == WorkflowType.flatbed ||
-        config.workflowType == WorkflowType.photoScan ||
-        config.workflowType == WorkflowType.receiptArchive ||
-        config.workflowType == WorkflowType.customPlaten ||
-        config.workflowType == WorkflowType.highResArchive ||
-        config.workflowType == WorkflowType.grayscaleDocument);
+        config.workflowType == WorkflowType.customPlaten);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -916,8 +990,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   }
 
   Widget _buildCropControls(bool isDark) {
-    if (config.workflowType == WorkflowType.cardDuplex ||
-        config.workflowType == WorkflowType.batchCardDeskew) {
+    if (config.workflowType == WorkflowType.cardDuplex) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -954,7 +1027,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                 _buildChip(
                   isDark: isDark,
                   label: config.noDeskew
-                      ? 'Manual 5×5" Region'
+                      ? 'Manual 4×4" Region'
                       : 'Auto Deskew & Straighten',
                   isSelected: !config.noDeskew,
                   onTap: () {
@@ -1045,80 +1118,6 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       );
     }
 
-    if (config.workflowType == WorkflowType.bookletBatch) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _buildDrawerHeader(
-            isDark: isDark,
-            title: 'Booklet Batch Timing',
-            badgeValue:
-                '${config.intervalSeconds}s • ${config.maxScans == 0 ? "Unlimited" : "${config.maxScans} Spreads"}',
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Countdown Interval: ${config.intervalSeconds}s',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? DesignTokens.neutralGrayFourHundred
-                            : DesignTokens.neutralGrayEightHundred,
-                      ),
-                    ),
-                    _buildYellowSlider(
-                      isDark: isDark,
-                      value: config.intervalSeconds.toDouble(),
-                      min: 2,
-                      max: 45,
-                      divisions: 43,
-                      onChanged: (double value) {
-                        config.intervalSeconds = value.round();
-                        onConfigChanged(config);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Max Spreads (0=Unlimited): ${config.maxScans}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? DesignTokens.neutralGrayFourHundred
-                            : DesignTokens.neutralGrayEightHundred,
-                      ),
-                    ),
-                    _buildYellowSlider(
-                      isDark: isDark,
-                      value: config.maxScans.toDouble(),
-                      min: 0,
-                      max: 40,
-                      divisions: 40,
-                      onChanged: (double value) {
-                        config.maxScans = value.round();
-                        onConfigChanged(config);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
     if (config.workflowType == WorkflowType.compilePdf) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1186,18 +1185,11 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       case WorkflowType.legalStitch:
         allowedFormats = const <String>['pdf', 'png'];
       case WorkflowType.cardDuplex:
-      case WorkflowType.batchCardDeskew:
         allowedFormats = const <String>['png', 'jpg', 'tiff', 'bmp'];
       case WorkflowType.compilePdf:
-        allowedFormats = const <String>['pdf'];
+        allowedFormats = const <String>['pdf', 'png', 'jpg', 'tiff'];
       case WorkflowType.flatbed:
-      case WorkflowType.bookletBatch:
-      case WorkflowType.receiptArchive:
-      case WorkflowType.photoScan:
       case WorkflowType.customPlaten:
-      case WorkflowType.highResArchive:
-      case WorkflowType.grayscaleDocument:
-      case WorkflowType.quickPreview:
         allowedFormats = const <String>['pdf', 'png', 'jpg', 'tiff', 'bmp'];
     }
 
@@ -1330,89 +1322,18 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   }
 
   Widget _buildTimerControls(bool isDark) {
-    if (config.workflowType == WorkflowType.bookletBatch) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          _buildDrawerHeader(
-            isDark: isDark,
-            title: 'Booklet Batch Timing',
-            badgeValue:
-                '${config.intervalSeconds}s • ${config.maxScans == 0 ? "Unlimited" : "${config.maxScans} Spreads"}',
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Countdown Interval: ${config.intervalSeconds}s',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? DesignTokens.neutralGrayFourHundred
-                            : DesignTokens.neutralGrayEightHundred,
-                      ),
-                    ),
-                    _buildYellowSlider(
-                      isDark: isDark,
-                      value: config.intervalSeconds.toDouble(),
-                      min: 2,
-                      max: 45,
-                      divisions: 43,
-                      onChanged: (double value) {
-                        config.intervalSeconds = value.round();
-                        onConfigChanged(config);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Max Spreads (0=Unlimited): ${config.maxScans}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? DesignTokens.neutralGrayFourHundred
-                            : DesignTokens.neutralGrayEightHundred,
-                      ),
-                    ),
-                    _buildYellowSlider(
-                      isDark: isDark,
-                      value: config.maxScans.toDouble(),
-                      min: 0,
-                      max: 40,
-                      divisions: 40,
-                      onChanged: (double value) {
-                        config.maxScans = value.round();
-                        onConfigChanged(config);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
-    const List<int> cadenceIntervalOptions = <int>[0, 5, 10, 15, 20, 30];
+    final String timerTitle = config.workflowType == WorkflowType.cardDuplex
+        ? 'Card Flip Countdown Timer'
+        : 'Multi-Page Scan Timer';
+    const List<int> cadenceIntervalOptions = <int>[0, 3, 5, 8, 10, 15, 20, 30];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _buildDrawerHeader(
           isDark: isDark,
-          title: 'Multi-Page Scan Timer',
+          title: timerTitle,
           badgeValue: config.intervalSeconds == 0
-              ? 'Manual (Click)'
+              ? 'Manual Trigger'
               : '${config.intervalSeconds}s Interval',
         ),
         const SizedBox(height: 8),
@@ -1435,7 +1356,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             return _buildChip(
               isDark: isDark,
               label: intervalValue == 0
-                  ? 'Manual (Click)'
+                  ? 'Manual Trigger'
                   : '$intervalValue Seconds',
               isSelected: config.intervalSeconds == intervalValue,
               onTap: () {

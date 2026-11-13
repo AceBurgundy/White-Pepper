@@ -106,17 +106,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // 7. Workflow cards have concise single-line subtitles
-      expect(find.text('Flatbed Document'), findsOneWidget);
-      expect(find.text('Single page scan'), findsOneWidget);
+      expect(find.text('Basic Scan'), findsOneWidget);
+      expect(find.text('Standard document & photo scan'), findsOneWidget);
       expect(find.text('Standard document & photo scanning'), findsNothing);
 
-      // 8. Clicking 'Flatbed Document' transitions to Options Control Deck
-      await tester.tap(find.text('Flatbed Document'));
+      // 8. Clicking 'Basic Scan' transitions to Options Control Deck
+      await tester.tap(find.text('Basic Scan'));
       await tester.pumpAndSettle();
 
       expect(find.text('SCAN SETTINGS'), findsOneWidget);
       expect(find.text('Tool & Parameter Adjustments'), findsOneWidget);
-      expect(find.text('Start Flatbed Document'), findsOneWidget);
+      expect(find.text('Start Basic Scan'), findsOneWidget);
 
       // 9. Active option title is centered below the options button
       expect(find.text(appState.activeTool.displayTitle), findsWidgets);
@@ -138,8 +138,8 @@ void main() {
         findsOneWidget,
       );
 
-      // 12. Clicking 'Start Flatbed Document' transitions to Step-by-Step Instructions Screen
-      await tester.tap(find.text('Start Flatbed Document'));
+      // 12. Clicking 'Start Basic Scan' transitions to Step-by-Step Instructions Screen
+      await tester.tap(find.text('Start Basic Scan'));
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Step 1 of 2'), findsWidgets);

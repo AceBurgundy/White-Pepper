@@ -143,6 +143,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
   @override
   Widget build(BuildContext context) {
     final bool isDark = widget.isDarkMode;
+    final bool hasHiddenOptions = widget.tools.length > _visibleSlots;
     final int slotCount = widget.tools.length < _visibleSlots
         ? widget.tools.length
         : _visibleSlots;
@@ -152,14 +153,16 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        // Left Navigation Arrow Pod (.pea-pod__nav-pod)
-        _PeaPodNavButton(
-          isDark: isDark,
-          isRight: false,
-          tooltip: 'Previous parameter',
-          onTap: () => _stepDirection(-1),
-        ),
-        const SizedBox(width: 12),
+        // Left Navigation Arrow Pod (.pea-pod__nav-pod) - shown only when hidden options exist
+        if (hasHiddenOptions) ...<Widget>[
+          _PeaPodNavButton(
+            isDark: isDark,
+            isRight: false,
+            tooltip: 'Previous parameter',
+            onTap: () => _stepDirection(-1),
+          ),
+          const SizedBox(width: 12),
+        ],
 
         // Central Contoured Pod Housing (.pea-pod__housing)
         AnimatedBuilder(
@@ -210,14 +213,16 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
           ),
         ),
 
-        const SizedBox(width: 12),
-        // Right Navigation Arrow Pod (.pea-pod__nav-pod)
-        _PeaPodNavButton(
-          isDark: isDark,
-          isRight: true,
-          tooltip: 'Next parameter',
-          onTap: () => _stepDirection(1),
-        ),
+        // Right Navigation Arrow Pod (.pea-pod__nav-pod) - shown only when hidden options exist
+        if (hasHiddenOptions) ...<Widget>[
+          const SizedBox(width: 12),
+          _PeaPodNavButton(
+            isDark: isDark,
+            isRight: true,
+            tooltip: 'Next parameter',
+            onTap: () => _stepDirection(1),
+          ),
+        ],
       ],
     );
   }

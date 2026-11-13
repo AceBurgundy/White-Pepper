@@ -31,7 +31,7 @@ void main() {
         workflowType: WorkflowType.cardDuplex,
         dpi: 600,
         format: 'png',
-        cardBackground: 'white',
+        cardBackground: 'transparent',
         fileNamePrefix: 'Driver_ID',
       );
 
@@ -42,9 +42,9 @@ void main() {
       expect(plan.scriptRelativePath, contains('scan_cli.py'));
       expect(plan.arguments, contains('card'));
       expect(plan.arguments, contains('600'));
-      expect(plan.arguments, contains('Driver_ID_Front'));
+      expect(plan.arguments, contains('Driver_ID - Front'));
       expect(plan.arguments, contains('--no-prompt'));
-      expect(plan.arguments, contains('white'));
+      expect(plan.arguments, contains('transparent'));
     });
 
     test('Builds legal-stitch command with --ipc-mode', () {
@@ -205,14 +205,14 @@ void main() {
       expect(state.config.selectedDeviceId, equals('device-guid-xyz'));
 
       // Selecting a workflow must preserve active scanner targeting
-      state.selectWorkflow(WorkflowType.highResArchive);
-      expect(state.config.dpi, equals(1200));
-      expect(state.config.format, equals('tiff'));
+      state.selectWorkflow(WorkflowType.cardDuplex);
+      expect(state.config.dpi, equals(600));
+      expect(state.config.format, equals('png'));
       expect(state.config.selectedBackend, equals('wia'));
       expect(state.config.selectedDeviceId, equals('device-guid-xyz'));
     });
 
-    test('Changing DPI and High-Res Archive workflow propagates exact optical resolution to CLI', () {
+    test('Changing DPI and Card Scan workflow propagates exact optical resolution to CLI', () {
       for (final int expectedDpi in <int>[75, 100, 200, 300, 600, 1200]) {
         final ScanConfigurationModel config = ScanConfigurationModel(
           workflowType: WorkflowType.flatbed,
@@ -225,12 +225,12 @@ void main() {
       }
 
       final AppState state = AppState();
-      state.selectWorkflow(WorkflowType.highResArchive);
-      final CliCommandPlan archivePlan = CliCommandBuilder.build(state.config);
-      expect(archivePlan.arguments, contains('--dpi'));
-      expect(archivePlan.arguments, contains('1200'));
-      expect(archivePlan.arguments, contains('--format'));
-      expect(archivePlan.arguments, contains('tiff'));
+      state.selectWorkflow(WorkflowType.cardDuplex);
+      final CliCommandPlan cardPlan = CliCommandBuilder.build(state.config);
+      expect(cardPlan.arguments, contains('--dpi'));
+      expect(cardPlan.arguments, contains('600'));
+      expect(cardPlan.arguments, contains('--format'));
+      expect(cardPlan.arguments, contains('png'));
     });
   });
 }

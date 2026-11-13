@@ -72,6 +72,9 @@ class AppState extends ChangeNotifier {
   Timer? _compilePdfCountdownTimer;
   int _compilePdfCountdownSeconds = 0;
 
+  Timer? _cardFlipTimer;
+  int _cardFlipCountdownSeconds = 0;
+
   // Getters
   AppScreen get currentScreen => _currentScreen;
   ScanConfigurationModel get config => _config;
@@ -91,9 +94,12 @@ class AppState extends ChangeNotifier {
   List<ScannerDeviceModel> get availableScanners => _availableScanners;
   ScannerDeviceModel? get activeScanner => _activeScanner;
   bool get isDiscoveringScanners => _isDiscoveringScanners;
+  bool get isLegalStitchSupportedByHardware => _activeScanner?.supportsLegal ?? false;
+  bool get isLegalStitchCardVisible => !isLegalStitchSupportedByHardware;
   int get compilePdfPageCount => _compilePdfPageCount;
   String? get compilePdfStagingPath => _compilePdfStagingPath;
   int get compilePdfCountdownSeconds => _compilePdfCountdownSeconds;
+  int get cardFlipCountdownSeconds => _cardFlipCountdownSeconds;
 
   String get scannerConnectionLabel {
     if (_activeScanner != null) {
@@ -165,107 +171,41 @@ class AppState extends ChangeNotifier {
         ];
 
       case WorkflowType.cardDuplex:
-        if (_config.cardDuplexTwoSided) {
-          return <WorkflowInstructionStep>[
-            WorkflowInstructionStep(
-              stepNumber: 1,
-              totalSteps: 3,
-              badgeLabel: 'Step 1 of 3 • Front Side (${_config.dpi} DPI)',
-              headline: 'Place Card\nFRONT Side',
-              physicalInstruction:
-                  'Place the FRONT side of your ID-1 card face-down near the top-left corner of the scanner glass (within the 5.0" × 5.0" zone).',
-              subInstruction:
-                  'Leave a ~5 mm white border gap from the plastic bezel so computer vision can pin all 4 card edges.',
-              actionButtonLabel: 'Scan & Deskew Front Side',
-              schematicMode: 'card_front',
-            ),
-            WorkflowInstructionStep(
-              stepNumber: 2,
-              totalSteps: 3,
-              badgeLabel: 'Step 2 of 3 • Back Side (${_config.dpi} DPI)',
-              headline: 'Flip Card to\nBACK Side',
-              physicalInstruction:
-                  'Flip the ID card over to its BACK side in the same top-left 5.0" × 5.0" corner zone of the platen glass.',
-              subInstruction:
-                  'Sub-degree contour deskewing and ${_config.cornerRadiusMm.toStringAsFixed(2)} mm rounded-corner masking will run automatically.',
-              actionButtonLabel: 'Scan & Deskew Back Side',
-              schematicMode: 'card_back',
-            ),
-            const WorkflowInstructionStep(
-              stepNumber: 3,
-              totalSteps: 3,
-              badgeLabel: 'Step 3 of 3 • Duplex Extraction Complete',
-              headline: 'Front & Back\nExtracted!',
-              physicalInstruction:
-                  'Both card sides have been isolated, rotationally deskewed, alpha-masked, and saved with native DPI headers.',
-              subInstruction:
-                  'Use the actions below to inspect the extracted card images or open the output folder.',
-              actionButtonLabel: 'Done',
-              schematicMode: 'completed',
-            ),
-          ];
-        } else {
-          return <WorkflowInstructionStep>[
-            WorkflowInstructionStep(
-              stepNumber: 1,
-              totalSteps: 2,
-              badgeLabel: 'Step 1 of 2 • Card Placement (${_config.dpi} DPI)',
-              headline: 'Place ID Card\nat Top-Left',
-              physicalInstruction:
-                  'Place the ID-1 card face-down in the top-left 5.0" × 5.0" platen corner.',
-              subInstruction:
-                  'Computer vision contour detection will deskew and mask the card at ${_config.dpi} DPI.',
-              actionButtonLabel: 'Scan & Deskew Card',
-              schematicMode: 'card_front',
-            ),
-            const WorkflowInstructionStep(
-              stepNumber: 2,
-              totalSteps: 2,
-              badgeLabel: 'Step 2 of 2 • Extraction Complete',
-              headline: 'ID-1 Card\nExtracted!',
-              physicalInstruction:
-                  'The ID card has been deskewed and saved with embedded optical DPI metadata.',
-              subInstruction: 'Click Open File below to view the output.',
-              actionButtonLabel: 'Done',
-              schematicMode: 'completed',
-            ),
-          ];
-        }
-
-      case WorkflowType.bookletBatch:
         return <WorkflowInstructionStep>[
           WorkflowInstructionStep(
             stepNumber: 1,
             totalSteps: 3,
-            badgeLabel: 'Step 1 of 3 • Spread Setup (${_config.paperSize.toUpperCase()})',
-            headline: 'Place Booklet\nSpread #1',
+            badgeLabel: 'Step 1 of 3 • Front Side (${_config.dpi} DPI)',
+            headline: 'Place Card\nFRONT DOWN',
             physicalInstruction:
-                'Lay the open booklet spread flat against the top-left scanner glass origin mark.',
+                'Place the card FRONT DOWN on the glass corner with 0.5 inch space away from the corner.',
             subInstruction:
-                'Continuous interval mode will capture a spread every ${_config.intervalSeconds}s (${_config.maxScans == 0 ? "until stopped" : "max ${_config.maxScans} spreads"}).',
-            actionButtonLabel: 'Start Continuous Batch',
-            schematicMode: 'platen_sheet',
+                'A 4.0" × 4.0" window is scanned, contour-deskewed, and masked to rounded corners with transparent background.',
+            actionButtonLabel: 'Scan Front Side',
+            schematicMode: 'card_front',
           ),
           WorkflowInstructionStep(
             stepNumber: 2,
             totalSteps: 3,
-            badgeLabel: 'Step 2 of 3 • Interval Capture Active',
-            headline: 'Turn Pages\nBetween Scans',
+            badgeLabel: 'Step 2 of 3 • Back Side (${_config.dpi} DPI)',
+            headline: 'Flip Card\nBACK DOWN',
             physicalInstruction:
-                'Watch the scan activity log on the right and turn to the next booklet spread during each ${_config.intervalSeconds}s pause.',
-            subInstruction:
-                'You can stop the batch at any time once your final spread is captured.',
-            actionButtonLabel: 'Capturing Spreads...',
-            schematicMode: 'platen_sheet',
+                'Flip the card BACK DOWN in the same position with 0.5 inch space away from the corner.',
+            subInstruction: _cardFlipCountdownSeconds > 0
+                ? 'Auto-scan starting in ${_cardFlipCountdownSeconds}s... Click Scan Back Side to proceed immediately.'
+                : 'Click "Scan Back Side" or let the countdown timer trigger automatically.',
+            actionButtonLabel: 'Scan Back Side',
+            schematicMode: 'card_back',
           ),
-          const WorkflowInstructionStep(
+          WorkflowInstructionStep(
             stepNumber: 3,
             totalSteps: 3,
-            badgeLabel: 'Step 3 of 3 • Batch Spreads Saved',
-            headline: 'Booklet Batch\nFinished!',
+            badgeLabel: 'Step 3 of 3 • Duplex Extraction Complete',
+            headline: 'Front & Back\nSaved as PNG!',
             physicalInstruction:
-                'All booklet spreads have been saved to the output directory with native DPI metadata.',
-            subInstruction: 'Ready for saddle-stitch processing or PDF compilation.',
+                'Both card sides have been contour-deskewed, alpha-masked to rounded corners, and saved with embedded DPI.',
+            subInstruction:
+                'Saved as "${_config.fileNamePrefix.isNotEmpty ? _config.fileNamePrefix : "Card"} - Front.png" and "${_config.fileNamePrefix.isNotEmpty ? _config.fileNamePrefix : "Card"} - Back.png".',
             actionButtonLabel: 'Done',
             schematicMode: 'completed',
           ),
@@ -278,7 +218,7 @@ class AppState extends ChangeNotifier {
               stepNumber: 1,
               totalSteps: 2,
               badgeLabel:
-                  'Page 1 Setup • ${_config.paperSize.toUpperCase()} @ ${_config.dpi <= 0 ? 300 : _config.dpi} DPI',
+                  'Batch Scan Setup • ${_config.paperSize.toUpperCase()} @ ${_config.dpi <= 0 ? 300 : _config.dpi} DPI',
               headline: 'Place Page 1\non Platen Glass',
               physicalInstruction:
                   'Place the first document page face-down against the top-left platen corner (0,0) and close the scanner lid.',
@@ -288,14 +228,14 @@ class AppState extends ChangeNotifier {
               actionButtonLabel: 'Scan Page 1',
               schematicMode: 'platen_sheet',
             ),
-            const WorkflowInstructionStep(
+            WorkflowInstructionStep(
               stepNumber: 2,
               totalSteps: 2,
-              badgeLabel: 'Pipeline Complete',
-              headline: 'Multi-Page PDF\nCompiled!',
+              badgeLabel: 'Batch Scan Complete',
+              headline: 'Batch Scan\nComplete!',
               physicalInstruction:
-                  'All scanned pages have been compiled into a unified PDF document.',
-              subInstruction: 'Open the generated PDF document below.',
+                  'All scanned pages have been processed and saved into .${_config.format.toUpperCase()} format.',
+              subInstruction: 'Open the generated output below.',
               actionButtonLabel: 'Done',
               schematicMode: 'completed',
             ),
@@ -315,18 +255,18 @@ class AppState extends ChangeNotifier {
               physicalInstruction:
                   'Remove the scanned sheet and place page $nextPageNumber on the platen glass.',
               subInstruction:
-                  '${autoNote}Click "Scan Page $nextPageNumber" to continue, or "Finish & Compile PDF" to finalize.',
+                  '${autoNote}Click "Scan Page $nextPageNumber" to continue, or "Stop Early" to finalize as .${_config.format.toUpperCase()}.',
               actionButtonLabel: 'Scan Page $nextPageNumber',
               schematicMode: 'platen_sheet',
             ),
-            const WorkflowInstructionStep(
+            WorkflowInstructionStep(
               stepNumber: 2,
               totalSteps: 2,
-              badgeLabel: 'Pipeline Complete',
-              headline: 'Multi-Page PDF\nCompiled!',
+              badgeLabel: 'Batch Scan Complete',
+              headline: 'Batch Scan\nComplete!',
               physicalInstruction:
-                  'All scanned pages have been compiled into a unified PDF document.',
-              subInstruction: 'Open the generated PDF document below.',
+                  'All scanned pages have been processed and saved into .${_config.format.toUpperCase()} format.',
+              subInstruction: 'Open the generated output below.',
               actionButtonLabel: 'Done',
               schematicMode: 'completed',
             ),
@@ -336,51 +276,18 @@ class AppState extends ChangeNotifier {
             WorkflowInstructionStep(
               stepNumber: 1,
               totalSteps: 1,
-              badgeLabel: 'PDF Compiled • $_compilePdfPageCount Pages',
-              headline: 'Multi-Page PDF\nCompiled!',
+              badgeLabel: 'Batch Scan Complete • $_compilePdfPageCount Pages',
+              headline: 'Batch Scan\nComplete!',
               physicalInstruction:
-                  'All $_compilePdfPageCount pages have been assembled into a single vector-structured PDF.',
-              subInstruction: 'Open the generated PDF document below.',
+                  'All $_compilePdfPageCount pages have been saved into .${_config.format.toUpperCase()} format.',
+              subInstruction: 'Open the generated output below.',
               actionButtonLabel: 'Done',
               schematicMode: 'completed',
             ),
           ];
         }
 
-      case WorkflowType.batchCardDeskew:
-        return <WorkflowInstructionStep>[
-          WorkflowInstructionStep(
-            stepNumber: 1,
-            totalSteps: 2,
-            badgeLabel: 'Step 1 of 2 • Verify Processing Pipeline',
-            headline: 'Batch Card\nVision Deskew',
-            physicalInstruction:
-                'Verify source folder (${_config.outputDirectory}) for batch ID-1 contour isolation at ${_config.dpi} DPI.',
-            subInstruction:
-                'Press the yellow start button on the right to begin processing your documents.',
-            actionButtonLabel: 'Run Processing Pipeline',
-            schematicMode: 'platen_sheet',
-          ),
-          const WorkflowInstructionStep(
-            stepNumber: 2,
-            totalSteps: 2,
-            badgeLabel: 'Step 2 of 2 • Pipeline Complete',
-            headline: 'Processing\nComplete!',
-            physicalInstruction:
-                'All files have been successfully processed with high resolution and quality preservation.',
-            subInstruction: 'Open the generated output below.',
-            actionButtonLabel: 'Done',
-            schematicMode: 'completed',
-          ),
-        ];
-
       case WorkflowType.flatbed:
-      case WorkflowType.receiptArchive:
-      case WorkflowType.photoScan:
-      case WorkflowType.customPlaten:
-      case WorkflowType.highResArchive:
-      case WorkflowType.grayscaleDocument:
-      case WorkflowType.quickPreview:
         return <WorkflowInstructionStep>[
           WorkflowInstructionStep(
             stepNumber: 1,
@@ -389,9 +296,9 @@ class AppState extends ChangeNotifier {
                 'Step 1 of 2 • Align ${_config.paperSize.toUpperCase()} @ ${_config.dpi} DPI',
             headline: 'Align Document\non Platen Glass',
             physicalInstruction:
-                'Place your ${wf.title.toLowerCase()} face-down flush with the top-left platen origin mark (0,0) and close the scanner lid.',
+                'Place your document or photo face-down flush with the top-left platen origin mark (0,0) and close the scanner lid.',
             subInstruction:
-                'Target region: ${_config.paperSize.toUpperCase()} • ${_config.dpi} DPI • ${_config.colorMode.toUpperCase()} • .${_config.format.toUpperCase()}',
+                'Target: ${_config.paperSize.toUpperCase()} • ${_config.dpi} DPI • ${_config.colorMode.toUpperCase()} • .${_config.format.toUpperCase()}',
             actionButtonLabel: 'Start Optical Scan',
             schematicMode: 'platen_sheet',
           ),
@@ -402,6 +309,34 @@ class AppState extends ChangeNotifier {
             headline: 'Scan Saved\nSuccessfully!',
             physicalInstruction:
                 'Document scanned, cropped, and saved successfully with high resolution clarity.',
+            subInstruction: 'Open the scanned file or folder below.',
+            actionButtonLabel: 'Done',
+            schematicMode: 'completed',
+          ),
+        ];
+
+      case WorkflowType.customPlaten:
+        return <WorkflowInstructionStep>[
+          WorkflowInstructionStep(
+            stepNumber: 1,
+            totalSteps: 2,
+            badgeLabel:
+                'Step 1 of 2 • Custom Region (${_config.customWidth} × ${_config.customHeight} ${_config.units})',
+            headline: 'Align Target Area\non Platen Glass',
+            physicalInstruction:
+                'Position your material on the platen within the designated custom capture coordinates.',
+            subInstruction:
+                'Region: ${_config.customWidth}${_config.units} × ${_config.customHeight}${_config.units} @ ${_config.dpi} DPI • ${_config.colorMode.toUpperCase()}',
+            actionButtonLabel: 'Scan Custom Region',
+            schematicMode: 'platen_sheet',
+          ),
+          const WorkflowInstructionStep(
+            stepNumber: 2,
+            totalSteps: 2,
+            badgeLabel: 'Step 2 of 2 • Acquisition Complete',
+            headline: 'Custom Region\nSaved!',
+            physicalInstruction:
+                'Custom boundary scanned and clipped successfully.',
             subInstruction: 'Open the scanned file or folder below.',
             actionButtonLabel: 'Done',
             schematicMode: 'completed',
@@ -441,48 +376,35 @@ class AppState extends ChangeNotifier {
 
     switch (workflow) {
       case WorkflowType.flatbed:
-        _config.paperSize = 'full';
+        _config.paperSize = 'a4';
         _config.dpi = 300;
         _config.format = 'pdf';
+        _config.colorMode = 'color';
       case WorkflowType.cardDuplex:
         _config.paperSize = 'id-card';
         _config.dpi = 600;
         _config.format = 'png';
         _config.cardBackground = 'transparent';
         _config.cardDuplexTwoSided = true;
+        _config.intervalSeconds = 5;
+        _cardFlipCountdownSeconds = 0;
+        _cancelCardFlipTimer();
       case WorkflowType.legalStitch:
         _config.paperSize = 'legal';
         _config.dpi = 300;
         _config.format = 'pdf';
         _config.ipcMode = true;
-      case WorkflowType.bookletBatch:
-        _config.paperSize = 'full';
-        _config.dpi = 300;
-        _config.format = 'png';
-        _config.intervalSeconds = 10;
-      case WorkflowType.receiptArchive:
-        _config.paperSize = 'receipt-half';
-        _config.dpi = 300;
-        _config.format = 'png';
-      case WorkflowType.photoScan:
-        _config.paperSize = 'photo-4x6';
-        _config.dpi = 600;
-        _config.format = 'png';
       case WorkflowType.compilePdf:
         _config.paperSize = 'full';
         _config.dpi = 300;
         _config.fitMode = 'contain';
         _config.format = 'pdf';
         _config.intervalSeconds = 0;
-        _config.fileNamePrefix = 'compiled_document';
+        _config.fileNamePrefix = 'batch_scan';
         _compilePdfPageCount = 0;
         _compilePdfCountdownSeconds = 0;
         _cancelCompilePdfTimer();
         _cleanUpCompilePdfStaging();
-      case WorkflowType.batchCardDeskew:
-        _config.paperSize = 'id-card';
-        _config.dpi = 600;
-        _config.format = 'png';
       case WorkflowType.customPlaten:
         _config.paperSize = 'custom';
         if (_config.units == 'in') {
@@ -494,22 +416,6 @@ class AppState extends ChangeNotifier {
         }
         _config.dpi = 300;
         _config.format = 'pdf';
-      case WorkflowType.highResArchive:
-        _config.paperSize = 'a4';
-        _config.dpi = 1200;
-        _config.format = 'tiff';
-        _config.colorMode = 'color';
-      case WorkflowType.grayscaleDocument:
-        _config.paperSize = 'a4';
-        _config.dpi = 300;
-        _config.format = 'pdf';
-        _config.colorMode = 'bw';
-        _config.autoCrop = true;
-      case WorkflowType.quickPreview:
-        _config.paperSize = 'full';
-        _config.dpi = 75;
-        _config.intent = 'preview';
-        _config.format = 'png';
     }
 
     final List<PeaPodToolType> validTools = availableTools;
@@ -558,6 +464,10 @@ class AppState extends ChangeNotifier {
       _cancelCompilePdfTimer();
       _cleanUpCompilePdfStaging();
     }
+    if (_config.workflowType == WorkflowType.cardDuplex) {
+      _cancelCardFlipTimer();
+      _cardFlipCountdownSeconds = 0;
+    }
     _currentScreen = AppScreen.instructions;
     notifyListeners();
   }
@@ -584,9 +494,9 @@ class AppState extends ChangeNotifier {
     }
 
     // ID Card Duplex 2-step guided front & back capture
-    if (_config.workflowType == WorkflowType.cardDuplex &&
-        _config.cardDuplexTwoSided) {
+    if (_config.workflowType == WorkflowType.cardDuplex) {
       if (_processService.isRunning) return;
+      _cancelCardFlipTimer();
       _isAwaitingUserConfirmation = false;
       final String sideSuffix = _currentStepIndex == 0 ? 'Front' : 'Back';
       final CliCommandPlan plan = CliCommandBuilder.build(
@@ -604,6 +514,9 @@ class AppState extends ChangeNotifier {
             _consoleLogs.add(
               '[STEP 1 COMPLETE] Front side saved. Flip card to BACK side and trigger Step 2.',
             );
+            if (_config.intervalSeconds > 0) {
+              _startCardFlipCountdown();
+            }
             notifyListeners();
           } else {
             _currentStepIndex = 2;
@@ -788,12 +701,57 @@ class AppState extends ChangeNotifier {
     _processService.sendStdinLine('');
   }
 
-  /// Finalizes the multi-page PDF compilation session by bundling all scanned pages in staging.
+  /// Finalizes the multi-page batch scan session by bundling all scanned pages in staging.
   void finishAndCompilePdf() {
     if (_processService.isRunning) return;
     _cancelCompilePdfTimer();
     if (_compilePdfStagingPath == null || _compilePdfPageCount == 0) {
-      _consoleLogs.add('[WARNING] No pages scanned yet to compile into PDF.');
+      _consoleLogs.add('[WARNING] No pages scanned yet to save.');
+      return;
+    }
+
+    final String format = _config.format.toLowerCase();
+    if (format != 'pdf') {
+      _isAwaitingUserConfirmation = false;
+      _scanButtonState = ProgressButtonState.processing;
+      notifyListeners();
+
+      try {
+        final Directory stagingDirectory = Directory(_compilePdfStagingPath!);
+        final List<FileSystemEntity> files = stagingDirectory
+            .listSync()
+            .where((FileSystemEntity fileEntity) => fileEntity is File)
+            .toList()
+          ..sort((FileSystemEntity firstEntity, FileSystemEntity secondEntity) =>
+              firstEntity.path.compareTo(secondEntity.path));
+
+        final String cleanPrefix = _config.fileNamePrefix.trim().isNotEmpty
+            ? _config.fileNamePrefix.trim()
+            : 'batch_scan';
+
+        int pageIndex = 1;
+        for (final FileSystemEntity entity in files) {
+          if (entity is File) {
+            final String paddedNumber = pageIndex.toString().padLeft(2, '0');
+            final String targetFileName = '${cleanPrefix}_page_$paddedNumber.$format';
+            final String destinationPath = p.join(_config.outputDirectory, targetFileName);
+            entity.copySync(destinationPath);
+            _recordGeneratedFile(destinationPath);
+            pageIndex++;
+          }
+        }
+        _scanButtonState = ProgressButtonState.completed;
+        _consoleLogs.add(
+          '[SUCCESS] All $_compilePdfPageCount pages saved as .$format to ${_config.outputDirectory}',
+        );
+        _cleanUpCompilePdfStaging();
+        notifyListeners();
+      } catch (saveException) {
+        _scanButtonState = ProgressButtonState.error;
+        _consoleLogs.add('[ERROR] Failed to save batch images: $saveException');
+        _isAwaitingUserConfirmation = true;
+        notifyListeners();
+      }
       return;
     }
 
@@ -854,8 +812,33 @@ class AppState extends ChangeNotifier {
     );
   }
 
+  void _startCardFlipCountdown() {
+    _cancelCardFlipTimer();
+    _cardFlipCountdownSeconds = _config.intervalSeconds;
+    notifyListeners();
+
+    _cardFlipTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) {
+        if (_cardFlipCountdownSeconds <= 1) {
+          _cancelCardFlipTimer();
+          if (_scanButtonState != ProgressButtonState.processing &&
+              _config.workflowType == WorkflowType.cardDuplex &&
+              _currentStepIndex == 1 &&
+              _currentScreen == AppScreen.instructions) {
+            triggerCurrentInstructionStep();
+          }
+        } else {
+          _cardFlipCountdownSeconds -= 1;
+          notifyListeners();
+        }
+      },
+    );
+  }
+
   void cancelCountdownTimer() {
     _cancelCompilePdfTimer();
+    _cancelCardFlipTimer();
     notifyListeners();
   }
 
@@ -863,6 +846,12 @@ class AppState extends ChangeNotifier {
     _compilePdfCountdownTimer?.cancel();
     _compilePdfCountdownTimer = null;
     _compilePdfCountdownSeconds = 0;
+  }
+
+  void _cancelCardFlipTimer() {
+    _cardFlipTimer?.cancel();
+    _cardFlipTimer = null;
+    _cardFlipCountdownSeconds = 0;
   }
 
   void _cleanUpCompilePdfStaging() {
@@ -881,6 +870,7 @@ class AppState extends ChangeNotifier {
 
   void cancelScan() {
     _cancelCompilePdfTimer();
+    _cancelCardFlipTimer();
     _cleanUpCompilePdfStaging();
     _compilePdfPageCount = 0;
     _processService.cancelActiveProcess();
@@ -893,6 +883,7 @@ class AppState extends ChangeNotifier {
   @override
   void dispose() {
     _cancelCompilePdfTimer();
+    _cancelCardFlipTimer();
     _cleanUpCompilePdfStaging();
     super.dispose();
   }

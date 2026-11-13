@@ -15,7 +15,7 @@ Paint createLinePaint({
 }
 
 /// Painter for the Custom Region / Crop icon with opposing corner brackets
-/// gliding smoothly inward from outside coordinates into the crop rectangle.
+/// gliding smoothly inward from outside coordinates and crossing into the authentic crop tool icon.
 class CropLinePainter extends CustomPainter {
   const CropLinePainter({
     required this.color,
@@ -37,45 +37,59 @@ class CropLinePainter extends CustomPainter {
     final double width = size.width;
     final double height = size.height;
 
-    // Boundary margins for the resting crop frame
-    final double leftCoordinate = width * 0.22;
-    final double topCoordinate = height * 0.22;
-    final double rightCoordinate = width * 0.78;
-    final double bottomCoordinate = height * 0.78;
+    // Resting boundary coordinates for the central crop box
+    final double leftCoordinate = width * 0.28;
+    final double topCoordinate = height * 0.28;
+    final double rightCoordinate = width * 0.72;
+    final double bottomCoordinate = height * 0.72;
+
+    // Stem extension past intersecting corners
     final double extensionLength = width * 0.16;
 
-    // Kinematic offset: starts far outward and glides inward to 0.0
-    final double offsetMagnitude = (1.0 - animationProgress) * (width * 0.20);
+    // Kinematic offset: starts far outward on diagonal and glides inward to 0.0
+    final double offsetMagnitude = (1.0 - animationProgress) * (width * 0.18);
 
-    // 1. Top-Left L-Bracket (glides from top-left)
+    // 1. Top-Left Bracket:
+    // Starts outward at (left - offset, top - offset).
+    // Horizontal arm: goes from left - offset to (right + extensionLength - offset).
+    // Vertical arm: goes from (top - extensionLength - offset) down to bottom - offset.
     final double topLeftX = leftCoordinate - offsetMagnitude;
     final double topLeftY = topCoordinate - offsetMagnitude;
-    final Path topLeftPath = Path()
-      ..moveTo(topLeftX, bottomCoordinate)
-      ..lineTo(topLeftX, topLeftY)
-      ..lineTo(rightCoordinate, topLeftY);
-    canvas.drawPath(topLeftPath, linePaint);
 
-    // Coordinate tick mark on top-left bracket
-    final Path topLeftTick = Path()
-      ..moveTo(topLeftX, topCoordinate - extensionLength * 0.6)
-      ..lineTo(topLeftX, topCoordinate);
-    canvas.drawPath(topLeftTick, linePaint);
+    // Top horizontal arm extending past right coordinate
+    canvas.drawLine(
+      Offset(topLeftX, topLeftY),
+      Offset(rightCoordinate + extensionLength - offsetMagnitude, topLeftY),
+      linePaint,
+    );
 
-    // 2. Bottom-Right L-Bracket (glides from bottom-right)
+    // Left vertical arm extending above top coordinate
+    canvas.drawLine(
+      Offset(topLeftX, topCoordinate - extensionLength - offsetMagnitude),
+      Offset(topLeftX, bottomCoordinate - offsetMagnitude),
+      linePaint,
+    );
+
+    // 2. Bottom-Right Bracket:
+    // Starts outward at (right + offset, bottom + offset).
+    // Horizontal arm: goes from (left - extensionLength + offset) to right + offset.
+    // Vertical arm: goes from top + offset down to (bottom + extensionLength + offset).
     final double bottomRightX = rightCoordinate + offsetMagnitude;
     final double bottomRightY = bottomCoordinate + offsetMagnitude;
-    final Path bottomRightPath = Path()
-      ..moveTo(bottomRightX, topCoordinate)
-      ..lineTo(bottomRightX, bottomRightY)
-      ..lineTo(leftCoordinate, bottomRightY);
-    canvas.drawPath(bottomRightPath, linePaint);
 
-    // Coordinate tick mark on bottom-right bracket
-    final Path bottomRightTick = Path()
-      ..moveTo(bottomRightX, bottomCoordinate + extensionLength * 0.6)
-      ..lineTo(bottomRightX, bottomCoordinate);
-    canvas.drawPath(bottomRightTick, linePaint);
+    // Bottom horizontal arm extending past left coordinate
+    canvas.drawLine(
+      Offset(leftCoordinate - extensionLength + offsetMagnitude, bottomRightY),
+      Offset(bottomRightX, bottomRightY),
+      linePaint,
+    );
+
+    // Right vertical arm extending below bottom coordinate
+    canvas.drawLine(
+      Offset(bottomRightX, topCoordinate + offsetMagnitude),
+      Offset(bottomRightX, bottomCoordinate + extensionLength + offsetMagnitude),
+      linePaint,
+    );
   }
 
   @override
@@ -791,7 +805,7 @@ class DocumentLinePainter extends CustomPainter {
   }
 }
 
-/// Painter for Quick Preview icon with opening eyelids.
+/// Painter for Quick Preview icon with double-blink eyelid kinematics on hover.
 class QuickPreviewLinePainter extends CustomPainter {
   const QuickPreviewLinePainter({
     required this.color,
@@ -817,27 +831,36 @@ class QuickPreviewLinePainter extends CustomPainter {
     final double rightX = width * 0.84;
     final double centerY = height * 0.50;
 
-    // Eyelid curvature expands on hover
-    final double lidAperture = height * (0.22 + 0.12 * animationProgress);
+    // Double-blink modulation: completes two quick blinks across animationProgress (0.0 -> 1.0)
+    // cos(progress * 4 * pi) produces two dips to 0.0 at progress = 0.25 and 0.75
+    final double cosineCycle = math.cos(animationProgress * 4.0 * math.pi);
+    final double blinkFactor = (0.08 + 0.92 * math.pow(cosineCycle.abs(), 0.75)).clamp(0.06, 1.0);
+
+    // Eyelid aperture expands to resting open height modulated by the double blink
+    final double baseAperture = height * 0.26;
+    final double effectiveAperture = baseAperture * blinkFactor;
 
     // Upper eyelid arc
     final Path upperLid = Path()
       ..moveTo(leftX, centerY)
-      ..quadraticBezierTo(width * 0.50, centerY - lidAperture, rightX, centerY);
+      ..quadraticBezierTo(width * 0.50, centerY - effectiveAperture, rightX, centerY);
     canvas.drawPath(upperLid, linePaint);
 
     // Lower eyelid arc
     final Path lowerLid = Path()
       ..moveTo(leftX, centerY)
-      ..quadraticBezierTo(width * 0.50, centerY + lidAperture, rightX, centerY);
+      ..quadraticBezierTo(width * 0.50, centerY + effectiveAperture, rightX, centerY);
     canvas.drawPath(lowerLid, linePaint);
 
-    // Center pupil / iris circle
-    canvas.drawCircle(
-      Offset(width * 0.50, centerY),
-      width * 0.08,
-      linePaint,
-    );
+    // Center pupil / iris circle scales with eyelid aperture
+    final double pupilRadius = (width * 0.08) * blinkFactor;
+    if (pupilRadius > 1.0) {
+      canvas.drawCircle(
+        Offset(width * 0.50, centerY),
+        pupilRadius,
+        linePaint,
+      );
+    }
   }
 
   @override

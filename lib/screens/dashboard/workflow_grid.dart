@@ -95,80 +95,51 @@ class _WorkflowGridState extends State<WorkflowGrid> {
     switch (type) {
       case WorkflowType.flatbed:
         return WorkflowCardTheme.yellow;
-      case WorkflowType.photoScan:
-        return WorkflowCardTheme.light;
-      case WorkflowType.bookletBatch:
-        return WorkflowCardTheme.dark;
       case WorkflowType.cardDuplex:
         return WorkflowCardTheme.light;
-      case WorkflowType.batchCardDeskew:
-        return WorkflowCardTheme.yellow;
       case WorkflowType.compilePdf:
         return WorkflowCardTheme.dark;
-      case WorkflowType.receiptArchive:
+      case WorkflowType.customPlaten:
         return WorkflowCardTheme.light;
       case WorkflowType.legalStitch:
         return WorkflowCardTheme.yellow;
-      case WorkflowType.customPlaten:
-        return WorkflowCardTheme.light;
-      case WorkflowType.highResArchive:
-        return WorkflowCardTheme.yellow;
-      case WorkflowType.grayscaleDocument:
-        return WorkflowCardTheme.dark;
-      case WorkflowType.quickPreview:
-        return WorkflowCardTheme.light;
     }
   }
 
   String _resolveBadge(WorkflowType type) {
     switch (type) {
       case WorkflowType.flatbed:
-        return 'A4 • 300 DPI';
-      case WorkflowType.photoScan:
-        return '4×6 • 600 DPI';
-      case WorkflowType.bookletBatch:
-        return '10s BATCH';
+        return 'PRESETS • 300-1200 DPI';
       case WorkflowType.cardDuplex:
-        return 'DUPLEX • 600 DPI';
-      case WorkflowType.batchCardDeskew:
-        return 'AI VISION';
+        return '4" WINDOW • TRANSPARENT PNG';
       case WorkflowType.compilePdf:
-        return 'AUTO DPI';
-      case WorkflowType.receiptArchive:
-        return 'HALF PLATEN';
-      case WorkflowType.legalStitch:
-        return '2-PASS 14"';
+        return 'MULTI-PAGE • ALL FORMATS';
       case WorkflowType.customPlaten:
         return 'CUSTOM IN/MM';
-      case WorkflowType.highResArchive:
-        return '1200 DPI TIFF';
-      case WorkflowType.grayscaleDocument:
-        return 'B&W • 300 DPI';
-      case WorkflowType.quickPreview:
-        return '75 DPI PREVIEW';
+      case WorkflowType.legalStitch:
+        return '2-PASS 14"';
     }
   }
 
   LineIconType _resolveLineIconType(WorkflowType workflow) {
     return switch (workflow) {
       WorkflowType.flatbed => LineIconType.flatbed,
-      WorkflowType.photoScan => LineIconType.photoScan,
-      WorkflowType.bookletBatch => LineIconType.bookletBatch,
       WorkflowType.cardDuplex => LineIconType.cardDuplex,
-      WorkflowType.batchCardDeskew => LineIconType.batchCardDeskew,
       WorkflowType.compilePdf => LineIconType.compilePdf,
-      WorkflowType.receiptArchive => LineIconType.receiptArchive,
-      WorkflowType.legalStitch => LineIconType.legalStitch,
       WorkflowType.customPlaten => LineIconType.customRegion,
-      WorkflowType.highResArchive => LineIconType.highResArchive,
-      WorkflowType.grayscaleDocument => LineIconType.grayscaleDocument,
-      WorkflowType.quickPreview => LineIconType.quickPreview,
+      WorkflowType.legalStitch => LineIconType.legalStitch,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    const List<WorkflowType> workflows = WorkflowType.values;
+    final AppState appState = Provider.of<AppState>(context);
+    final List<WorkflowType> workflows = WorkflowType.values.where((WorkflowType workflow) {
+      if (workflow == WorkflowType.legalStitch) {
+        return appState.isLegalStitchCardVisible;
+      }
+      return true;
+    }).toList();
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {

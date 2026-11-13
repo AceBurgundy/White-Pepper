@@ -105,7 +105,7 @@ class _AnimatedLineIconState extends State<AnimatedLineIcon>
           strokeWidth: iconStrokeWidth,
           animationProgress: animationProgress,
         ),
-      LineIconType.receiptArchive => ReceiptLinePainter(
+      LineIconType.grayscaleDocument || LineIconType.receiptArchive => ReceiptLinePainter(
           color: iconColor,
           strokeWidth: iconStrokeWidth,
           animationProgress: animationProgress,
@@ -121,11 +121,6 @@ class _AnimatedLineIconState extends State<AnimatedLineIcon>
           animationProgress: animationProgress,
         ),
       LineIconType.highResArchive => HighResArchiveLinePainter(
-          color: iconColor,
-          strokeWidth: iconStrokeWidth,
-          animationProgress: animationProgress,
-        ),
-      LineIconType.grayscaleDocument => DocumentLinePainter(
           color: iconColor,
           strokeWidth: iconStrokeWidth,
           animationProgress: animationProgress,

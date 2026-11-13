@@ -26,6 +26,8 @@ class ScannerDeviceModel {
     this.port = 0,
     this.deviceId = '',
     this.isOnline = true,
+    this.supportsLegal = false,
+    this.maxPlatenHeightInches = 11.693,
   });
 
   final String id;
@@ -35,6 +37,8 @@ class ScannerDeviceModel {
   final int port;
   final String deviceId;
   final bool isOnline;
+  final bool supportsLegal;
+  final double maxPlatenHeightInches;
 
   String get connectionLabel => connectionType.label;
 
@@ -48,6 +52,8 @@ class ScannerDeviceModel {
       port: (json['port'] as num?)?.toInt() ?? 0,
       deviceId: (json['device_id'] as String?) ?? '',
       isOnline: (json['reachable'] as bool?) ?? true,
+      supportsLegal: (json['supports_legal'] as bool?) ?? false,
+      maxPlatenHeightInches: (json['max_height_inches'] as num?)?.toDouble() ?? 11.693,
     );
   }
 
@@ -60,6 +66,8 @@ class ScannerDeviceModel {
       'port': port,
       'device_id': deviceId,
       'reachable': isOnline,
+      'supports_legal': supportsLegal,
+      'max_height_inches': maxPlatenHeightInches,
     };
   }
 
@@ -71,6 +79,8 @@ class ScannerDeviceModel {
     int? port,
     String? deviceId,
     bool? isOnline,
+    bool? supportsLegal,
+    double? maxPlatenHeightInches,
   }) {
     return ScannerDeviceModel(
       id: id ?? this.id,
@@ -80,6 +90,8 @@ class ScannerDeviceModel {
       port: port ?? this.port,
       deviceId: deviceId ?? this.deviceId,
       isOnline: isOnline ?? this.isOnline,
+      supportsLegal: supportsLegal ?? this.supportsLegal,
+      maxPlatenHeightInches: maxPlatenHeightInches ?? this.maxPlatenHeightInches,
     );
   }
 

@@ -61,10 +61,6 @@ enum PeaPodToolType {
   static List<PeaPodToolType> toolsForWorkflow(WorkflowType workflow) {
     switch (workflow) {
       case WorkflowType.flatbed:
-      case WorkflowType.photoScan:
-      case WorkflowType.customPlaten:
-      case WorkflowType.highResArchive:
-      case WorkflowType.grayscaleDocument:
         return const <PeaPodToolType>[
           PeaPodToolType.layout,
           PeaPodToolType.tune,
@@ -73,33 +69,10 @@ enum PeaPodToolType {
           PeaPodToolType.crop,
           PeaPodToolType.title,
         ];
-      case WorkflowType.receiptArchive:
-        return const <PeaPodToolType>[
-          PeaPodToolType.layout,
-          PeaPodToolType.tune,
-          PeaPodToolType.crop,
-          PeaPodToolType.contrast,
-          PeaPodToolType.title,
-        ];
-      case WorkflowType.bookletBatch:
-        return const <PeaPodToolType>[
-          PeaPodToolType.layout,
-          PeaPodToolType.tune,
-          PeaPodToolType.timer,
-          PeaPodToolType.crop,
-          PeaPodToolType.contrast,
-          PeaPodToolType.title,
-        ];
       case WorkflowType.cardDuplex:
         return const <PeaPodToolType>[
           PeaPodToolType.tune,
-          PeaPodToolType.crop,
-          PeaPodToolType.contrast,
-          PeaPodToolType.title,
-        ];
-      case WorkflowType.legalStitch:
-        return const <PeaPodToolType>[
-          PeaPodToolType.tune,
+          PeaPodToolType.timer,
           PeaPodToolType.contrast,
           PeaPodToolType.title,
         ];
@@ -111,16 +84,18 @@ enum PeaPodToolType {
           PeaPodToolType.crop,
           PeaPodToolType.title,
         ];
-      case WorkflowType.batchCardDeskew:
+      case WorkflowType.customPlaten:
         return const <PeaPodToolType>[
-          PeaPodToolType.tune,
           PeaPodToolType.crop,
+          PeaPodToolType.tune,
+          PeaPodToolType.contrast,
+          PeaPodToolType.rotate,
           PeaPodToolType.title,
         ];
-      case WorkflowType.quickPreview:
+      case WorkflowType.legalStitch:
         return const <PeaPodToolType>[
-          PeaPodToolType.layout,
-          PeaPodToolType.rotate,
+          PeaPodToolType.tune,
+          PeaPodToolType.contrast,
           PeaPodToolType.title,
         ];
     }
