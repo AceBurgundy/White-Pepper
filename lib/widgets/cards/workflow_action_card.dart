@@ -57,7 +57,7 @@ class _WorkflowActionCardState extends State<WorkflowActionCard> {
       case WorkflowCardTheme.light:
         backgroundColor = DesignTokens.pureWhite;
         textColor = DesignTokens.onyx;
-        arrowBadgeBackground = const Color(0xFFF2F2F2);
+        arrowBadgeBackground = DesignTokens.neutralGrayOneHundred;
         arrowBadgeForeground = DesignTokens.onyx;
     }
 

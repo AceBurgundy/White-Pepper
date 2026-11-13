@@ -553,7 +553,7 @@ class OptionsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? DesignTokens.darkSurfaceFour
-            : const Color(0xFFE4E4E7),
+            : DesignTokens.neutralGrayOneHundred,
         borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Text.rich(

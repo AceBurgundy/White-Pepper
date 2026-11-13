@@ -323,7 +323,7 @@ class _PeaPodMetaballPainter extends CustomPainter {
     final Paint paint = Paint()
       ..color = isDark
           ? DesignTokens.darkSurfaceTwo
-          : const Color(0xFFE4E4E7)
+          : DesignTokens.neutralGrayOneHundred
       ..style = PaintingStyle.fill;
 
     final double centerY = size.height / 2;

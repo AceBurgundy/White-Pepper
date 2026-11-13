@@ -5,7 +5,7 @@ abstract final class DesignTokens {
   /// Color Palette Tokens (25 tokens)
   static const Color onyx = Color(0xFF212121);
   static const Color accentYellow = Color(0xFFFFFF1E);
-  static const Color neutralLightSurface = Color(0xFFEEEEEE);
+  static const Color neutralLightSurface = Color(0xFFF5F7FA);
   static const Color pureWhite = Color(0xFFFFFFFF);
 
   static const Color darkSurfaceOne = Color(0xFF2A2A2A);
@@ -15,16 +15,16 @@ abstract final class DesignTokens {
   static const Color darkSurfaceFive = Color(0xFF3A3A3A);
   static const Color darkSurfaceSix = Color(0xFF3D3D3D);
 
-  static const Color neutralGrayFifty = Color(0xFFF7F7F7);
-  static const Color neutralGrayOneHundred = Color(0xFFE5E5E5);
-  static const Color neutralGrayTwoHundred = Color(0xFFDCDCDC);
-  static const Color neutralGrayThreeHundred = Color(0xFFCCCCCC);
-  static const Color neutralGrayFourHundred = Color(0xFFBBBBBB);
-  static const Color neutralGrayFiveHundred = Color(0xFFAAAAAA);
-  static const Color neutralGraySixHundred = Color(0xFF888888);
-  static const Color neutralGraySevenHundred = Color(0xFF777777);
-  static const Color neutralGrayEightHundred = Color(0xFF555555);
-  static const Color neutralGrayNineHundred = Color(0xFF444444);
+  static const Color neutralGrayFifty = Color(0xFFFAFBFC);
+  static const Color neutralGrayOneHundred = Color(0xFFEFF2F5);
+  static const Color neutralGrayTwoHundred = Color(0xFFE2E6EA);
+  static const Color neutralGrayThreeHundred = Color(0xFFD0D5DD);
+  static const Color neutralGrayFourHundred = Color(0xFF98A2B3);
+  static const Color neutralGrayFiveHundred = Color(0xFF667085);
+  static const Color neutralGraySixHundred = Color(0xFF475467);
+  static const Color neutralGraySevenHundred = Color(0xFF344054);
+  static const Color neutralGrayEightHundred = Color(0xFF1D2939);
+  static const Color neutralGrayNineHundred = Color(0xFF101828);
 
   static const Color statusOnlineGreen = Color(0xFF22C55E);
   static const Color statusErrorRed = Color(0xFFEF4444);

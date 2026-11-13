@@ -131,24 +131,143 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
+  String _resolveHeaderTooltip(String sectionTitle) {
+    return switch (sectionTitle) {
+      'Multi-Page Scan Timer' =>
+        'Automatically triggers subsequent scans after a countdown interval, allowing hands-free document feeds.',
+      'Paper Size & Presets' || 'Scanner Paper Size' =>
+        'Standardized document dimensions and flatbed platen coverage presets.',
+      'Document Page Size & Fit Mode' =>
+        'Target PDF sheet dimensions and how scans are scaled or stretched onto the page.',
+      'ID Card Sizing & Preset' =>
+        'Pre-calibrated bounding profiles for standard driver licenses, national IDs, and badges.',
+      'Duplex Card Placement' =>
+        'Configures front and back side registration alignment on the scanner platen glass.',
+      'Booklet Splitter Orientation' =>
+        'Splits folded booklet scans along the centerline vertically or horizontally into ordered pages.',
+      'Legal Dual-Pass Stitcher' =>
+        'Merges two overlapping scans into an aligned, seamless 14-inch legal document.',
+      'Optical DPI Resolution' =>
+        'Hardware optical sensor sampling density. Higher DPI captures finer detail at larger file sizes.',
+      'Color Mode & Tone' =>
+        'Select 24-bit full color, 8-bit grayscale, or 1-bit high-contrast black & white.',
+      'Brightness Adjustment' =>
+        'Lightens or darkens raw optical sensor exposures to correct under- or over-exposed media.',
+      'Contrast Adjustment' =>
+        'Accentuates separation between light backgrounds and dark text to maximize legibility.',
+      'Scan Dimensions & Units' =>
+        'Custom width, height, and offset margins in inches or millimeters.',
+      'Hardware Rotation' =>
+        'Applies 90°, 180°, or 270° clockwise hardware rotation directly at capture time.',
+      'Fit Mode' =>
+        'Determines how scanned pages are framed and scaled on the output virtual sheet.',
+      'File Name' =>
+        'Custom base name for the saved scan. Leave empty to use standard automated naming.',
+      'PDF Document Name' =>
+        'Custom base name for the compiled multi-page PDF document.',
+      'Output File Name' =>
+        'Specify a custom name for the saved file. Leave empty to use auto-generated naming.',
+      _ => 'Configure settings and parameters for this scan workflow.',
+    };
+  }
+
+  Widget _buildInfoIcon({
+    required String tooltip,
+    required bool isDark,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      waitDuration: const Duration(milliseconds: 100),
+      showDuration: const Duration(seconds: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark ? DesignTokens.darkSurfaceSix : DesignTokens.onyx,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      textStyle: const TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w500,
+        color: DesignTokens.pureWhite,
+        height: 1.3,
+      ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          width: 17,
+          height: 17,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark
+                ? DesignTokens.darkSurfaceFour
+                : DesignTokens.pureWhite,
+            border: Border.all(
+              color: isDark
+                  ? DesignTokens.neutralGraySixHundred
+                  : DesignTokens.neutralGrayThreeHundred,
+              width: 1.0,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              'i',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                fontFamily: 'serif',
+                fontStyle: FontStyle.italic,
+                color: isDark
+                    ? DesignTokens.neutralGrayThreeHundred
+                    : DesignTokens.neutralGraySevenHundred,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDrawerHeader({
     required String title,
     required String badgeValue,
     required bool isDark,
+    String? tooltip,
   }) {
+    final String resolvedTooltip = tooltip ?? _resolveHeaderTooltip(title);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Flexible(
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFFDDDDDD) : DesignTokens.onyx,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Flexible(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? const Color(0xFFDDDDDD) : DesignTokens.onyx,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              _buildInfoIcon(
+                tooltip: resolvedTooltip,
+                isDark: isDark,
+              ),
+            ],
           ),
         ),
+        const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
@@ -246,15 +365,24 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             }).toList(),
           ),
           const SizedBox(height: 12),
-          Text(
-            'Fit Mode',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isDark
-                  ? DesignTokens.neutralGrayFiveHundred
-                  : DesignTokens.neutralGrayEightHundred,
-            ),
+          Row(
+            children: <Widget>[
+              Text(
+                'Fit Mode',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? DesignTokens.neutralGrayFiveHundred
+                      : DesignTokens.neutralGrayEightHundred,
+                ),
+              ),
+              const SizedBox(width: 6),
+              _buildInfoIcon(
+                tooltip: _resolveHeaderTooltip('Fit Mode'),
+                isDark: isDark,
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -273,15 +401,24 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
             }).toList(),
           ),
           const SizedBox(height: 14),
-          Text(
-            'PDF Document Name',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isDark
-                  ? DesignTokens.neutralGrayFourHundred
-                  : DesignTokens.neutralGrayEightHundred,
-            ),
+          Row(
+            children: <Widget>[
+              Text(
+                'PDF Document Name',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? DesignTokens.neutralGrayFourHundred
+                      : DesignTokens.neutralGrayEightHundred,
+                ),
+              ),
+              const SizedBox(width: 6),
+              _buildInfoIcon(
+                tooltip: _resolveHeaderTooltip('PDF Document Name'),
+                isDark: isDark,
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           TextField(
@@ -504,15 +641,24 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         const SizedBox(height: 14),
-        Text(
-          'File Name',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isDark
-                ? DesignTokens.neutralGrayFourHundred
-                : DesignTokens.neutralGrayEightHundred,
-          ),
+        Row(
+          children: <Widget>[
+            Text(
+              'File Name',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? DesignTokens.neutralGrayFourHundred
+                    : DesignTokens.neutralGrayEightHundred,
+              ),
+            ),
+            const SizedBox(width: 6),
+            _buildInfoIcon(
+              tooltip: _resolveHeaderTooltip('File Name'),
+              isDark: isDark,
+            ),
+          ],
         ),
         const SizedBox(height: 6),
         TextField(
