@@ -38,12 +38,6 @@ class DashboardScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(
               DesignTokens.radiusViewportDesktop,
             ),
-            border: Border.all(
-              color: isDark
-                  ? DesignTokens.darkSurfaceThree
-                  : DesignTokens.neutralGrayThreeHundred,
-              width: 1.0,
-            ),
             boxShadow: DesignTokens.shadowWorkstation,
           ),
           clipBehavior: Clip.antiAlias,

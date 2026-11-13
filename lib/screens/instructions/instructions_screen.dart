@@ -49,6 +49,105 @@ class _InstructionsScreenState extends State<InstructionsScreen>
     }
   }
 
+  String _findLatestProgressLog(AppState state) {
+    if (state.consoleLogs.isEmpty) return '';
+    for (int index = state.consoleLogs.length - 1; index >= 0; index--) {
+      final String rawLine = state.consoleLogs[index].trim();
+      if (rawLine.isEmpty ||
+          rawLine.startsWith('\$') ||
+          rawLine.contains('python') ||
+          rawLine.contains('scan_cli.py') ||
+          rawLine.contains('process_cli.py') ||
+          rawLine.contains('--------------------------------------------------')) {
+        continue;
+      }
+      if (rawLine.startsWith('[Notice]') ||
+          rawLine.startsWith('[Warning]') ||
+          rawLine.startsWith('[Success]') ||
+          rawLine.startsWith('Acquiring') ||
+          rawLine.startsWith('Stitching') ||
+          rawLine.startsWith('Running') ||
+          rawLine.startsWith('[Continuous Mode]') ||
+          rawLine.startsWith('[Scan Iteration') ||
+          rawLine.startsWith('[Capturing Spread')) {
+        String cleanLine = rawLine;
+        if (cleanLine.startsWith('[Notice]')) {
+          cleanLine = cleanLine.substring(8).trim();
+        } else if (cleanLine.startsWith('[Success]')) {
+          cleanLine = cleanLine.substring(9).trim();
+        }
+        return cleanLine;
+      }
+    }
+    return '';
+  }
+
+  String _findLatestErrorLog(AppState state) {
+    if (state.consoleLogs.isEmpty) return '';
+    for (int index = state.consoleLogs.length - 1; index >= 0; index--) {
+      final String rawLine = state.consoleLogs[index].trim();
+      if (rawLine.contains('[Error]') ||
+          rawLine.contains('[ERROR]') ||
+          rawLine.contains('Exception') ||
+          rawLine.contains('Error:')) {
+        return rawLine.replaceAll('[Error]', '').replaceAll('[ERROR]', '').trim();
+      }
+    }
+    return '';
+  }
+
+  String _resolveTopTitle(
+    AppState state,
+    WorkflowInstructionStep currentStep,
+    bool isProcessing,
+    bool isCompleted,
+    bool isError,
+  ) {
+    if (isError) {
+      return 'Something Went Wrong';
+    }
+    if (isCompleted) {
+      return 'Workflow Completed!';
+    }
+    if (isProcessing) {
+      if (state.activeIpcEvent != null &&
+          state.activeIpcEvent!.message.isNotEmpty) {
+        return state.activeIpcEvent!.message;
+      }
+      final String latestProgress = _findLatestProgressLog(state);
+      if (latestProgress.isNotEmpty) {
+        return latestProgress;
+      }
+      return 'Scanning & Processing...';
+    }
+    return currentStep.actionButtonLabel;
+  }
+
+  String _resolveTopSubtitle(
+    AppState state,
+    bool isProcessing,
+    bool isCompleted,
+    bool isError,
+  ) {
+    if (isError) {
+      final String latestError = _findLatestErrorLog(state);
+      if (latestError.isNotEmpty) {
+        return latestError;
+      }
+      return 'An error occurred during scanning. Check hardware connection.';
+    }
+    if (isCompleted) {
+      if (state.lastGeneratedFilePath != null) {
+        return state.lastGeneratedFilePath!;
+      }
+      return 'Document acquired and saved successfully.';
+    }
+    if (isProcessing) {
+      return 'Hardware acquisition in progress. Please wait...';
+    }
+    return 'Click or press-and-hold the yellow trigger below to execute this step';
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppState state = context.watch<AppState>();
@@ -412,30 +511,39 @@ class _InstructionsScreenState extends State<InstructionsScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              isProcessing
-                  ? 'Scanning & Processing...'
-                  : (isCompleted
-                      ? 'Workflow Completed!'
-                      : currentStep.actionButtonLabel),
+              _resolveTopTitle(
+                state,
+                currentStep,
+                isProcessing,
+                isCompleted,
+                isError,
+              ),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 25,
                 fontWeight: FontWeight.w800,
-                color: DesignTokens.pureWhite,
+                color: isError
+                    ? DesignTokens.statusErrorRed
+                    : DesignTokens.pureWhite,
                 letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
-              isProcessing
-                  ? 'Communicating with scanner hardware...'
-                  : (isCompleted
-                      ? 'Document acquired and saved successfully.'
-                      : 'Click or press-and-hold the yellow trigger below to execute this step'),
+              _resolveTopSubtitle(
+                state,
+                isProcessing,
+                isCompleted,
+                isError,
+              ),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
                 fontSize: 12.5,
-                color: DesignTokens.neutralGrayFiveHundred,
+                color: isError
+                    ? DesignTokens.pureWhite.withValues(alpha: 0.85)
+                    : DesignTokens.neutralGrayFiveHundred,
               ),
             ),
           ],
@@ -549,122 +657,10 @@ class _InstructionsScreenState extends State<InstructionsScreen>
         ),
         const SizedBox(height: 16),
 
-        // Scanner Activity Card & Completion Actions
+        // Completion & Process Action Buttons Row
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              height: 145,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: DesignTokens.darkSurfaceOne,
-                borderRadius:
-                    BorderRadius.circular(DesignTokens.radiusCardInner),
-                border: Border.all(color: DesignTokens.darkSurfaceSix),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: isProcessing
-                                  ? DesignTokens.accentYellow
-                                  : (isCompleted
-                                      ? DesignTokens.statusOnlineGreen
-                                      : DesignTokens.neutralGrayFiveHundred),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'SCANNER ACTIVITY',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: DesignTokens.accentYellow,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        isProcessing
-                            ? 'In Progress'
-                            : (isCompleted ? 'Complete' : 'Ready'),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isCompleted
-                              ? DesignTokens.statusOnlineGreen
-                              : (isProcessing
-                                  ? DesignTokens.accentYellow
-                                  : DesignTokens.neutralGraySixHundred),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: state.consoleLogs.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Ready to start. Tap or hold the button above to begin.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: DesignTokens.neutralGrayFiveHundred,
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            reverse: true,
-                            itemCount: state.consoleLogs.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              final String rawLine = state.consoleLogs[
-                                  state.consoleLogs.length - 1 - index];
-                              if (rawLine.startsWith('\$') ||
-                                  rawLine.contains('scan_cli.py') ||
-                                  rawLine.contains('process_cli.py')) {
-                                return const SizedBox.shrink();
-                              }
-                              final bool isSuccessLine = rawLine.contains('[Success]') ||
-                                  rawLine.contains('[SAVED]') ||
-                                  rawLine.contains('completed');
-                              final bool isErrorLine = rawLine.contains('[ERROR]') ||
-                                  rawLine.contains('[stderr]');
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 2.0),
-                                child: Text(
-                                  rawLine,
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    color: isSuccessLine
-                                        ? DesignTokens.statusOnlineGreen
-                                        : (isErrorLine
-                                            ? DesignTokens.statusErrorRed
-                                            : DesignTokens
-                                                .neutralGrayThreeHundred),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Action Buttons Row
             Row(
               children: <Widget>[
                 if (isProcessing)

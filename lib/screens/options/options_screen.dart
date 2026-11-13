@@ -128,42 +128,45 @@ class OptionsScreen extends StatelessWidget {
                       const SizedBox(height: 20),
                       _buildControlDeckHeading(state, isDark),
                       const SizedBox(height: 12),
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Transform.scale(
-                                scale: 1.5,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 20),
-                                  child: PeaPodWidget(
-                                    isDarkMode: isDark,
-                                    tools: state.availableTools,
-                                    selectedTool: state.activeTool,
-                                    onToolSelected: (PeaPodToolType tool) {
-                                      state.setActiveTool(tool);
-                                    },
+                      SizedBox(
+                        height: 120,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Transform.scale(
+                                  scale: 1.5,
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 14),
+                                    child: PeaPodWidget(
+                                      isDarkMode: isDark,
+                                      tools: state.availableTools,
+                                      selectedTool: state.activeTool,
+                                      onToolSelected: (PeaPodToolType tool) {
+                                        state.setActiveTool(tool);
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              state.activeTool.displayTitle,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? DesignTokens.pureWhite
-                                    : DesignTokens.onyx,
-                                letterSpacing: 0.3,
+                              const SizedBox(height: 8),
+                              Text(
+                                state.activeTool.displayTitle,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? DesignTokens.pureWhite
+                                      : DesignTokens.onyx,
+                                  letterSpacing: 0.3,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -201,52 +204,57 @@ class OptionsScreen extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         _buildControlDeckHeading(state, isDark),
-                        Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Transform.scale(
-                                  scale: 1.5,
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 20),
-                                    child: PeaPodWidget(
-                                      isDarkMode: isDark,
-                                      tools: state.availableTools,
-                                      selectedTool: state.activeTool,
-                                      onToolSelected: (PeaPodToolType tool) {
-                                        state.setActiveTool(tool);
-                                      },
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 130,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Transform.scale(
+                                    scale: 1.5,
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.symmetric(vertical: 14),
+                                      child: PeaPodWidget(
+                                        isDarkMode: isDark,
+                                        tools: state.availableTools,
+                                        selectedTool: state.activeTool,
+                                        onToolSelected: (PeaPodToolType tool) {
+                                          state.setActiveTool(tool);
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                state.activeTool.displayTitle,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? DesignTokens.pureWhite
-                                      : DesignTokens.onyx,
-                                  letterSpacing: 0.3,
+                                const SizedBox(height: 8),
+                                Text(
+                                  state.activeTool.displayTitle,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? DesignTokens.pureWhite
+                                        : DesignTokens.onyx,
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                        Flexible(
+                        const SizedBox(height: 12),
+                        Expanded(
                           child: SingleChildScrollView(
                             child: _buildDrawerAndSummaryBar(state, isDark),
                           ),
                         ),
+                        const SizedBox(height: 16),
                         _buildBottomActionRow(context, state, isDark),
                       ],
                     ),

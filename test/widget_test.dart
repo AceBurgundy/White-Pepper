@@ -141,7 +141,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Step 1 of 2'), findsWidgets);
-      expect(find.text('SCANNER ACTIVITY'), findsOneWidget);
+      expect(find.text('Start Optical Scan'), findsOneWidget);
 
       // Assert zero developer/CLI jargon is visible in the UI
       expect(find.textContaining('scan_cli'), findsNothing);
@@ -194,7 +194,7 @@ void main() {
         appState.beginInstructionsWorkflow();
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        expect(find.text('SCANNER ACTIVITY'), findsOneWidget);
+        expect(find.text('Start Optical Scan'), findsOneWidget);
       }
     },
   );
