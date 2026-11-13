@@ -32,6 +32,12 @@ enum PeaPodToolType {
     displayTitle: 'Crop & Alignment',
     icon: Icons.crop_rounded,
   ),
+  timer(
+    identifier: 'timer',
+    label: 'Timer',
+    displayTitle: 'Scan Cadence Timer',
+    icon: Icons.timer_outlined,
+  ),
   title(
     identifier: 'title',
     label: 'Output',
@@ -68,10 +74,18 @@ enum PeaPodToolType {
           PeaPodToolType.title,
         ];
       case WorkflowType.receiptArchive:
+        return const <PeaPodToolType>[
+          PeaPodToolType.layout,
+          PeaPodToolType.tune,
+          PeaPodToolType.crop,
+          PeaPodToolType.contrast,
+          PeaPodToolType.title,
+        ];
       case WorkflowType.bookletBatch:
         return const <PeaPodToolType>[
           PeaPodToolType.layout,
           PeaPodToolType.tune,
+          PeaPodToolType.timer,
           PeaPodToolType.crop,
           PeaPodToolType.contrast,
           PeaPodToolType.title,
@@ -92,8 +106,9 @@ enum PeaPodToolType {
       case WorkflowType.compilePdf:
         return const <PeaPodToolType>[
           PeaPodToolType.layout,
-          PeaPodToolType.crop,
           PeaPodToolType.tune,
+          PeaPodToolType.timer,
+          PeaPodToolType.crop,
           PeaPodToolType.title,
         ];
       case WorkflowType.batchCardDeskew:

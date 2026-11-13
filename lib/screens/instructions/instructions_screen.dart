@@ -111,6 +111,10 @@ class _InstructionsScreenState extends State<InstructionsScreen>
       return 'Workflow Completed!';
     }
     if (isProcessing) {
+      if (state.config.workflowType == WorkflowType.compilePdf &&
+          state.compilePdfPageCount > 0) {
+        return 'Compiling..';
+      }
       if (state.activeIpcEvent != null &&
           state.activeIpcEvent!.message.isNotEmpty) {
         return state.activeIpcEvent!.message;
@@ -145,17 +149,24 @@ class _InstructionsScreenState extends State<InstructionsScreen>
       return 'An error occurred during scanning. Check hardware connection.';
     }
     if (isCompleted) {
+      if (state.config.workflowType == WorkflowType.compilePdf) {
+        return 'Document compiled and saved successfully.';
+      }
       if (state.lastGeneratedFilePath != null) {
         return state.lastGeneratedFilePath!;
       }
       return 'Document acquired and saved successfully.';
     }
     if (isProcessing) {
+      if (state.config.workflowType == WorkflowType.compilePdf &&
+          state.compilePdfPageCount > 0) {
+        return 'Saving..';
+      }
       return 'Hardware acquisition in progress. Please wait...';
     }
     if (state.config.workflowType == WorkflowType.compilePdf &&
         state.compilePdfPageCount > 0) {
-      return 'Place page ${state.compilePdfPageCount + 1} on platen. Click trigger to scan, or Finish & Compile below.';
+      return 'Place page ${state.compilePdfPageCount + 1} on platen. Hold button to scan, or Stop Early below.';
     }
     return 'Click or press-and-hold the yellow trigger below to execute this step';
   }
@@ -703,14 +714,14 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                     child: ElevatedButton.icon(
                       onPressed: () => state.finishAndCompilePdf(),
                       icon: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        size: 17,
+                        Icons.stop_rounded,
+                        size: 18,
                       ),
-                      label: Text(
-                        'Finish & Compile (${state.compilePdfPageCount} ${state.compilePdfPageCount == 1 ? "Page" : "Pages"})',
+                      label: const Text(
+                        'Stop Early',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
+                        style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: DesignTokens.accentYellow,

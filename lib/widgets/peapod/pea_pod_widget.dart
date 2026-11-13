@@ -22,11 +22,14 @@ class PeaPodWidget extends StatefulWidget {
 }
 
 class _PeaPodWidgetState extends State<PeaPodWidget>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int _windowStartIndex = 0;
   late AnimationController _dropletController;
   late Animation<double> _dropletScaleX;
   late Animation<double> _dropletScaleY;
+
+  late AnimationController _nudgeController;
+  late Animation<double> _nudgeOffset;
 
   static const int _visibleSlots = 4;
 
@@ -66,6 +69,36 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
         weight: 30,
       ),
     ]).animate(CurvedAnimation(parent: _dropletController, curve: Curves.easeOutCubic));
+
+    _nudgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    );
+    _nudgeOffset = TweenSequence<double>(<TweenSequenceItem<double>>[
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0.0, end: 14.0)
+            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 40,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 14.0, end: -3.0)
+            .chain(CurveTween(curve: Curves.easeInOutCubic)),
+        weight: 35,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: -3.0, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 25,
+      ),
+    ]).animate(_nudgeController);
+
+    if (widget.tools.length > _visibleSlots) {
+      Future<void>.delayed(const Duration(milliseconds: 250), () {
+        if (mounted) {
+          _nudgeController.forward(from: 0.0);
+        }
+      });
+    }
   }
 
   @override
@@ -83,11 +116,15 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
         _windowStartIndex = (selectedIndex - _visibleSlots + 1).clamp(0, maxStart);
       }
     }
+    if (widget.tools.length > _visibleSlots && oldWidget.tools != widget.tools) {
+      _nudgeController.forward(from: 0.0);
+    }
   }
 
   @override
   void dispose() {
     _dropletController.dispose();
+    _nudgeController.dispose();
     super.dispose();
   }
 
@@ -124,12 +161,15 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
 
         // Central Contoured Pod Housing (.pea-pod__housing)
         AnimatedBuilder(
-          animation: _dropletController,
+          animation: Listenable.merge(<Listenable>[_dropletController, _nudgeController]),
           builder: (BuildContext context, Widget? child) {
-            return Transform.scale(
-              scaleX: _dropletScaleX.value,
-              scaleY: _dropletScaleY.value,
-              child: child,
+            return Transform.translate(
+              offset: Offset(_nudgeOffset.value, 0.0),
+              child: Transform.scale(
+                scaleX: _dropletScaleX.value,
+                scaleY: _dropletScaleY.value,
+                child: child,
+              ),
             );
           },
           child: SizedBox(
@@ -143,8 +183,8 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: List<Widget>.generate(visibleTools.length, (int i) {
-                    final PeaPodToolType tool = visibleTools[i];
+                  children: List<Widget>.generate(visibleTools.length, (int iterationIndex) {
+                    final PeaPodToolType tool = visibleTools[iterationIndex];
                     final bool isActive = tool == widget.selectedTool;
 
                     final Color buttonBg = isActive
@@ -156,7 +196,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
 
                     return Padding(
                       padding: EdgeInsets.only(
-                        right: i < visibleTools.length - 1 ? 12 : 0,
+                        right: iterationIndex < visibleTools.length - 1 ? 12 : 0,
                       ),
                       child: Tooltip(
                         message: tool.label,

@@ -297,9 +297,9 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                 color: DesignTokens.neutralGraySixHundred,
               ),
               suffixText: '.pdf',
-              suffixStyle: const TextStyle(
+              suffixStyle: TextStyle(
                 fontWeight: FontWeight.w800,
-                color: DesignTokens.accentYellow,
+                color: isDark ? DesignTokens.accentYellow : DesignTokens.onyx,
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14,
@@ -558,7 +558,6 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   Widget _buildTuneControls(bool isDark) {
     if (config.workflowType == WorkflowType.compilePdf) {
       const List<int> pdfDpiOptions = <int>[75, 100, 200, 300, 600, 1200];
-      const List<int> cadenceIntervalOptions = <int>[0, 5, 10, 15, 20, 30];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -578,44 +577,6 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
                 isSelected: (config.dpi <= 0 ? 300 : config.dpi) == optionDpi,
                 onTap: () {
                   config.dpi = optionDpi;
-                  onConfigChanged(config);
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          _buildDrawerHeader(
-            isDark: isDark,
-            title: 'Multi-Page Scan Timer',
-            badgeValue: config.intervalSeconds == 0
-                ? 'Manual (Click)'
-                : '${config.intervalSeconds}s Interval',
-          ),
-          const SizedBox(height: 8),
-          _buildYellowSlider(
-            isDark: isDark,
-            value: config.intervalSeconds.toDouble().clamp(0.0, 30.0),
-            min: 0.0,
-            max: 30.0,
-            divisions: 30,
-            onChanged: (double sliderValue) {
-              config.intervalSeconds = sliderValue.round();
-              onConfigChanged(config);
-            },
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: cadenceIntervalOptions.map((int intervalValue) {
-              return _buildChip(
-                isDark: isDark,
-                label: intervalValue == 0
-                    ? 'Manual (Click)'
-                    : '$intervalValue Seconds',
-                isSelected: config.intervalSeconds == intervalValue,
-                onTap: () {
-                  config.intervalSeconds = intervalValue;
                   onConfigChanged(config);
                 },
               );
@@ -1217,6 +1178,126 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     );
   }
 
+  Widget _buildTimerControls(bool isDark) {
+    if (config.workflowType == WorkflowType.bookletBatch) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _buildDrawerHeader(
+            isDark: isDark,
+            title: 'Booklet Batch Timing',
+            badgeValue:
+                '${config.intervalSeconds}s • ${config.maxScans == 0 ? "Unlimited" : "${config.maxScans} Spreads"}',
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Countdown Interval: ${config.intervalSeconds}s',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
+                      ),
+                    ),
+                    _buildYellowSlider(
+                      isDark: isDark,
+                      value: config.intervalSeconds.toDouble(),
+                      min: 2,
+                      max: 45,
+                      divisions: 43,
+                      onChanged: (double value) {
+                        config.intervalSeconds = value.round();
+                        onConfigChanged(config);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Max Spreads (0=Unlimited): ${config.maxScans}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? DesignTokens.neutralGrayFourHundred
+                            : DesignTokens.neutralGrayEightHundred,
+                      ),
+                    ),
+                    _buildYellowSlider(
+                      isDark: isDark,
+                      value: config.maxScans.toDouble(),
+                      min: 0,
+                      max: 40,
+                      divisions: 40,
+                      onChanged: (double value) {
+                        config.maxScans = value.round();
+                        onConfigChanged(config);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    const List<int> cadenceIntervalOptions = <int>[0, 5, 10, 15, 20, 30];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _buildDrawerHeader(
+          isDark: isDark,
+          title: 'Multi-Page Scan Timer',
+          badgeValue: config.intervalSeconds == 0
+              ? 'Manual (Click)'
+              : '${config.intervalSeconds}s Interval',
+        ),
+        const SizedBox(height: 8),
+        _buildYellowSlider(
+          isDark: isDark,
+          value: config.intervalSeconds.toDouble().clamp(0.0, 30.0),
+          min: 0.0,
+          max: 30.0,
+          divisions: 30,
+          onChanged: (double sliderValue) {
+            config.intervalSeconds = sliderValue.round();
+            onConfigChanged(config);
+          },
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: cadenceIntervalOptions.map((int intervalValue) {
+            return _buildChip(
+              isDark: isDark,
+              label: intervalValue == 0
+                  ? 'Manual (Click)'
+                  : '$intervalValue Seconds',
+              isSelected: config.intervalSeconds == intervalValue,
+              onTap: () {
+                config.intervalSeconds = intervalValue;
+                onConfigChanged(config);
+              },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = widget.isDarkMode;
@@ -1225,6 +1306,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
       child: switch (selectedTool) {
         PeaPodToolType.layout => _buildLayoutControls(isDark),
         PeaPodToolType.tune => _buildTuneControls(isDark),
+        PeaPodToolType.timer => _buildTimerControls(isDark),
         PeaPodToolType.rotate => _buildRotateControls(isDark),
         PeaPodToolType.contrast => _buildContrastControls(isDark),
         PeaPodToolType.crop => _buildCropControls(isDark),
