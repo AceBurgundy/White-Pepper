@@ -112,6 +112,7 @@ class _ProgressButtonState extends State<ProgressButton>
       builder: (BuildContext context, Widget? child) {
         return InkWell(
           onTap: isClickable ? widget.onPressed : null,
+          mouseCursor: isClickable ? SystemMouseCursors.click : SystemMouseCursors.basic,
           borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 240),

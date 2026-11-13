@@ -314,6 +314,7 @@ class OptionsScreen extends StatelessWidget {
                   shape: const CircleBorder(),
                   child: InkWell(
                     onTap: () => _navigateBackToDashboard(context, state),
+                    mouseCursor: SystemMouseCursors.click,
                     customBorder: const CircleBorder(),
                     child: SizedBox(
                       width: 44,
@@ -596,6 +597,7 @@ class OptionsScreen extends StatelessWidget {
             shape: const CircleBorder(),
             child: InkWell(
               onTap: () => _navigateBackToDashboard(context, state),
+              mouseCursor: SystemMouseCursors.click,
               customBorder: const CircleBorder(),
               child: SizedBox(
                 width: 58,
@@ -622,6 +624,7 @@ class OptionsScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: DesignTokens.accentYellow,
                 foregroundColor: DesignTokens.onyx,
+                enabledMouseCursor: SystemMouseCursors.click,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(

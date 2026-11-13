@@ -92,6 +92,7 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
   }) {
     return InkWell(
       onTap: onTap,
+      mouseCursor: SystemMouseCursors.click,
       borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
@@ -175,23 +176,27 @@ class _PeaPodDrawerState extends State<PeaPodDrawer> {
     int? divisions,
     required ValueChanged<double> onChanged,
   }) {
-    return SliderTheme(
-      data: SliderThemeData(
-        trackHeight: 6,
-        activeTrackColor: DesignTokens.accentYellow,
-        inactiveTrackColor: isDark
-            ? DesignTokens.neutralGrayNineHundred
-            : DesignTokens.neutralGrayThreeHundred,
-        thumbColor: DesignTokens.accentYellow,
-        overlayColor: DesignTokens.accentYellow.withValues(alpha: 0.16),
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
-      ),
-      child: Slider(
-        value: value.clamp(min, max),
-        min: min,
-        max: max,
-        divisions: divisions,
-        onChanged: onChanged,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: SliderTheme(
+        data: SliderThemeData(
+          mouseCursor: const WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+          trackHeight: 6,
+          activeTrackColor: DesignTokens.accentYellow,
+          inactiveTrackColor: isDark
+              ? DesignTokens.neutralGrayNineHundred
+              : DesignTokens.neutralGrayThreeHundred,
+          thumbColor: DesignTokens.accentYellow,
+          overlayColor: DesignTokens.accentYellow.withValues(alpha: 0.16),
+          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        ),
+        child: Slider(
+          value: value.clamp(min, max),
+          min: min,
+          max: max,
+          divisions: divisions,
+          onChanged: onChanged,
+        ),
       ),
     );
   }

@@ -203,25 +203,28 @@ class DashboardScreen extends StatelessWidget {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: <Widget>[
-            GestureDetector(
-              onTap: () => state.switchScreen(AppScreen.dashboard),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                  borderRadius: BorderRadius.circular(
-                    DesignTokens.radiusPill,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => state.switchScreen(AppScreen.dashboard),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                ),
-                child: Text(
-                  'All Workflows (${WorkflowType.values.length})',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+                  decoration: BoxDecoration(
+                    color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.radiusPill,
+                    ),
+                  ),
+                  child: Text(
+                    'All Workflows (${WorkflowType.values.length})',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+                    ),
                   ),
                 ),
               ),
@@ -321,14 +324,16 @@ class DashboardScreen extends StatelessWidget {
       <String, Object>{'label': 'K', 'pct': 0.64, 'color': DesignTokens.pureWhite},
     ];
 
-    return GestureDetector(
-      onTap: () {
-        showDialog<void>(
-          context: context,
-          builder: (_) => const HardwareConnectDialog(),
-        );
-      },
-      child: Container(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          showDialog<void>(
+            context: context,
+            builder: (_) => const HardwareConnectDialog(),
+          );
+        },
+        child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -505,6 +510,7 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -521,6 +527,7 @@ class DashboardScreen extends StatelessWidget {
         shape: const CircleBorder(),
         child: InkWell(
           onTap: onTap,
+          mouseCursor: SystemMouseCursors.click,
           customBorder: const CircleBorder(),
           child: SizedBox(
             width: 44,
@@ -544,20 +551,23 @@ class DashboardScreen extends StatelessWidget {
   }) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: isActive ? DesignTokens.accentYellow : Colors.transparent,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: isActive ? DesignTokens.onyx : DesignTokens.pureWhite,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isActive ? DesignTokens.accentYellow : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: isActive ? DesignTokens.onyx : DesignTokens.pureWhite,
+            ),
           ),
         ),
       ),

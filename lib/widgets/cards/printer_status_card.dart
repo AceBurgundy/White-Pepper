@@ -138,6 +138,7 @@ class PrinterStatusCard extends StatelessWidget {
           // Action / Connect button
           InkWell(
             onTap: onTapDiagnostics,
+            mouseCursor: SystemMouseCursors.click,
             borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

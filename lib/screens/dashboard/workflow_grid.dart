@@ -213,38 +213,41 @@ class _WorkflowGridState extends State<WorkflowGrid> {
             const SizedBox(width: 8),
 
             // Thin custom scroll thumb (no native scrollbar trough)
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onVerticalDragUpdate: (DragUpdateDetails details) {
-                if (!_scrollController.hasClients) return;
-                final double maxExtent = _scrollController.position.maxScrollExtent;
-                if (maxExtent <= 0 || availableThumbTravel <= 0) return;
-                final double deltaScroll = (details.delta.dy / availableThumbTravel) * maxExtent;
-                _scrollController.jumpTo(
-                  (_scrollController.offset + deltaScroll)
-                      .clamp(0.0, maxExtent),
-                );
-              },
-              child: SizedBox(
-                width: 6,
-                height: trackHeight,
-                child: Stack(
-                  children: <Widget>[
-                    Positioned(
-                      top: thumbTop,
-                      right: 1,
-                      child: Container(
-                        key: const Key('workflow_grid_scroll_thumb'),
-                        width: 3.5,
-                        height: thumbHeight,
-                        decoration: BoxDecoration(
-                          color: DesignTokens.onyx.withValues(alpha: 0.36),
-                          borderRadius:
-                              BorderRadius.circular(DesignTokens.radiusPill),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onVerticalDragUpdate: (DragUpdateDetails details) {
+                  if (!_scrollController.hasClients) return;
+                  final double maxExtent = _scrollController.position.maxScrollExtent;
+                  if (maxExtent <= 0 || availableThumbTravel <= 0) return;
+                  final double deltaScroll = (details.delta.dy / availableThumbTravel) * maxExtent;
+                  _scrollController.jumpTo(
+                    (_scrollController.offset + deltaScroll)
+                        .clamp(0.0, maxExtent),
+                  );
+                },
+                child: SizedBox(
+                  width: 6,
+                  height: trackHeight,
+                  child: Stack(
+                    children: <Widget>[
+                      Positioned(
+                        top: thumbTop,
+                        right: 1,
+                        child: Container(
+                          key: const Key('workflow_grid_scroll_thumb'),
+                          width: 3.5,
+                          height: thumbHeight,
+                          decoration: BoxDecoration(
+                            color: DesignTokens.onyx.withValues(alpha: 0.36),
+                            borderRadius:
+                                BorderRadius.circular(DesignTokens.radiusPill),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

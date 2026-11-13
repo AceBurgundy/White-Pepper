@@ -25,6 +25,38 @@ abstract final class AppTheme {
         ),
         color: DesignTokens.pureWhite,
       ),
+      sliderTheme: const SliderThemeData(
+        mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+        ),
+      ),
+      radioTheme: const RadioThemeData(
+        mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+      ),
+      checkboxTheme: const CheckboxThemeData(
+        mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+      ),
+      switchTheme: const SwitchThemeData(
+        mouseCursor: WidgetStatePropertyAll<MouseCursor>(SystemMouseCursors.click),
+      ),
     );
   }
 }

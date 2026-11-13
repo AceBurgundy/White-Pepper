@@ -47,6 +47,7 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
   }) {
     return InkWell(
       onTap: onTap,
+      mouseCursor: SystemMouseCursors.click,
       borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),

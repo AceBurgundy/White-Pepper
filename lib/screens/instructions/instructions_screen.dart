@@ -328,6 +328,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                     }
                     state.switchScreen(AppScreen.options);
                   },
+                  mouseCursor: SystemMouseCursors.click,
                   customBorder: const CircleBorder(),
                   child: const SizedBox(
                     width: 44,

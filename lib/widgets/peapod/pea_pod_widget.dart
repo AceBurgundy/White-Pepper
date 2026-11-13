@@ -200,33 +200,36 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
                       ),
                       child: Tooltip(
                         message: tool.label,
-                        child: GestureDetector(
-                          onTap: () {
-                            _dropletController.forward(from: 0.0);
-                            widget.onToolSelected(tool);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeOutCubic,
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: buttonBg,
-                              shape: BoxShape.circle,
-                              boxShadow: isDark
-                                  ? null
-                                  : <BoxShadow>[
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.08),
-                                        offset: const Offset(0, 2),
-                                        blurRadius: 6,
-                                      ),
-                                    ],
-                            ),
-                            child: Icon(
-                              tool.icon,
-                              size: 22,
-                              color: iconColor,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () {
+                              _dropletController.forward(from: 0.0);
+                              widget.onToolSelected(tool);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutCubic,
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: buttonBg,
+                                shape: BoxShape.circle,
+                                boxShadow: isDark
+                                    ? null
+                                    : <BoxShadow>[
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.08),
+                                          offset: const Offset(0, 2),
+                                          blurRadius: 6,
+                                        ),
+                                      ],
+                              ),
+                              child: Icon(
+                                tool.icon,
+                                size: 22,
+                                color: iconColor,
+                              ),
                             ),
                           ),
                         ),
@@ -287,6 +290,7 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
           shape: const CircleBorder(),
           child: InkWell(
             onTap: onTap,
+            mouseCursor: SystemMouseCursors.click,
             customBorder: const CircleBorder(),
             child: SizedBox(
               width: 50,
