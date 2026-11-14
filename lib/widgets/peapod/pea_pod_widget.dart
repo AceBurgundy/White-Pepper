@@ -131,13 +131,16 @@ class _PeaPodWidgetState extends State<PeaPodWidget>
   }
 
   void _stepDirection(int delta) {
+    if (widget.tools.isEmpty) return;
     final int selectedIndex = widget.tools.indexOf(widget.selectedTool);
-    if (selectedIndex == -1) return;
-    final int targetIndex = (selectedIndex + delta).clamp(0, widget.tools.length - 1);
-    if (targetIndex != selectedIndex) {
-      _dropletController.forward(from: 0.0);
-      widget.onToolSelected(widget.tools[targetIndex]);
+    final int targetIndex;
+    if (selectedIndex == -1) {
+      targetIndex = 0;
+    } else {
+      targetIndex = (selectedIndex + delta + widget.tools.length) % widget.tools.length;
     }
+    _dropletController.forward(from: 0.0);
+    widget.onToolSelected(widget.tools[targetIndex]);
   }
 
   @override
@@ -280,6 +283,7 @@ class _PeaPodButtonState extends State<_PeaPodButton> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
           child: Container(
             width: 52,
@@ -345,52 +349,58 @@ class _PeaPodNavButtonState extends State<_PeaPodNavButton> {
         ? DesignTokens.pureWhite
         : DesignTokens.onyx;
 
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: podBg,
-        shape: BoxShape.circle,
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 14,
-          ),
-        ],
-      ),
-      child: Tooltip(
-        message: widget.tooltip,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          child: Material(
-            color: innerBg,
-            shape: const CircleBorder(),
-            child: InkWell(
-              onTap: widget.onTap,
-              mouseCursor: SystemMouseCursors.click,
-              customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: Center(
-                  child: widget.isRight
-                      ? AnimatedLineIcon(
-                          type: LineIconType.chevronRight,
-                          isHovered: _isHovered,
-                          color: iconColor,
-                          size: 22,
-                        )
-                      : Transform.rotate(
-                          angle: math.pi,
-                          child: AnimatedLineIcon(
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Container(
+            width: 62,
+            height: 62,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: podBg,
+              shape: BoxShape.circle,
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+                  offset: const Offset(0, 4),
+                  blurRadius: 14,
+                ),
+              ],
+            ),
+            child: Material(
+              color: innerBg,
+              shape: const CircleBorder(),
+              child: InkWell(
+                onTap: widget.onTap,
+                mouseCursor: SystemMouseCursors.click,
+                customBorder: const CircleBorder(),
+                child: SizedBox(
+                  width: 50,
+                  height: 50,
+                  child: Center(
+                    child: widget.isRight
+                        ? AnimatedLineIcon(
                             type: LineIconType.chevronRight,
                             isHovered: _isHovered,
                             color: iconColor,
                             size: 22,
+                          )
+                        : Transform.rotate(
+                            angle: math.pi,
+                            child: AnimatedLineIcon(
+                              type: LineIconType.chevronRight,
+                              isHovered: _isHovered,
+                              color: iconColor,
+                              size: 22,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
             ),

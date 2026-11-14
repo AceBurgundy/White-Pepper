@@ -718,9 +718,9 @@ class AppState extends ChangeNotifier {
 
       try {
         final Directory stagingDirectory = Directory(_compilePdfStagingPath!);
-        final List<FileSystemEntity> files = stagingDirectory
+        final List<File> files = stagingDirectory
             .listSync()
-            .where((FileSystemEntity fileEntity) => fileEntity is File)
+            .whereType<File>()
             .toList()
           ..sort((FileSystemEntity firstEntity, FileSystemEntity secondEntity) =>
               firstEntity.path.compareTo(secondEntity.path));

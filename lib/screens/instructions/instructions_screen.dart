@@ -242,7 +242,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                     ? DesignTokens.darkSurfaceOne
                     : DesignTokens.neutralLightSurface,
                 padding:
-                    const EdgeInsets.fromLTRB(32, 38, 32, 28),
+                    const EdgeInsets.fromLTRB(36, 46, 36, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -288,7 +288,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
               child: Container(
                 color: DesignTokens.onyx,
                 padding:
-                    const EdgeInsets.fromLTRB(32, 38, 32, 28),
+                    const EdgeInsets.fromLTRB(36, 46, 36, 32),
                 child: _buildDarkExecutionPaneContent(
                   state,
                   currentStep,

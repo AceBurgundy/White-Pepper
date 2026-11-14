@@ -46,8 +46,10 @@ class CropLinePainter extends CustomPainter {
     // Stem extension past intersecting corners
     final double extensionLength = width * 0.16;
 
-    // Kinematic offset: starts far outward on diagonal and glides inward to 0.0
-    final double offsetMagnitude = (1.0 - animationProgress) * (width * 0.18);
+    // Kinematic offset: 0.0 at rest (default merged crop icon), pulls far apart on hover, and slams back to 0.0
+    final double separationPulse = math.sin(animationProgress * math.pi);
+    final double maxSeparation = width * 0.18;
+    final double offsetMagnitude = separationPulse * maxSeparation;
 
     // 1. Top-Left Bracket:
     // Starts outward at (left - offset, top - offset).

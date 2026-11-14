@@ -46,8 +46,8 @@ abstract final class DesignTokens {
   static const double radiusControlSmall = 10.0;
 
   /// Dimensions & Spacing
-  static const double desktopWidth = 1080.0;
-  static const double desktopHeight = 780.0;
+  static const double desktopWidth = 1180.0;
+  static const double desktopHeight = 820.0;
   static const double platenCapsuleWidthDesktop = 340.0;
 
   /// Shadows

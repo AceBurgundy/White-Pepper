@@ -31,8 +31,8 @@ window.DOCUMENTATION_ITEMS["data/dashboard.js"] = {
           "layout_type": "three_cards",
           "cards": [
             {
-              "title": "4:3 Workstation Desktop UI",
-              "description": "Minimalist onyx layout featuring 8 workflow presets, live platen preview canvas, contoured Pea Pod parameter drawer, and split wavy instructions.",
+              "title": "Spacious Workstation Desktop UI",
+              "description": "Minimalist onyx layout featuring 5 streamlined workflow presets, dual-orb loading splash, live platen preview canvas, contoured Pea Pod parameter drawer, and split wavy instructions.",
               "label": "Flutter Desktop",
               "image_path": "assets/preview_desktop_ui.png",
               "link": "data/navigation-items/flutter-desktop-suite.js"

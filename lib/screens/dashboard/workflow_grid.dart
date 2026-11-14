@@ -144,8 +144,8 @@ class _WorkflowGridState extends State<WorkflowGrid> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final int crossAxisCount = constraints.maxWidth < 420 ? 1 : 2;
-        const double spacing = 12.0;
-        const double cardHeight = 142.0;
+        const double spacing = 16.0;
+        const double cardHeight = 148.0;
 
         final double trackHeight = constraints.maxHeight.clamp(120.0, 4000.0);
         final double thumbHeight = (trackHeight * _thumbFraction).clamp(36.0, trackHeight * 0.65);

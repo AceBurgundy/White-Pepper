@@ -207,18 +207,37 @@ class RotateLinePainter extends CustomPainter {
     canvas.translate(centerX, centerY);
     canvas.rotate(rotationAngle);
 
-    // 270-degree circular arc
+    // Circular clockwise arc from bottom-left to top-right
     final Rect arcRect = Rect.fromCircle(center: Offset.zero, radius: arcRadius);
-    canvas.drawArc(arcRect, -math.pi * 0.40, math.pi * 1.50, false, linePaint);
+    const double startAngle = 0.70 * math.pi;
+    const double sweepAngle = 1.45 * math.pi;
+    const double endAngle = startAngle + sweepAngle;
+    canvas.drawArc(arcRect, startAngle, sweepAngle, false, linePaint);
 
-    // Arrowhead at the end of the arc
-    final double arrowTipX = arcRadius * math.cos(-math.pi * 0.40);
-    final double arrowTipY = arcRadius * math.sin(-math.pi * 0.40);
+    // Tangent-aligned symmetrical arrowhead at the leading tip
+    final double tipX = arcRadius * math.cos(endAngle);
+    final double tipY = arcRadius * math.sin(endAngle);
+    final double tangentAngle = endAngle + (math.pi / 2.0);
+
+    final double wingLength = width * 0.16;
+    const double arrowSpreadAngle = 0.55;
+    final double wingOneAngle = tangentAngle - math.pi + arrowSpreadAngle;
+    final double wingTwoAngle = tangentAngle - math.pi - arrowSpreadAngle;
+
+    final Offset tipPoint = Offset(tipX, tipY);
+    final Offset wingOnePoint = Offset(
+      tipX + wingLength * math.cos(wingOneAngle),
+      tipY + wingLength * math.sin(wingOneAngle),
+    );
+    final Offset wingTwoPoint = Offset(
+      tipX + wingLength * math.cos(wingTwoAngle),
+      tipY + wingLength * math.sin(wingTwoAngle),
+    );
 
     final Path arrowhead = Path()
-      ..moveTo(arrowTipX - width * 0.08, arrowTipY)
-      ..lineTo(arrowTipX, arrowTipY)
-      ..lineTo(arrowTipX, arrowTipY - height * 0.08);
+      ..moveTo(wingOnePoint.dx, wingOnePoint.dy)
+      ..lineTo(tipPoint.dx, tipPoint.dy)
+      ..lineTo(wingTwoPoint.dx, wingTwoPoint.dy);
     canvas.drawPath(arrowhead, linePaint);
 
     canvas.restore();

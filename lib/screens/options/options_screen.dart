@@ -61,18 +61,15 @@ class OptionsScreen extends StatelessWidget {
                       children: <Widget>[
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Transform.scale(
-                            scale: 1.5,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: PeaPodWidget(
-                                isDarkMode: isDark,
-                                tools: state.availableTools,
-                                selectedTool: state.activeTool,
-                                onToolSelected: (PeaPodToolType tool) {
-                                  state.setActiveTool(tool);
-                                },
-                              ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: PeaPodWidget(
+                              isDarkMode: isDark,
+                              tools: state.availableTools,
+                              selectedTool: state.activeTool,
+                              onToolSelected: (PeaPodToolType tool) {
+                                state.setActiveTool(tool);
+                              },
                             ),
                           ),
                         ),
@@ -129,27 +126,93 @@ class OptionsScreen extends StatelessWidget {
                       const SizedBox(height: 20),
                       _buildControlDeckHeading(state, isDark),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        height: 120,
-                        child: Center(
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: PeaPodWidget(
+                                  isDarkMode: isDark,
+                                  tools: state.availableTools,
+                                  selectedTool: state.activeTool,
+                                  onToolSelected: (PeaPodToolType tool) {
+                                    state.setActiveTool(tool);
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              state.activeTool.displayTitle,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? DesignTokens.pureWhite
+                                    : DesignTokens.onyx,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDrawerAndSummaryBar(state, isDark),
+                      const SizedBox(height: 20),
+                      _buildBottomActionRow(context, state, isDark),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Container(
+              color: isDark
+                  ? DesignTokens.onyx
+                  : DesignTokens.neutralLightSurface,
+              padding: const EdgeInsets.fromLTRB(36.0, 46.0, 36.0, 32.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  // Left Column: Widened Live Document Preview & Optical Platen
+                  SizedBox(
+                    width: 360,
+                    child: _buildLeftPreviewCard(
+                      context,
+                      state,
+                      workflowIndex,
+                      totalWorkflows,
+                      isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+
+                  // Right Column: Dedicated Control Panel (Pea Pod + Active Drawer + Summary + Start)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        _buildControlDeckHeading(state, isDark),
+                        const SizedBox(height: 14),
+                        Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               FittedBox(
                                 fit: BoxFit.scaleDown,
-                                child: Transform.scale(
-                                  scale: 1.5,
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 14),
-                                    child: PeaPodWidget(
-                                      isDarkMode: isDark,
-                                      tools: state.availableTools,
-                                      selectedTool: state.activeTool,
-                                      onToolSelected: (PeaPodToolType tool) {
-                                        state.setActiveTool(tool);
-                                      },
-                                    ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: PeaPodWidget(
+                                    isDarkMode: isDark,
+                                    tools: state.availableTools,
+                                    selectedTool: state.activeTool,
+                                    onToolSelected: (PeaPodToolType tool) {
+                                      state.setActiveTool(tool);
+                                    },
                                   ),
                                 ),
                               ),
@@ -169,93 +232,13 @@ class OptionsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDrawerAndSummaryBar(state, isDark),
-                      const SizedBox(height: 20),
-                      _buildBottomActionRow(context, state, isDark),
-                    ],
-                  ),
-                ),
-              );
-            }
-
-            return Container(
-              color: isDark
-                  ? DesignTokens.onyx
-                  : DesignTokens.neutralLightSurface,
-              padding: const EdgeInsets.fromLTRB(28.0, 38.0, 28.0, 28.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  // Left Column (390px): Widened Live Document Preview & Optical Platen
-                  SizedBox(
-                    width: 390,
-                    child: _buildLeftPreviewCard(
-                      context,
-                      state,
-                      workflowIndex,
-                      totalWorkflows,
-                      isDark,
-                    ),
-                  ),
-                  const SizedBox(width: 28),
-
-                  // Right Column: Dedicated Control Panel (Pea Pod + Active Drawer + Summary + Start)
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        _buildControlDeckHeading(state, isDark),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 130,
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Transform.scale(
-                                    scale: 1.5,
-                                    child: Padding(
-                                      padding:
-                                          const EdgeInsets.symmetric(vertical: 14),
-                                      child: PeaPodWidget(
-                                        isDarkMode: isDark,
-                                        tools: state.availableTools,
-                                        selectedTool: state.activeTool,
-                                        onToolSelected: (PeaPodToolType tool) {
-                                          state.setActiveTool(tool);
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  state.activeTool.displayTitle,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? DesignTokens.pureWhite
-                                        : DesignTokens.onyx,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Expanded(
                           child: SingleChildScrollView(
                             child: _buildDrawerAndSummaryBar(state, isDark),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         _buildBottomActionRow(context, state, isDark),
                       ],
                     ),
