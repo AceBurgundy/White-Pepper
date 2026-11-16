@@ -388,6 +388,10 @@ class OptionsScreen extends StatelessWidget {
               fileNamePrefix: state.config.fileNamePrefix,
               colorMode: state.config.colorMode,
               format: state.config.format,
+              autoCrop: state.config.autoCrop,
+              marginMm: state.config.marginMm,
+              brightness: state.config.brightness,
+              contrast: state.config.contrast,
             ),
           ),
         ],
@@ -557,50 +561,73 @@ class OptionsScreen extends StatelessWidget {
         ),
         const SizedBox(width: 14),
         Expanded(
-          child: SizedBox(
-            height: 58,
-            child: ElevatedButton(
-              onPressed: () {
-                state.beginInstructionsWorkflow();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: DesignTokens.accentYellow,
-                foregroundColor: DesignTokens.onyx,
-                enabledMouseCursor: SystemMouseCursors.click,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    DesignTokens.radiusPill,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Icon(
-                    Icons.play_circle_fill_rounded,
-                    size: 24,
-                    color: DesignTokens.onyx,
-                  ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
-                      'Start ${state.config.workflowType.title}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: DesignTokens.onyx,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          child: _StartWorkflowButton(
+            workflowTitle: state.config.workflowType.title,
+            onTap: () => state.beginInstructionsWorkflow(),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StartWorkflowButton extends StatefulWidget {
+  const _StartWorkflowButton({
+    required this.workflowTitle,
+    required this.onTap,
+  });
+
+  final String workflowTitle;
+  final VoidCallback onTap;
+
+  @override
+  State<_StartWorkflowButton> createState() => _StartWorkflowButtonState();
+}
+
+class _StartWorkflowButtonState extends State<_StartWorkflowButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          height: 58,
+          decoration: BoxDecoration(
+            color: DesignTokens.accentYellow,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              AnimatedLineIcon(
+                type: LineIconType.startScan,
+                isHovered: _isHovered,
+                color: DesignTokens.onyx,
+                size: 24,
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  'Start ${widget.workflowTitle}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: DesignTokens.onyx,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -630,34 +657,33 @@ class _ReturnBackButtonState extends State<_ReturnBackButton> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        child: Material(
-          color: isDark
-              ? DesignTokens.darkSurfaceTwo
-              : DesignTokens.neutralGrayOneHundred,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: widget.onTap,
-            mouseCursor: SystemMouseCursors.click,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 58,
-              height: 58,
-              child: Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    const Opacity(
-                      opacity: 0.001,
-                      child: Icon(Icons.arrow_back_rounded, size: 24),
-                    ),
-                    AnimatedLineIcon(
-                      type: LineIconType.arrowBack,
-                      isHovered: _isHovered,
-                      color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                      size: 24,
-                    ),
-                  ],
-                ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DesignTokens.darkSurfaceTwo
+                  : DesignTokens.neutralGrayOneHundred,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  const Opacity(
+                    opacity: 0.001,
+                    child: Icon(Icons.arrow_back_rounded, size: 24),
+                  ),
+                  AnimatedLineIcon(
+                    type: LineIconType.arrowBack,
+                    isHovered: _isHovered,
+                    color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                    size: 24,
+                  ),
+                ],
               ),
             ),
           ),
@@ -692,25 +718,24 @@ class _CompactBackButtonState extends State<_CompactBackButton> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        child: Material(
-          color: isDark
-              ? DesignTokens.darkSurfaceFour
-              : DesignTokens.neutralGrayOneHundred,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: widget.onTap,
-            mouseCursor: SystemMouseCursors.click,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Center(
-                child: AnimatedLineIcon(
-                  type: LineIconType.arrowBack,
-                  isHovered: _isHovered,
-                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                  size: 20,
-                ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? DesignTokens.darkSurfaceFour
+                  : DesignTokens.neutralGrayOneHundred,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: AnimatedLineIcon(
+                type: LineIconType.arrowBack,
+                isHovered: _isHovered,
+                color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                size: 20,
               ),
             ),
           ),

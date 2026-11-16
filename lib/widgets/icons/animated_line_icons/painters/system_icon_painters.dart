@@ -386,3 +386,184 @@ class ChevronRightLinePainter extends CustomPainter {
         oldDelegate.strokeWidth != strokeWidth;
   }
 }
+
+/// Painter for Printer device status and view icon with emerging animated paper sheet.
+class PrinterLinePainter extends CustomPainter {
+  const PrinterLinePainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.animationProgress,
+  });
+
+  final Color color;
+  final double strokeWidth;
+  final double animationProgress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint linePaint = createLinePaint(
+      color: color,
+      strokeWidth: strokeWidth,
+    );
+
+    final double width = size.width;
+    final double height = size.height;
+
+    // Paper sheet emerging upward from the chassis slot on hover
+    final double paperLeft = width * 0.30;
+    final double paperRight = width * 0.70;
+    final double paperTop = height * (0.22 - 0.10 * animationProgress);
+    final double slotTop = height * 0.44;
+
+    final Path paperPath = Path()
+      ..moveTo(paperLeft, slotTop)
+      ..lineTo(paperLeft, paperTop)
+      ..lineTo(paperRight, paperTop)
+      ..lineTo(paperRight, slotTop);
+    canvas.drawPath(paperPath, linePaint);
+
+    // Document print text lines on paper sheet
+    final double firstTextY = paperTop + height * 0.08;
+    if (firstTextY < slotTop) {
+      canvas.drawLine(
+        Offset(paperLeft + width * 0.08, firstTextY),
+        Offset(paperRight - width * 0.08, firstTextY),
+        linePaint,
+      );
+    }
+
+    // Printer chassis body
+    final double bodyLeft = width * 0.16;
+    final double bodyRight = width * 0.84;
+    final double bodyTop = height * 0.44;
+    final double bodyBottom = height * 0.76;
+    final double cornerRadius = width * 0.08;
+
+    final RRect chassisRectangle = RRect.fromRectAndRadius(
+      Rect.fromLTRB(bodyLeft, bodyTop, bodyRight, bodyBottom),
+      Radius.circular(cornerRadius),
+    );
+    canvas.drawRRect(chassisRectangle, linePaint);
+
+    // Output tray slot line
+    final double traySlotY = height * 0.62;
+    canvas.drawLine(
+      Offset(width * 0.26, traySlotY),
+      Offset(width * 0.74, traySlotY),
+      linePaint,
+    );
+
+    // Status LED dot on front panel
+    final double statusLedCenterX = width * 0.74;
+    final double statusLedCenterY = height * 0.52;
+    final Paint ledPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(statusLedCenterX, statusLedCenterY),
+      width * 0.04,
+      ledPaint,
+    );
+
+    // Paper output bottom tray support
+    canvas.drawLine(
+      Offset(width * 0.28, bodyBottom),
+      Offset(width * 0.28, height * 0.84),
+      linePaint,
+    );
+    canvas.drawLine(
+      Offset(width * 0.28, height * 0.84),
+      Offset(width * 0.72, height * 0.84),
+      linePaint,
+    );
+    canvas.drawLine(
+      Offset(width * 0.72, height * 0.84),
+      Offset(width * 0.72, bodyBottom),
+      linePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant PrinterLinePainter oldDelegate) {
+    return oldDelegate.animationProgress != animationProgress ||
+        oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth;
+  }
+}
+
+/// Painter for Start Scan workflow action icon with rightward pulsing play arrow and optical scan beam.
+class StartScanLinePainter extends CustomPainter {
+  const StartScanLinePainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.animationProgress,
+  });
+
+  final Color color;
+  final double strokeWidth;
+  final double animationProgress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint linePaint = createLinePaint(
+      color: color,
+      strokeWidth: strokeWidth,
+    );
+
+    final double width = size.width;
+    final double height = size.height;
+    final double centerY = height * 0.50;
+
+    // Forward shift on hover
+    final double forwardShift = animationProgress * (width * 0.08);
+
+    // Play triangle vertices
+    final double spineCoordinateX = width * 0.32 + forwardShift;
+    final double tipCoordinateX = width * 0.68 + forwardShift;
+    final double topCoordinateY = height * 0.26;
+    final double bottomCoordinateY = height * 0.74;
+
+    final Path playPath = Path()
+      ..moveTo(spineCoordinateX, topCoordinateY)
+      ..lineTo(tipCoordinateX, centerY)
+      ..lineTo(spineCoordinateX, bottomCoordinateY)
+      ..close();
+    canvas.drawPath(playPath, linePaint);
+
+    // Optical scanner sweep line moving across the play glyph on hover
+    final double sweepCoordinateX = width * 0.20 + (width * 0.64) * animationProgress;
+    final Paint beamPaint = Paint()
+      ..color = color.withValues(alpha: (0.20 + 0.60 * animationProgress).clamp(0.0, 1.0))
+      ..strokeWidth = strokeWidth * 0.85
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(
+      Offset(sweepCoordinateX, height * 0.18),
+      Offset(sweepCoordinateX, height * 0.82),
+      beamPaint,
+    );
+
+    // Radiating radar/pulse arc in front of play tip
+    if (animationProgress > 0.05) {
+      final Paint pulsePaint = Paint()
+        ..color = color.withValues(alpha: (1.0 - animationProgress).clamp(0.0, 1.0))
+        ..strokeWidth = strokeWidth * 0.80
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round;
+
+      final Rect pulseRectangle = Rect.fromCircle(
+        center: Offset(tipCoordinateX - width * 0.04, centerY),
+        radius: width * (0.10 + 0.16 * animationProgress),
+      );
+      canvas.drawArc(pulseRectangle, -math.pi * 0.36, math.pi * 0.72, false, pulsePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant StartScanLinePainter oldDelegate) {
+    return oldDelegate.animationProgress != animationProgress ||
+        oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth;
+  }
+}

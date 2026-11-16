@@ -23,7 +23,7 @@ enum LineIconType {
   crop,
   title,
 
-  // System, Navigation, and Dialog Icons (7)
+  // System, Navigation, and Dialog Icons (9)
   arrowBack,
   themeToggle,
   switchScanner,
@@ -31,4 +31,6 @@ enum LineIconType {
   settings,
   instructions,
   chevronRight,
+  printer,
+  startScan,
 }

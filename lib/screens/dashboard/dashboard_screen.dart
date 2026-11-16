@@ -363,12 +363,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       <String, Object>{'label': 'C', 'pct': 0.85, 'color': DesignTokens.inkCyan},
       <String, Object>{'label': 'M', 'pct': 0.72, 'color': DesignTokens.inkMagenta},
       <String, Object>{'label': 'Y', 'pct': 0.92, 'color': DesignTokens.inkYellow},
-      <String, Object>{'label': 'K', 'pct': 0.64, 'color': DesignTokens.pureWhite},
+      <String, Object>{
+        'label': 'K',
+        'pct': 0.64,
+        'color': isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+      },
     ];
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
           showDialog<void>(
             context: context,
@@ -376,148 +381,159 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         },
         child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: DesignTokens.onyx,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
-          boxShadow: DesignTokens.shadowCard,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    state.scannerModel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: DesignTokens.pureWhite,
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
+            boxShadow: DesignTokens.shadowCard,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      state.scannerModel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? DesignTokens.neutralGrayOneHundred
+                          : DesignTokens.darkSurfaceFour,
+                      borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: state.isScannerOnline
+                                ? DesignTokens.statusOnlineGreen
+                                : DesignTokens.accentYellow,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          state.isScannerOnline ? 'Ready' : 'Wake',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: DesignTokens.darkSurfaceFour,
-                    borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Ink Channel Bars + View Printer Tooltip/Hand Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Row(
+                    children: channels.map((Map<String, Object> channelMap) {
+                      final double pct = channelMap['pct']! as double;
+                      final Color color = channelMap['color']! as Color;
+                      final String label = channelMap['label']! as String;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              width: 14,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? DesignTokens.neutralGrayTwoHundred
+                                    : DesignTokens.darkSurfaceFour,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                width: 14,
+                                height: 36 * pct,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? DesignTokens.neutralGraySevenHundred
+                                    : DesignTokens.neutralGrayFiveHundred,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  child: Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: state.isScannerOnline
-                              ? DesignTokens.statusOnlineGreen
-                              : DesignTokens.accentYellow,
-                          shape: BoxShape.circle,
-                        ),
+                      _SwitchScannerButton(
+                        isDark: isDark,
+                        onTap: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => const ScannerSelectorDialog(),
+                          );
+                        },
                       ),
-                      const SizedBox(width: 5),
-                      Text(
-                        state.isScannerOnline ? 'Ready' : 'Wake',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: DesignTokens.pureWhite,
-                        ),
+                      const SizedBox(width: 8),
+                      _ViewPrinterButton(
+                        onTap: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => const HardwareConnectDialog(),
+                          );
+                        },
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Ink Channel Bars + View Printer Tooltip/Hand Button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Row(
-                  children: channels.map((Map<String, Object> ch) {
-                    final double pct = ch['pct']! as double;
-                    final Color color = ch['color']! as Color;
-                    final String label = ch['label']! as String;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            width: 14,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: DesignTokens.darkSurfaceFour,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              width: 14,
-                              height: 36 * pct,
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            label,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: DesignTokens.neutralGrayFiveHundred,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    _SwitchScannerButton(
-                      onTap: () {
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) => const ScannerSelectorDialog(),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    _ViewPrinterButton(
-                      onTap: () {
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) => const HardwareConnectDialog(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
 
 class _SwitchScannerButton extends StatefulWidget {
-  const _SwitchScannerButton({required this.onTap});
+  const _SwitchScannerButton({
+    required this.isDark,
+    required this.onTap,
+  });
 
+  final bool isDark;
   final VoidCallback onTap;
 
   @override
@@ -529,6 +545,7 @@ class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = widget.isDark;
     return Tooltip(
       message: 'Switch Scanner',
       child: MouseRegion(
@@ -536,15 +553,20 @@ class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
           child: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: DesignTokens.darkSurfaceFour,
+              color: isDark
+                  ? DesignTokens.neutralGrayOneHundred
+                  : DesignTokens.darkSurfaceFour,
               shape: BoxShape.circle,
               border: Border.all(
-                color: DesignTokens.pureWhite.withValues(alpha: 0.15),
+                color: isDark
+                    ? DesignTokens.neutralGrayThreeHundred
+                    : DesignTokens.pureWhite.withValues(alpha: 0.15),
                 width: 1.0,
               ),
             ),
@@ -552,7 +574,7 @@ class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
               child: AnimatedLineIcon(
                 type: LineIconType.switchScanner,
                 isHovered: _isHovered,
-                color: DesignTokens.pureWhite,
+                color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
                 size: 20,
               ),
             ),
@@ -584,6 +606,7 @@ class _ViewPrinterButtonState extends State<_ViewPrinterButton> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
           child: Container(
             width: 40,
@@ -594,7 +617,7 @@ class _ViewPrinterButtonState extends State<_ViewPrinterButton> {
             ),
             child: Center(
               child: AnimatedLineIcon(
-                type: LineIconType.chevronRight,
+                type: LineIconType.printer,
                 isHovered: _isHovered,
                 color: DesignTokens.onyx,
                 size: 20,
@@ -636,23 +659,22 @@ class _CircleIconButtonState extends State<_CircleIconButton> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        child: Material(
-          color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: widget.onTap,
-            mouseCursor: SystemMouseCursors.click,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Center(
-                child: AnimatedLineIcon(
-                  type: widget.lineIconType,
-                  isHovered: _isHovered,
-                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                  size: 20,
-                ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: AnimatedLineIcon(
+                type: widget.lineIconType,
+                isHovered: _isHovered,
+                color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                size: 20,
               ),
             ),
           ),

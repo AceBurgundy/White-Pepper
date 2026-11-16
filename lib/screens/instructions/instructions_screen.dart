@@ -679,6 +679,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         backgroundColor: DesignTokens.statusErrorRed,
                         foregroundColor: DesignTokens.pureWhite,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -707,6 +710,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         backgroundColor: DesignTokens.accentYellow,
                         foregroundColor: DesignTokens.onyx,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -735,6 +741,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         backgroundColor: DesignTokens.darkSurfaceFive,
                         foregroundColor: DesignTokens.pureWhite,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -762,6 +771,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                           horizontal: 14,
                           vertical: 14,
                         ),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -791,6 +803,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                           backgroundColor: DesignTokens.accentYellow,
                           foregroundColor: DesignTokens.onyx,
                           padding: const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          overlayColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
                               DesignTokens.radiusPill,
@@ -819,6 +834,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         backgroundColor: DesignTokens.darkSurfaceFive,
                         foregroundColor: DesignTokens.pureWhite,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -842,6 +860,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         backgroundColor: DesignTokens.darkSurfaceFive,
                         foregroundColor: DesignTokens.pureWhite,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -869,6 +890,9 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                         backgroundColor: DesignTokens.darkSurfaceFive,
                         foregroundColor: DesignTokens.pureWhite,
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                        overlayColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             DesignTokens.radiusPill,
@@ -1128,28 +1152,27 @@ class _InstructionsBackButtonState extends State<_InstructionsBackButton> {
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
-        child: Material(
-          color: DesignTokens.neutralGrayOneHundred,
-          shape: const CircleBorder(),
-          child: InkWell(
-            onTap: () {
-              if (widget.isProcessing) {
-                widget.state.cancelScan();
-              }
-              widget.state.switchScreen(AppScreen.options);
-            },
-            mouseCursor: SystemMouseCursors.click,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Center(
-                child: AnimatedLineIcon(
-                  type: LineIconType.arrowBack,
-                  isHovered: _isHovered,
-                  color: DesignTokens.onyx,
-                  size: 20,
-                ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (widget.isProcessing) {
+              widget.state.cancelScan();
+            }
+            widget.state.switchScreen(AppScreen.options);
+          },
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: DesignTokens.neutralGrayOneHundred,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: AnimatedLineIcon(
+                type: LineIconType.arrowBack,
+                isHovered: _isHovered,
+                color: DesignTokens.onyx,
+                size: 20,
               ),
             ),
           ),

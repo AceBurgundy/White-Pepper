@@ -195,6 +195,16 @@ class _AnimatedLineIconState extends State<AnimatedLineIcon>
           strokeWidth: iconStrokeWidth,
           animationProgress: animationProgress,
         ),
+      LineIconType.printer => PrinterLinePainter(
+          color: iconColor,
+          strokeWidth: iconStrokeWidth,
+          animationProgress: animationProgress,
+        ),
+      LineIconType.startScan => StartScanLinePainter(
+          color: iconColor,
+          strokeWidth: iconStrokeWidth,
+          animationProgress: animationProgress,
+        ),
     };
   }
 

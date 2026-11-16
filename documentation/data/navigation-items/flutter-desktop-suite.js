@@ -55,12 +55,12 @@ window.DOCUMENTATION_ITEMS["data/navigation-items/flutter-desktop-suite.js"] = {
         {
           "heading_title": "Screen 1: Dashboard (DashboardScreen.dart)",
           "block_type": "paragraph",
-          "paragraph_text": "The dashboard presents a 310px left sidebar alongside a spacious grid of 5 streamlined workflow cards (Basic Scan with presets, 4-inch transparent Card Scan, multi-format Batch Scan, Custom Region, and hardware-detected Legal 2-Pass Stitch). Features relaxed desktop spacing, printer status, CMYK ink levels, and bottom navigation pill."
+          "paragraph_text": "The dashboard presents a 310px left sidebar alongside a spacious grid of 5 streamlined workflow cards (Basic Scan with presets, 4-inch transparent Card Scan, multi-format Batch Scan, Custom Region, and hardware-detected Legal 2-Pass Stitch). Features relaxed desktop spacing, inverted white high-contrast printer card on night mode, animated printer line icon on View Printer, and zero-background-change icon animations across all buttons."
         },
         {
           "heading_title": "Screen 2: Options Control Deck (OptionsScreen.dart)",
           "block_type": "paragraph",
-          "paragraph_text": "Opening any workflow transitions smoothly into the spacious Control Deck. The left column displays a 3D Printer Pill capsule with an emerging paper sheet preview that visually rotates and scales according to chosen dimensions. The right column renders the natural-scale contoured PeaPodWidget with wrapping navigation arrows, animated line icons on hover, and the dynamic parameter drawer."
+          "paragraph_text": "Opening any workflow transitions smoothly into the spacious Control Deck. The left column displays the widened Optical Platen canvas with real-time DPI checkered box density patterns, dashed crop margin guidelines with L-corner brackets, discrete color mode sheets (RGB Color with CMYK swatches, 8-bit Grayscale, and stark 1-bit B&W), and physically accurate relative proportions (A4 shorter than Full Platen, Letter much shorter than A4 with full platen width). The right column renders the natural-scale contoured PeaPodWidget with wrapping navigation arrows, animated line icons on hover, Start Scan pulse action, and the dynamic parameter drawer."
         },
         {
           "heading_title": "Screen 3: Step-by-Step Instructions (InstructionsScreen.dart)",
