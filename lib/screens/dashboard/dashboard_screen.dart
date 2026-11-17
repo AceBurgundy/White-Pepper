@@ -143,6 +143,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       key: const ValueKey<String>('screen_dashboard'),
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool isCompact = (constraints.maxWidth < 740 || constraints.maxHeight < 640);
+        final double topMargin = isCompact ? 16.0 : 60.0;
+        final double sectionSpacing = isCompact ? 10.0 : 16.0;
+        final double bottomMargin = isCompact ? 18.0 : 60.0;
+        final double bottomPillSpacing = isCompact ? 20.0 : 36.0;
 
         final Widget upperContent = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -150,17 +154,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: <Widget>[
             // 1. Header Bar: White Pepper Headline + Workstation Pill + Theme Toggle
             _buildHeaderRow(context, state, isDark, isCompact),
-            const SizedBox(height: 18),
+            SizedBox(height: topMargin),
 
-            // 2. Top Row: 3D Grey Printer Image (left) + Ink Levels & Buttons (right) - NO card container
+            // 2. Centered Top Section: 3D Grey Printer Image + Ink Levels & Buttons - NO card container
             _buildTopPrinterSection(context, state, isDark, printerStatus, isCompact),
-            const SizedBox(height: 18),
+            SizedBox(height: sectionSpacing),
 
-            // 3. Status Section: Printer Name + Status-Reactive Graphic & Badge
+            // 3. Centered Status Section: Printer Name + Status-Reactive Graphic & Badge
             _buildPrinterNameAndStatusSection(context, state, isDark, printerStatus, isCompact),
-            const SizedBox(height: 18),
+            SizedBox(height: bottomMargin),
 
-            // 4. Single-Row Carousel of Workflow Cards
+            // 4. Single-Row Carousel of Workflow Cards moved below
             WorkflowGrid(
               onSelectWorkflow: (WorkflowType workflow) {
                 // AppState.selectWorkflow transitions currentScreen to AppScreen.options
@@ -176,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 upperContent,
-                const SizedBox(height: 24),
+                SizedBox(height: bottomPillSpacing),
                 Center(child: _buildDockedNavPill(context, state, isDark)),
               ],
             ),
@@ -287,8 +291,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final Widget printerGraphic = Printer3DVisual(
       status: printerStatus,
       isDarkMode: isDark,
-      width: isCompact ? 116.0 : 136.0,
-      height: isCompact ? 82.0 : 96.0,
+      width: isCompact ? 116.0 : 148.0,
+      height: isCompact ? 82.0 : 104.0,
     );
 
     final Widget inkLevels = _buildInkLevelsRow(isDark);
@@ -318,28 +322,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     if (isCompact) {
-      return Wrap(
-        spacing: 16,
-        runSpacing: 12,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.spaceBetween,
-        children: <Widget>[
-          printerGraphic,
-          inkLevels,
-          actionButtons,
-        ],
+      return Center(
+        child: Wrap(
+          spacing: 16,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: WrapAlignment.center,
+          children: <Widget>[
+            printerGraphic,
+            inkLevels,
+            actionButtons,
+          ],
+        ),
       );
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        printerGraphic,
-        const SizedBox(width: 28),
-        inkLevels,
-        const Spacer(),
-        actionButtons,
-      ],
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          printerGraphic,
+          const SizedBox(width: 32),
+          inkLevels,
+          const SizedBox(width: 24),
+          actionButtons,
+        ],
+      ),
     );
   }
 
@@ -417,23 +426,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isCompact,
   ) {
     final Widget printerIdentity = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Text(
           state.scannerModel,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: isCompact ? 17 : 20,
             fontWeight: FontWeight.w800,
             color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
             letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           state.scannerConnectionLabel,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
@@ -446,6 +457,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final Widget statusBadgeAndWorkflows = Wrap(
       spacing: 10,
       runSpacing: 8,
+      alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: <Widget>[
         _buildStatusGraphic(printerStatus, isDark),
@@ -470,25 +482,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
 
-    if (isCompact) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           printerIdentity,
           const SizedBox(height: 10),
           statusBadgeAndWorkflows,
         ],
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Expanded(child: printerIdentity),
-        const SizedBox(width: 16),
-        statusBadgeAndWorkflows,
-      ],
+      ),
     );
   }
 
