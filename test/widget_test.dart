@@ -188,6 +188,19 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
 
+        // View Printer Dialog opens cleanly without overflow at mobile size
+        await tester.tap(find.byTooltip('View Printer'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(Dialog),
+            matching: find.byType(DialogCloseButton),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+
         // Switch to Options Control Deck at mobile resolution
         appState.switchScreen(AppScreen.options);
         await tester.pumpAndSettle();

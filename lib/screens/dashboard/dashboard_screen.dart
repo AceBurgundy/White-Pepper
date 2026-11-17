@@ -142,10 +142,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       key: const ValueKey<String>('screen_dashboard'),
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isCompact = (constraints.maxWidth < 740 || constraints.maxHeight < 640);
-        final double topMargin = isCompact ? 14.0 : 36.0;
-        final double bottomMargin = isCompact ? 18.0 : 44.0;
-        final double bottomPillSpacing = isCompact ? 20.0 : 32.0;
+        final bool isCompact = (constraints.maxWidth < 740 || constraints.maxHeight < 720);
+        final double topMargin = isCompact ? 14.0 : 28.0;
+        final double bottomMargin = isCompact ? 18.0 : 32.0;
+        final double bottomPillSpacing = isCompact ? 20.0 : 24.0;
 
         final Widget upperContent = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -159,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildTopTwoColumnHero(context, state, isDark, printerStatus, isCompact),
             SizedBox(height: bottomMargin),
 
-            // 3. Single-Row Carousel of Workflow Cards moved to the bottom
+            // 3. 2-Row Deck of Workflow Cards moved to the bottom (3 top, 2 bottom)
             WorkflowGrid(
               onSelectWorkflow: (WorkflowType workflow) {
                 // AppState.selectWorkflow transitions currentScreen to AppScreen.options
@@ -183,7 +183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(40.0, 48.0, 40.0, 24.0),
+          padding: const EdgeInsets.fromLTRB(40.0, 44.0, 40.0, 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -387,13 +387,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 14),
 
-        // Ink Channels
+        // Ink Channels with full length names (Cyan, Magenta, Yellow, Black)
         _buildInkLevelsRow(isDark),
         const SizedBox(height: 14),
 
-        // Action Buttons ("Switch Scanner" & "View Printer")
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        // Action Buttons with full length labels ("Switch Scanner" & "View Printer")
+        Wrap(
+          spacing: 10,
+          runSpacing: 8,
+          alignment: isCompact ? WrapAlignment.center : WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: <Widget>[
             _SwitchScannerButton(
               isDark: isDark,
@@ -404,7 +407,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-            const SizedBox(width: 8),
             _ViewPrinterButton(
               onTap: () {
                 showDialog<void>(
@@ -421,11 +423,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildInkLevelsRow(bool isDark) {
     final List<Map<String, Object>> inkChannels = <Map<String, Object>>[
-      <String, Object>{'label': 'C', 'name': 'Cyan', 'percentage': 0.85, 'color': DesignTokens.inkCyan},
-      <String, Object>{'label': 'M', 'name': 'Magenta', 'percentage': 0.72, 'color': DesignTokens.inkMagenta},
-      <String, Object>{'label': 'Y', 'name': 'Yellow', 'percentage': 0.92, 'color': DesignTokens.inkYellow},
+      <String, Object>{'name': 'Cyan', 'percentage': 0.85, 'color': DesignTokens.inkCyan},
+      <String, Object>{'name': 'Magenta', 'percentage': 0.72, 'color': DesignTokens.inkMagenta},
+      <String, Object>{'name': 'Yellow', 'percentage': 0.92, 'color': DesignTokens.inkYellow},
       <String, Object>{
-        'label': 'K',
         'name': 'Black',
         'percentage': 0.64,
         'color': isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
@@ -437,44 +438,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: inkChannels.map((Map<String, Object> channelData) {
         final double percentage = channelData['percentage']! as double;
         final Color color = channelData['color']! as Color;
-        final String label = channelData['label']! as String;
         final String channelName = channelData['name']! as String;
 
         return Tooltip(
           message: '$channelName: ${(percentage * 100).toInt()}%',
           child: Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 14),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Container(
-                  width: 14,
-                  height: 38,
+                  width: 22,
+                  height: 44,
                   decoration: BoxDecoration(
                     color: isDark
                         ? DesignTokens.darkSurfaceFour
                         : DesignTokens.neutralGrayTwoHundred,
-                    borderRadius: BorderRadius.circular(7),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   alignment: Alignment.bottomCenter,
                   child: Container(
-                    width: 14,
-                    height: 38 * percentage,
+                    width: 22,
+                    height: 44 * percentage,
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  label,
+                  channelName,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: isDark
                         ? DesignTokens.neutralGrayFourHundred
                         : DesignTokens.neutralGraySixHundred,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],
@@ -615,29 +616,43 @@ class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
-          child: Container(
-            width: 40,
-            height: 40,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
             decoration: BoxDecoration(
               color: isDark
-                  ? DesignTokens.neutralGrayOneHundred
-                  : DesignTokens.pureWhite,
-              shape: BoxShape.circle,
+                  ? (_isHovered ? DesignTokens.darkSurfaceFour : DesignTokens.darkSurfaceThree)
+                  : (_isHovered ? DesignTokens.neutralGrayOneHundred : DesignTokens.pureWhite),
+              borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
               boxShadow: DesignTokens.shadowCard,
               border: Border.all(
                 color: isDark
-                    ? DesignTokens.neutralGrayThreeHundred
+                    ? DesignTokens.darkSurfaceFive
                     : DesignTokens.neutralGrayTwoHundred,
                 width: 1.0,
               ),
             ),
-            child: Center(
-              child: AnimatedLineIcon(
-                type: LineIconType.switchScanner,
-                isHovered: _isHovered,
-                color: DesignTokens.onyx,
-                size: 20,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                AnimatedLineIcon(
+                  type: LineIconType.switchScanner,
+                  isHovered: _isHovered,
+                  color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Switch Scanner',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -669,21 +684,35 @@ class _ViewPrinterButtonState extends State<_ViewPrinterButton> {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
-          child: Container(
-            width: 40,
-            height: 40,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
             decoration: BoxDecoration(
-              color: DesignTokens.accentYellow,
-              shape: BoxShape.circle,
+              color: _isHovered ? const Color(0xFFFFD54F) : DesignTokens.accentYellow,
+              borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
               boxShadow: DesignTokens.shadowCard,
             ),
-            child: Center(
-              child: AnimatedLineIcon(
-                type: LineIconType.printer,
-                isHovered: _isHovered,
-                color: DesignTokens.onyx,
-                size: 20,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                AnimatedLineIcon(
+                  type: LineIconType.printer,
+                  isHovered: _isHovered,
+                  color: DesignTokens.onyx,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'View Printer',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: DesignTokens.onyx,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

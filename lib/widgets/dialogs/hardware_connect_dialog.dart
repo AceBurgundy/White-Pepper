@@ -229,30 +229,33 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
     final Color subtleColor = isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySevenHundred;
 
     final List<Map<String, Object>> channels = <Map<String, Object>>[
-      <String, Object>{'label': 'C', 'percentage': 0.85, 'color': DesignTokens.inkCyan},
-      <String, Object>{'label': 'M', 'percentage': 0.72, 'color': DesignTokens.inkMagenta},
-      <String, Object>{'label': 'Y', 'percentage': 0.92, 'color': DesignTokens.inkYellow},
-      <String, Object>{'label': 'K', 'percentage': 0.64, 'color': isDark ? DesignTokens.pureWhite : DesignTokens.onyx},
+      <String, Object>{'label': 'Cyan', 'percentage': 0.85, 'color': DesignTokens.inkCyan},
+      <String, Object>{'label': 'Magenta', 'percentage': 0.72, 'color': DesignTokens.inkMagenta},
+      <String, Object>{'label': 'Yellow', 'percentage': 0.92, 'color': DesignTokens.inkYellow},
+      <String, Object>{'label': 'Black', 'percentage': 0.64, 'color': isDark ? DesignTokens.pureWhite : DesignTokens.onyx},
     ];
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        width: 540,
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          color: dialogBackgroundColor,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
-          boxShadow: DesignTokens.shadowWorkstation,
-          border: Border.all(
-            color: isDark ? DesignTokens.darkSurfaceThree : DesignTokens.neutralGrayTwoHundred,
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540, maxHeight: 680),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: dialogBackgroundColor,
+              borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
+              boxShadow: DesignTokens.shadowWorkstation,
+              border: Border.all(
+                color: isDark ? DesignTokens.darkSurfaceThree : DesignTokens.neutralGrayTwoHundred,
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
               // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -369,8 +372,11 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
                     color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.neutralGrayTwoHundred,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceAround,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 14,
                   children: <Widget>[
                     // Centered 3D Grey Printer Icon
                     _build3DPrinterIcon(),
@@ -390,17 +396,16 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 10,
+                          runSpacing: 8,
                           children: channels.map((Map<String, Object> channel) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: _buildInkChannel(
-                                label: channel['label']! as String,
-                                percentage: channel['percentage']! as double,
-                                color: channel['color']! as Color,
-                                isDark: isDark,
-                              ),
+                            return _buildInkChannel(
+                              label: channel['label']! as String,
+                              percentage: channel['percentage']! as double,
+                              color: channel['color']! as Color,
+                              isDark: isDark,
                             );
                           }).toList(),
                         ),
@@ -448,74 +453,92 @@ class _HardwareConnectDialogState extends State<HardwareConnectDialog> {
               ),
               const SizedBox(height: 16),
 
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) => const ScannerSelectorDialog(),
-                        );
-                      },
-                      icon: const Icon(Icons.sync_rounded, size: 16),
-                      label: const Text(
-                        'Switch Scanner',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                        side: BorderSide(
-                          color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.neutralGrayThreeHundred,
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
-                        ),
+              LayoutBuilder(
+                builder: (BuildContext layoutContext, BoxConstraints buttonConstraints) {
+                  final bool isNarrow = buttonConstraints.maxWidth < 380;
+                  final Widget switchButton = OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      showDialog<void>(
+                        context: context,
+                        builder: (_) => const ScannerSelectorDialog(),
+                      );
+                    },
+                    icon: const Icon(Icons.sync_rounded, size: 16),
+                    label: const Text(
+                      'Switch Scanner',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isProbing ? null : _handleProbe,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: DesignTokens.accentYellow,
-                        foregroundColor: DesignTokens.onyx,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
-                        ),
-                        elevation: 0,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                      side: BorderSide(
+                        color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.neutralGrayThreeHundred,
                       ),
-                      child: _isProbing
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(DesignTokens.onyx),
-                              ),
-                            )
-                          : const Text(
-                              'Check Scanner',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                              ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                      ),
+                    ),
+                  );
+
+                  final Widget probeButton = ElevatedButton(
+                    onPressed: _isProbing ? null : _handleProbe,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: DesignTokens.accentYellow,
+                      foregroundColor: DesignTokens.onyx,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isProbing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(DesignTokens.onyx),
                             ),
-                    ),
-                  ),
-                ],
+                          )
+                        : const Text(
+                            'Check Scanner',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                  );
+
+                  if (isNarrow) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        switchButton,
+                        const SizedBox(height: 8),
+                        probeButton,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: <Widget>[
+                      Expanded(child: switchButton),
+                      const SizedBox(width: 10),
+                      Expanded(child: probeButton),
+                    ],
+                  );
+                },
               ),
             ],
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
