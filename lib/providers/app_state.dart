@@ -94,8 +94,23 @@ class AppState extends ChangeNotifier {
   List<ScannerDeviceModel> get availableScanners => _availableScanners;
   ScannerDeviceModel? get activeScanner => _activeScanner;
   bool get isDiscoveringScanners => _isDiscoveringScanners;
-  bool get isLegalStitchSupportedByHardware => _activeScanner?.supportsLegal ?? false;
+  bool get isLegalStitchSupportedByHardware {
+    final ScannerDeviceModel? scanner = _activeScanner;
+    if (scanner == null) {
+      return false;
+    }
+    return scanner.supportsLegal || scanner.maxPlatenHeightInches >= 13.9;
+  }
   bool get isLegalStitchCardVisible => !isLegalStitchSupportedByHardware;
+
+  List<WorkflowType> get availableWorkflows {
+    return WorkflowType.values.where((WorkflowType workflow) {
+      if (workflow == WorkflowType.legalStitch) {
+        return isLegalStitchCardVisible;
+      }
+      return true;
+    }).toList();
+  }
   int get compilePdfPageCount => _compilePdfPageCount;
   String? get compilePdfStagingPath => _compilePdfStagingPath;
   int get compilePdfCountdownSeconds => _compilePdfCountdownSeconds;

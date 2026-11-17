@@ -6,6 +6,7 @@ import '../../providers/app_state.dart';
 import '../../widgets/cards/workflow_action_card.dart';
 import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 
+/// Single-row horizontal scrollable carousel of workflow action cards.
 class WorkflowGrid extends StatefulWidget {
   const WorkflowGrid({
     required this.onSelectWorkflow,
@@ -20,44 +21,48 @@ class WorkflowGrid extends StatefulWidget {
 
 class _WorkflowGridState extends State<WorkflowGrid> {
   final ScrollController _scrollController = ScrollController();
-  double _scrollFraction = 0.0;
-  double _thumbFraction = 0.35;
+  bool _canScrollLeft = false;
+  bool _canScrollRight = false;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_handleScrollChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _handleScrollChanged());
+    _scrollController.addListener(_updateScrollArrows);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateScrollArrows());
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_handleScrollChanged);
+    _scrollController.removeListener(_updateScrollArrows);
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _handleScrollChanged() {
+  void _updateScrollArrows() {
     if (!mounted || !_scrollController.hasClients) return;
     final ScrollPosition position = _scrollController.position;
-    final double maxExtent = position.maxScrollExtent;
-    final double viewport = position.viewportDimension;
-    final double totalContent = viewport + (maxExtent > 0 ? maxExtent : 0.0);
+    final bool canLeft = position.pixels > 4.0;
+    final bool canRight = position.pixels < (position.maxScrollExtent - 4.0);
 
-    final double newThumbFraction = totalContent > 0
-        ? (viewport / totalContent).clamp(0.18, 0.55)
-        : 0.35;
-    final double newScrollFraction = maxExtent > 0
-        ? (position.pixels / maxExtent).clamp(0.0, 1.0)
-        : 0.0;
-
-    if ((newScrollFraction - _scrollFraction).abs() > 0.002 ||
-        (newThumbFraction - _thumbFraction).abs() > 0.002) {
+    if (canLeft != _canScrollLeft || canRight != _canScrollRight) {
       setState(() {
-        _scrollFraction = newScrollFraction;
-        _thumbFraction = newThumbFraction;
+        _canScrollLeft = canLeft;
+        _canScrollRight = canRight;
       });
     }
+  }
+
+  void _scrollByDelta(double offsetDelta) {
+    if (!_scrollController.hasClients) return;
+    final double targetOffset = (_scrollController.offset + offsetDelta).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+    _scrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   IconData _resolveIcon(String iconName) {
@@ -134,116 +139,169 @@ class _WorkflowGridState extends State<WorkflowGrid> {
   @override
   Widget build(BuildContext context) {
     final AppState appState = Provider.of<AppState>(context);
-    final List<WorkflowType> workflows = WorkflowType.values.where((WorkflowType workflow) {
-      if (workflow == WorkflowType.legalStitch) {
-        return appState.isLegalStitchCardVisible;
-      }
-      return true;
-    }).toList();
+    final List<WorkflowType> workflows = appState.availableWorkflows;
+    final bool isDark = appState.isDarkMode;
 
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final int crossAxisCount = constraints.maxWidth < 420 ? 1 : 2;
-        const double spacing = 16.0;
-        const double cardHeight = 148.0;
+    const double cardWidth = 246.0;
+    const double cardSpacing = 14.0;
+    const double carouselHeight = 162.0;
 
-        final double trackHeight = constraints.maxHeight.clamp(120.0, 4000.0);
-        final double thumbHeight = (trackHeight * _thumbFraction).clamp(36.0, trackHeight * 0.65);
-        final double availableThumbTravel = (trackHeight - thumbHeight).clamp(0.0, 4000.0);
-        final double thumbTop = availableThumbTravel * _scrollFraction;
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Expanded(
-              child: NotificationListener<ScrollMetricsNotification>(
-                onNotification: (ScrollMetricsNotification notification) {
-                  _handleScrollChanged();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        // Carousel Container with Left/Right navigation chevrons
+        SizedBox(
+          height: carouselHeight,
+          child: Stack(
+            children: <Widget>[
+              // Horizontal Scrollable Cards List
+              NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification notification) {
+                  _updateScrollArrows();
                   return false;
                 },
                 child: ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(
                     scrollbars: false,
                   ),
-                  child: GridView.builder(
+                  child: ListView.separated(
                     controller: _scrollController,
-                    padding: const EdgeInsets.only(bottom: 16.0),
+                    scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(
                       parent: AlwaysScrollableScrollPhysics(),
                     ),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: spacing,
-                      mainAxisSpacing: spacing,
-                      mainAxisExtent: cardHeight,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
                     itemCount: workflows.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final WorkflowType workflow = workflows[index];
-                      return WorkflowActionCard(
-                        title: workflow.title,
-                        subtitle: workflow.subtitle,
-                        icon: _resolveIcon(workflow.iconName),
-                        lineIconType: _resolveLineIconType(workflow),
-                        emojiIcon: workflow.emojiIcon,
-                        useEmoji: workflow.useEmoji,
-                        theme: _resolveTheme(workflow),
-                        badgeText: _resolveBadge(workflow),
-                        onTap: () {
-                          context.read<AppState>().selectWorkflow(workflow);
-                          widget.onSelectWorkflow(workflow);
-                        },
+                    separatorBuilder: (BuildContext separatorContext, int itemIndex) {
+                      return const SizedBox(width: cardSpacing);
+                    },
+                    itemBuilder: (BuildContext itemContext, int workflowIndex) {
+                      final WorkflowType workflow = workflows[workflowIndex];
+                      return SizedBox(
+                        width: cardWidth,
+                        child: WorkflowActionCard(
+                          title: workflow.title,
+                          subtitle: workflow.subtitle,
+                          icon: _resolveIcon(workflow.iconName),
+                          lineIconType: _resolveLineIconType(workflow),
+                          emojiIcon: workflow.emojiIcon,
+                          useEmoji: workflow.useEmoji,
+                          theme: _resolveTheme(workflow),
+                          badgeText: _resolveBadge(workflow),
+                          onTap: () {
+                            context.read<AppState>().selectWorkflow(workflow);
+                            widget.onSelectWorkflow(workflow);
+                          },
+                        ),
                       );
                     },
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
 
-            // Thin custom scroll thumb (no native scrollbar trough)
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onVerticalDragUpdate: (DragUpdateDetails details) {
-                  if (!_scrollController.hasClients) return;
-                  final double maxExtent = _scrollController.position.maxScrollExtent;
-                  if (maxExtent <= 0 || availableThumbTravel <= 0) return;
-                  final double deltaScroll = (details.delta.dy / availableThumbTravel) * maxExtent;
-                  _scrollController.jumpTo(
-                    (_scrollController.offset + deltaScroll)
-                        .clamp(0.0, maxExtent),
-                  );
-                },
-                child: SizedBox(
-                  width: 6,
-                  height: trackHeight,
-                  child: Stack(
-                    children: <Widget>[
-                      Positioned(
-                        top: thumbTop,
-                        right: 1,
-                        child: Container(
-                          key: const Key('workflow_grid_scroll_thumb'),
-                          width: 3.5,
-                          height: thumbHeight,
-                          decoration: BoxDecoration(
-                            color: DesignTokens.onyx.withValues(alpha: 0.36),
-                            borderRadius:
-                                BorderRadius.circular(DesignTokens.radiusPill),
-                          ),
-                        ),
-                      ),
-                    ],
+              // Left Navigation Chevron Button (visible when scrollable to the left)
+              if (_canScrollLeft)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _CarouselArrowButton(
+                      icon: Icons.chevron_left_rounded,
+                      tooltip: 'Previous Workflows',
+                      isDark: isDark,
+                      onTap: () => _scrollByDelta(-(cardWidth + cardSpacing)),
+                    ),
                   ),
                 ),
+
+              // Right Navigation Chevron Button (visible when scrollable to the right)
+              if (_canScrollRight)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: _CarouselArrowButton(
+                      icon: Icons.chevron_right_rounded,
+                      tooltip: 'Next Workflows',
+                      isDark: isDark,
+                      onTap: () => _scrollByDelta(cardWidth + cardSpacing),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CarouselArrowButton extends StatefulWidget {
+  const _CarouselArrowButton({
+    required this.icon,
+    required this.tooltip,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  State<_CarouselArrowButton> createState() => _CarouselArrowButtonState();
+}
+
+class _CarouselArrowButtonState extends State<_CarouselArrowButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = widget.isDark;
+    final Color arrowBackgroundColor = isDark
+        ? (_isHovered ? DesignTokens.pureWhite : DesignTokens.darkSurfaceTwo)
+        : (_isHovered ? DesignTokens.onyx : DesignTokens.pureWhite);
+    final Color arrowForegroundColor = isDark
+        ? (_isHovered ? DesignTokens.onyx : DesignTokens.pureWhite)
+        : (_isHovered ? DesignTokens.pureWhite : DesignTokens.onyx);
+
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: arrowBackgroundColor,
+              shape: BoxShape.circle,
+              boxShadow: DesignTokens.shadowCard,
+              border: Border.all(
+                color: isDark
+                    ? DesignTokens.darkSurfaceFour
+                    : DesignTokens.neutralGrayTwoHundred,
+                width: 1.0,
               ),
             ),
-          ],
-        );
-      },
+            child: Center(
+              child: Icon(
+                widget.icon,
+                size: 20,
+                color: arrowForegroundColor,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

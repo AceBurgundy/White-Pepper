@@ -232,5 +232,35 @@ void main() {
       expect(cardPlan.arguments, contains('--format'));
       expect(cardPlan.arguments, contains('png'));
     });
+
+    test('Conditionally adds Legal 2-Pass Stitch based on scanner platen capacity', () {
+      final AppState state = AppState();
+
+      // 1. Default A4 platen scanner (11.693" < 14.0") -> platen cannot fit legal -> stitch card is added
+      const ScannerDeviceModel a4Scanner = ScannerDeviceModel(
+        id: 'test:a4',
+        name: 'HP DeskJet 2700',
+        connectionType: ScannerConnectionType.wifi,
+        supportsLegal: false,
+        maxPlatenHeightInches: 11.693,
+      );
+      state.selectScanner(a4Scanner);
+      expect(state.isLegalStitchSupportedByHardware, isFalse);
+      expect(state.isLegalStitchCardVisible, isTrue);
+      expect(state.availableWorkflows, contains(WorkflowType.legalStitch));
+
+      // 2. Large format / Legal platen scanner (14.0" platen) -> platen CAN fit legal -> stitch card is hidden
+      const ScannerDeviceModel legalScanner = ScannerDeviceModel(
+        id: 'test:legal',
+        name: 'Epson WorkForce Pro Large Platen',
+        connectionType: ScannerConnectionType.usb,
+        supportsLegal: true,
+        maxPlatenHeightInches: 14.0,
+      );
+      state.selectScanner(legalScanner);
+      expect(state.isLegalStitchSupportedByHardware, isTrue);
+      expect(state.isLegalStitchCardVisible, isFalse);
+      expect(state.availableWorkflows, isNot(contains(WorkflowType.legalStitch)));
+    });
   });
 }

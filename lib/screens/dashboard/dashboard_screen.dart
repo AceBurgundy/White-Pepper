@@ -3,17 +3,20 @@ import 'package:provider/provider.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../models/scan_configuration_model.dart';
 import '../../providers/app_state.dart';
+import '../../widgets/buttons/progress_button.dart';
+import '../../widgets/common/printer_3d_visual.dart';
 import '../../widgets/dialogs/app_settings_dialog.dart';
 import '../../widgets/dialogs/hardware_connect_dialog.dart';
 import '../../widgets/dialogs/scanner_selector_dialog.dart';
+import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 import '../../widgets/loading/loading_screen.dart';
 import '../../widgets/window/window_title_bar.dart';
 import '../instructions/instructions_screen.dart';
 import '../options/options_screen.dart';
 import 'workflow_grid.dart';
-import '../../widgets/icons/animated_line_icons/animated_line_icons.dart';
 
-/// Unified 3-Screen Workstation matching minimalist design system
+/// Unified 3-Screen Workstation featuring unboxed 3D printer visuals,
+/// status-reactive imagery, single-row carousel workflows, and docked navigation.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -39,6 +42,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       });
     }
+  }
+
+  PrinterDeviceStatus _resolvePrinterStatus(AppState state) {
+    if (!state.isScannerOnline) {
+      return PrinterDeviceStatus.offline;
+    }
+    if (state.scanButtonState == ProgressButtonState.processing) {
+      return PrinterDeviceStatus.scanning;
+    }
+    if (state.activeScanner == null && !state.isScannerOnline) {
+      return PrinterDeviceStatus.standby;
+    }
+    return PrinterDeviceStatus.ready;
   }
 
   @override
@@ -121,25 +137,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDashboardPane(BuildContext context, AppState state, bool isDark) {
+    final PrinterDeviceStatus printerStatus = _resolvePrinterStatus(state);
+
     return LayoutBuilder(
       key: const ValueKey<String>('screen_dashboard'),
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isCompact = (constraints.maxWidth < 800 || constraints.maxHeight < 580);
+        final bool isCompact = (constraints.maxWidth < 740 || constraints.maxHeight < 640);
+
+        final Widget upperContent = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            // 1. Header Bar: White Pepper Headline + Workstation Pill + Theme Toggle
+            _buildHeaderRow(context, state, isDark, isCompact),
+            const SizedBox(height: 18),
+
+            // 2. Top Row: 3D Grey Printer Image (left) + Ink Levels & Buttons (right) - NO card container
+            _buildTopPrinterSection(context, state, isDark, printerStatus, isCompact),
+            const SizedBox(height: 18),
+
+            // 3. Status Section: Printer Name + Status-Reactive Graphic & Badge
+            _buildPrinterNameAndStatusSection(context, state, isDark, printerStatus, isCompact),
+            const SizedBox(height: 18),
+
+            // 4. Single-Row Carousel of Workflow Cards
+            WorkflowGrid(
+              onSelectWorkflow: (WorkflowType workflow) {
+                // AppState.selectWorkflow transitions currentScreen to AppScreen.options
+              },
+            ),
+          ],
+        );
+
         if (isCompact) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16.0, 38.0, 16.0, 16.0),
+            padding: const EdgeInsets.fromLTRB(20.0, 44.0, 20.0, 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                _buildSidebarTopContent(context, state, isDark),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 520,
-                  child: WorkflowGrid(
-                    onSelectWorkflow: (WorkflowType workflow) {},
-                  ),
-                ),
-                const SizedBox(height: 16),
+                upperContent,
+                const SizedBox(height: 24),
                 Center(child: _buildDockedNavPill(context, state, isDark)),
               ],
             ),
@@ -147,36 +184,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(36.0, 46.0, 36.0, 32.0),
-          child: Row(
+          padding: const EdgeInsets.fromLTRB(40.0, 48.0, 40.0, 24.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              // Left Sidebar (310px matching .desktop-dashboard-left)
-              SizedBox(
-                width: 310,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: _buildSidebarTopContent(context, state, isDark),
-                      ),
-                    ),
-                    _buildDockedNavPill(context, state, isDark),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 32),
-
-              // Right 2x4 Workflow Cards Grid (.desktop-dashboard-grid)
-              Expanded(
-                child: WorkflowGrid(
-                  onSelectWorkflow: (WorkflowType workflow) {
-                    // AppState.selectWorkflow already transitions currentScreen to AppScreen.options
-                  },
-                ),
-              ),
+              upperContent,
+              Center(child: _buildDockedNavPill(context, state, isDark)),
             ],
           ),
         );
@@ -184,18 +198,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSidebarTopContent(BuildContext context, AppState state, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeaderRow(BuildContext context, AppState state, bool isDark, bool isCompact) {
+    if (isCompact) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'White Pepper',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+              letterSpacing: -0.5,
+            ),
+          ),
+          _CircleIconButton(
+            lineIconType: LineIconType.themeToggle,
+            tooltip: state.isDarkMode ? 'Day Mode' : 'Night Mode',
+            isDark: isDark,
+            onTap: () => state.toggleDarkMode(),
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        // Top Actions Bar (Workstation Pill + Night Mode Button)
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            Text(
+              'White Pepper',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                height: 1.1,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(width: 14),
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
+                horizontal: 14,
+                vertical: 6,
               ),
               decoration: BoxDecoration(
                 color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.pureWhite,
@@ -209,111 +258,297 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Text(
                 'WORKSTATION',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w800,
                   color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
                   letterSpacing: 0.6,
                 ),
               ),
             ),
-            _CircleIconButton(
-              lineIconType: LineIconType.themeToggle,
-              tooltip: state.isDarkMode ? 'Day Mode' : 'Night Mode',
-              isDark: isDark,
-              onTap: () => state.toggleDarkMode(),
-            ),
           ],
         ),
-        const SizedBox(height: 18),
+        _CircleIconButton(
+          lineIconType: LineIconType.themeToggle,
+          tooltip: state.isDarkMode ? 'Day Mode' : 'Night Mode',
+          isDark: isDark,
+          onTap: () => state.toggleDarkMode(),
+        ),
+      ],
+    );
+  }
 
-        // Headline ("White Pepper")
+  Widget _buildTopPrinterSection(
+    BuildContext context,
+    AppState state,
+    bool isDark,
+    PrinterDeviceStatus printerStatus,
+    bool isCompact,
+  ) {
+    final Widget printerGraphic = Printer3DVisual(
+      status: printerStatus,
+      isDarkMode: isDark,
+      width: isCompact ? 116.0 : 136.0,
+      height: isCompact ? 82.0 : 96.0,
+    );
+
+    final Widget inkLevels = _buildInkLevelsRow(isDark);
+
+    final Widget actionButtons = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _SwitchScannerButton(
+          isDark: isDark,
+          onTap: () {
+            showDialog<void>(
+              context: context,
+              builder: (_) => const ScannerSelectorDialog(),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        _ViewPrinterButton(
+          onTap: () {
+            showDialog<void>(
+              context: context,
+              builder: (_) => const HardwareConnectDialog(),
+            );
+          },
+        ),
+      ],
+    );
+
+    if (isCompact) {
+      return Wrap(
+        spacing: 16,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
+        children: <Widget>[
+          printerGraphic,
+          inkLevels,
+          actionButtons,
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        printerGraphic,
+        const SizedBox(width: 28),
+        inkLevels,
+        const Spacer(),
+        actionButtons,
+      ],
+    );
+  }
+
+  Widget _buildInkLevelsRow(bool isDark) {
+    final List<Map<String, Object>> inkChannels = <Map<String, Object>>[
+      <String, Object>{'label': 'C', 'name': 'Cyan', 'percentage': 0.85, 'color': DesignTokens.inkCyan},
+      <String, Object>{'label': 'M', 'name': 'Magenta', 'percentage': 0.72, 'color': DesignTokens.inkMagenta},
+      <String, Object>{'label': 'Y', 'name': 'Yellow', 'percentage': 0.92, 'color': DesignTokens.inkYellow},
+      <String, Object>{
+        'label': 'K',
+        'name': 'Black',
+        'percentage': 0.64,
+        'color': isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+      },
+    ];
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: inkChannels.map((Map<String, Object> channelData) {
+        final double percentage = channelData['percentage']! as double;
+        final Color color = channelData['color']! as Color;
+        final String label = channelData['label']! as String;
+        final String channelName = channelData['name']! as String;
+
+        return Tooltip(
+          message: '$channelName: ${(percentage * 100).toInt()}%',
+          child: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Container(
+                  width: 14,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? DesignTokens.darkSurfaceFour
+                        : DesignTokens.neutralGrayTwoHundred,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: 14,
+                    height: 38 * percentage,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? DesignTokens.neutralGrayFourHundred
+                        : DesignTokens.neutralGraySixHundred,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildPrinterNameAndStatusSection(
+    BuildContext context,
+    AppState state,
+    bool isDark,
+    PrinterDeviceStatus printerStatus,
+    bool isCompact,
+  ) {
+    final Widget printerIdentity = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
         Text(
-          'White Pepper',
+          state.scannerModel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 32,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-            height: 1.12,
-            letterSpacing: -0.5,
+            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 16),
-
-        // Navigation Tabs Row
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: <Widget>[
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () => state.switchScreen(AppScreen.dashboard),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                    borderRadius: BorderRadius.circular(
-                      DesignTokens.radiusPill,
-                    ),
-                  ),
-                  child: Text(
-                    'All Workflows (${WorkflowType.values.length})',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? DesignTokens.darkSurfaceFour : DesignTokens.onyx.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(
-                  DesignTokens.radiusPill,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: state.isScannerOnline
-                          ? DesignTokens.statusOnlineGreen
-                          : DesignTokens.statusErrorRed,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    state.isScannerOnline ? 'Online' : 'Offline',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        const SizedBox(height: 2),
+        Text(
+          state.scannerConnectionLabel,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySixHundred,
+          ),
         ),
-        const SizedBox(height: 18),
-
-        // Connected Printer Status Card (.card--printer-status)
-        _buildSidebarPrinterCard(context, state, isDark),
       ],
+    );
+
+    final Widget statusBadgeAndWorkflows = Wrap(
+      spacing: 10,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: <Widget>[
+        _buildStatusGraphic(printerStatus, isDark),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 7,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+          ),
+          child: Text(
+            'All Workflows (${state.availableWorkflows.length})',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (isCompact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          printerIdentity,
+          const SizedBox(height: 10),
+          statusBadgeAndWorkflows,
+        ],
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(child: printerIdentity),
+        const SizedBox(width: 16),
+        statusBadgeAndWorkflows,
+      ],
+    );
+  }
+
+  Widget _buildStatusGraphic(PrinterDeviceStatus status, bool isDark) {
+    final (Color badgeColor, Color textColor, IconData statusIcon, String statusTitle) = switch (status) {
+      PrinterDeviceStatus.ready => (
+          DesignTokens.statusOnlineGreen,
+          Colors.white,
+          Icons.check_circle_rounded,
+          'Ready',
+        ),
+      PrinterDeviceStatus.scanning => (
+          const Color(0xFF00E5FF),
+          DesignTokens.onyx,
+          Icons.radar_rounded,
+          'Scanning',
+        ),
+      PrinterDeviceStatus.standby => (
+          DesignTokens.accentYellow,
+          DesignTokens.onyx,
+          Icons.nightlight_round,
+          'Wake',
+        ),
+      PrinterDeviceStatus.offline => (
+          DesignTokens.statusErrorRed,
+          Colors.white,
+          Icons.cloud_off_rounded,
+          'Offline',
+        ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: isDark ? 0.22 : 0.12),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+        border: Border.all(
+          color: badgeColor.withValues(alpha: 0.35),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Icon(
+            statusIcon,
+            size: 14,
+            color: badgeColor,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            statusTitle,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -357,174 +592,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-  Widget _buildSidebarPrinterCard(BuildContext context, AppState state, bool isDark) {
-    final List<Map<String, Object>> channels = <Map<String, Object>>[
-      <String, Object>{'label': 'C', 'pct': 0.85, 'color': DesignTokens.inkCyan},
-      <String, Object>{'label': 'M', 'pct': 0.72, 'color': DesignTokens.inkMagenta},
-      <String, Object>{'label': 'Y', 'pct': 0.92, 'color': DesignTokens.inkYellow},
-      <String, Object>{
-        'label': 'K',
-        'pct': 0.64,
-        'color': isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
-      },
-    ];
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          showDialog<void>(
-            context: context,
-            builder: (_) => const HardwareConnectDialog(),
-          );
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-            borderRadius: BorderRadius.circular(DesignTokens.radiusCardOuter),
-            boxShadow: DesignTokens.shadowCard,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      state.scannerModel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? DesignTokens.neutralGrayOneHundred
-                          : DesignTokens.darkSurfaceFour,
-                      borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: state.isScannerOnline
-                                ? DesignTokens.statusOnlineGreen
-                                : DesignTokens.accentYellow,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          state.isScannerOnline ? 'Ready' : 'Wake',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Ink Channel Bars + View Printer Tooltip/Hand Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Row(
-                    children: channels.map((Map<String, Object> channelMap) {
-                      final double pct = channelMap['pct']! as double;
-                      final Color color = channelMap['color']! as Color;
-                      final String label = channelMap['label']! as String;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: Column(
-                          children: <Widget>[
-                            Container(
-                              width: 14,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? DesignTokens.neutralGrayTwoHundred
-                                    : DesignTokens.darkSurfaceFour,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              alignment: Alignment.bottomCenter,
-                              child: Container(
-                                width: 14,
-                                height: 36 * pct,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              label,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? DesignTokens.neutralGraySevenHundred
-                                    : DesignTokens.neutralGrayFiveHundred,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      _SwitchScannerButton(
-                        isDark: isDark,
-                        onTap: () {
-                          showDialog<void>(
-                            context: context,
-                            builder: (_) => const ScannerSelectorDialog(),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      _ViewPrinterButton(
-                        onTap: () {
-                          showDialog<void>(
-                            context: context,
-                            builder: (_) => const HardwareConnectDialog(),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _SwitchScannerButton extends StatefulWidget {
@@ -561,12 +628,13 @@ class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
             decoration: BoxDecoration(
               color: isDark
                   ? DesignTokens.neutralGrayOneHundred
-                  : DesignTokens.darkSurfaceFour,
+                  : DesignTokens.pureWhite,
               shape: BoxShape.circle,
+              boxShadow: DesignTokens.shadowCard,
               border: Border.all(
                 color: isDark
                     ? DesignTokens.neutralGrayThreeHundred
-                    : DesignTokens.pureWhite.withValues(alpha: 0.15),
+                    : DesignTokens.neutralGrayTwoHundred,
                 width: 1.0,
               ),
             ),
@@ -574,7 +642,7 @@ class _SwitchScannerButtonState extends State<_SwitchScannerButton> {
               child: AnimatedLineIcon(
                 type: LineIconType.switchScanner,
                 isHovered: _isHovered,
-                color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+                color: DesignTokens.onyx,
                 size: 20,
               ),
             ),
@@ -611,9 +679,10 @@ class _ViewPrinterButtonState extends State<_ViewPrinterButton> {
           child: Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: DesignTokens.accentYellow,
               shape: BoxShape.circle,
+              boxShadow: DesignTokens.shadowCard,
             ),
             child: Center(
               child: AnimatedLineIcon(
