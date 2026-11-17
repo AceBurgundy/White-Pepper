@@ -93,6 +93,8 @@ class _Printer3DVisualState extends State<Printer3DVisual>
   }
 }
 
+/// Isometric 3D painter utilizing a unified 3D coordinate projection system
+/// to eliminate dimensional mismatches, crooked slopes, and misaligned corners.
 class _Printer3DIsometricPainter extends CustomPainter {
   const _Printer3DIsometricPainter({
     required this.status,
@@ -109,277 +111,545 @@ class _Printer3DIsometricPainter extends CustomPainter {
     final double canvasWidth = canvasSize.width;
     final double canvasHeight = canvasSize.height;
 
-    // Base coordinate anchors calibrated for an isometric 2.5D view
-    final double originX = canvasWidth * 0.50;
-    final double originY = canvasHeight * 0.38;
-    final double scaleRatio = canvasWidth / 150.0;
+    // Standard 30-degree isometric projection constants
+    const double projectionAngleRadians = 30.0 * (math.pi / 180.0);
+    final double cosineAngle = math.cos(projectionAngleRadians);
+    final double sineAngle = math.sin(projectionAngleRadians);
 
-    // Palette calibration (Windows 7 / HP Smart classic grey printer styling)
+    final double scaleFactor = math.min(canvasWidth / 250.0, canvasHeight / 175.0);
+    final double originX = canvasWidth * 0.50;
+    final double originY = canvasHeight * 0.62;
+
+    // Unified 3D-to-2D Isometric Projection Function.
+    // Guarantees mathematically aligned, parallel edges with zero corner discrepancies.
+    Offset project(double modelX, double modelY, double modelZ) {
+      final double projectedScreenX = originX + (modelX - modelY) * cosineAngle * scaleFactor;
+      final double projectedScreenY = originY + (modelX + modelY) * sineAngle * scaleFactor - (modelZ * scaleFactor);
+      return Offset(projectedScreenX, projectedScreenY);
+    }
+
+    // 3D Chassis Dimensions (centered on X and Y)
+    const double chassisWidth = 104.0;
+    const double chassisDepth = 72.0;
+    const double totalHeight = 36.0;
+    const double tierSplitHeight = 18.0;
+
+    final double halfWidth = chassisWidth * 0.50;
+    final double halfDepth = chassisDepth * 0.50;
+
+    // Palette calibration for classic Windows 7 / HP Smart all-in-one styling
     final bool isOffline = (status == PrinterDeviceStatus.offline);
     final bool isScanning = (status == PrinterDeviceStatus.scanning);
 
     final Color bodyTopColor = isOffline
-        ? const Color(0xFFC0C4CA)
-        : (isDarkMode ? const Color(0xFF4A5059) : const Color(0xFFE2E6EC));
-    final Color bodyFrontColor = isOffline
-        ? const Color(0xFFA0A5AC)
-        : (isDarkMode ? const Color(0xFF383D45) : const Color(0xFFB8BFC8));
-    final Color bodyLeftColor = isOffline
-        ? const Color(0xFF888D94)
-        : (isDarkMode ? const Color(0xFF2B2F36) : const Color(0xFF9EA6B2));
+        ? const Color(0xFFBCC2CA)
+        : (isDarkMode ? const Color(0xFF484F5B) : const Color(0xFFEEF2F7));
 
-    final Color lidGlassBorder = isOffline
-        ? const Color(0xFF7A7F86)
-        : (isDarkMode ? const Color(0xFF1E2126) : const Color(0xFF707782));
-    final Color platenGlassBed = isOffline
-        ? const Color(0xFF90969E)
-        : (isDarkMode ? const Color(0xFF15181C) : const Color(0xFFCBD2DA));
+    final Color bodyFrontLowerColor = isOffline
+        ? const Color(0xFF9EA4AD)
+        : (isDarkMode ? const Color(0xFF343942) : const Color(0xFFD4D9E2));
 
-    // 1. Soft Elliptical Drop Shadow on the workstation surface
+    final Color bodyFrontUpperColor = isOffline
+        ? const Color(0xFFA6ACB6)
+        : (isDarkMode ? const Color(0xFF3C424C) : const Color(0xFFDEE4ED));
+
+    final Color bodyRightColor = isOffline
+        ? const Color(0xFF888E96)
+        : (isDarkMode ? const Color(0xFF282C34) : const Color(0xFFBDC6D2));
+
+    final Color seamLineColor = isOffline
+        ? const Color(0xFF6E747C)
+        : (isDarkMode ? const Color(0xFF1B1E24) : const Color(0xFF96A1AF));
+
+    final Color slotCavityColor = const Color(0xFF15181D);
+
+    final Color trayBodyColor = isOffline
+        ? const Color(0xFF7E848C)
+        : (isDarkMode ? const Color(0xFF242830) : const Color(0xFF8E98A6));
+
+    final Color platenBorderColor = isOffline
+        ? const Color(0xFF6E747C)
+        : (isDarkMode ? const Color(0xFF22262C) : const Color(0xFF717985));
+
+    final Color platenGlassColor = isOffline
+        ? const Color(0xFF8E949D)
+        : (isDarkMode ? const Color(0xFF16191E) : const Color(0xFFCBD3DC));
+
+    // 1. Soft Ground Drop Shadow on Workstation Surface
+    final Path shadowPolygon = Path();
+    final Offset shadowRearLeft = project(-halfWidth - 4.0, -halfDepth - 4.0, 0.0);
+    final Offset shadowRearRight = project(halfWidth + 14.0, -halfDepth - 4.0, 0.0);
+    final Offset shadowFrontRight = project(halfWidth + 14.0, halfDepth + 14.0, 0.0);
+    final Offset shadowFrontLeft = project(-halfWidth - 4.0, halfDepth + 14.0, 0.0);
+
+    shadowPolygon.moveTo(shadowRearLeft.dx, shadowRearLeft.dy);
+    shadowPolygon.lineTo(shadowRearRight.dx, shadowRearRight.dy);
+    shadowPolygon.lineTo(shadowFrontRight.dx, shadowFrontRight.dy);
+    shadowPolygon.lineTo(shadowFrontLeft.dx, shadowFrontLeft.dy);
+    shadowPolygon.close();
+
     final Paint shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: isDarkMode ? 0.32 : 0.14)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
+      ..color = Colors.black.withValues(alpha: isDarkMode ? 0.35 : 0.16)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10.0 * scaleFactor);
+    canvas.drawPath(shadowPolygon, shadowPaint);
 
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(originX, originY + (36.0 * scaleRatio)),
-        width: 122.0 * scaleRatio,
-        height: 44.0 * scaleRatio,
-      ),
-      shadowPaint,
+    // 2. Rear Paper Input Feeder Tray (Extends backward and upward from rear deck)
+    const double feederWidthLeft = -30.0;
+    const double feederWidthRight = 20.0;
+    const double feederDepthOffset = 22.0;
+    const double feederHeightOffset = 30.0;
+
+    final Offset feederBottomLeft = project(feederWidthLeft, -halfDepth, totalHeight);
+    final Offset feederBottomRight = project(feederWidthRight, -halfDepth, totalHeight);
+    final Offset feederTopRight = project(
+      feederWidthRight,
+      -halfDepth - feederDepthOffset,
+      totalHeight + feederHeightOffset,
+    );
+    final Offset feederTopLeft = project(
+      feederWidthLeft,
+      -halfDepth - feederDepthOffset,
+      totalHeight + feederHeightOffset,
     );
 
-    // 2. Rear Paper Input Tray (angled upward from rear top platen)
-    final Path rearTrayPath = Path();
-    rearTrayPath.moveTo(originX - (24.0 * scaleRatio), originY - (16.0 * scaleRatio));
-    rearTrayPath.lineTo(originX - (38.0 * scaleRatio), originY - (36.0 * scaleRatio));
-    rearTrayPath.lineTo(originX + (12.0 * scaleRatio), originY - (48.0 * scaleRatio));
-    rearTrayPath.lineTo(originX + (28.0 * scaleRatio), originY - (28.0 * scaleRatio));
-    rearTrayPath.close();
+    final Path feederTrayPath = Path();
+    feederTrayPath.moveTo(feederBottomLeft.dx, feederBottomLeft.dy);
+    feederTrayPath.lineTo(feederBottomRight.dx, feederBottomRight.dy);
+    feederTrayPath.lineTo(feederTopRight.dx, feederTopRight.dy);
+    feederTrayPath.lineTo(feederTopLeft.dx, feederTopLeft.dy);
+    feederTrayPath.close();
 
-    final Paint rearTrayPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF32363D) : const Color(0xFF9BA2AD);
-    canvas.drawPath(rearTrayPath, rearTrayPaint);
+    final Paint feederTrayPaint = Paint()
+      ..color = isDarkMode ? const Color(0xFF2E343D) : const Color(0xFF9EABB8);
+    canvas.drawPath(feederTrayPath, feederTrayPaint);
 
-    // Rear Paper Sheet peaking out of feeder
-    final Path rearPaperSheetPath = Path();
-    rearPaperSheetPath.moveTo(originX - (20.0 * scaleRatio), originY - (18.0 * scaleRatio));
-    rearPaperSheetPath.lineTo(originX - (32.0 * scaleRatio), originY - (34.0 * scaleRatio));
-    rearPaperSheetPath.lineTo(originX + (8.0 * scaleRatio), originY - (44.0 * scaleRatio));
-    rearPaperSheetPath.lineTo(originX + (20.0 * scaleRatio), originY - (28.0 * scaleRatio));
-    rearPaperSheetPath.close();
+    // Rear Paper Sheet Peaking out of Input Feeder
+    const double paperMargin = 4.0;
+    const double paperHeightExtra = 8.0;
 
-    final Paint rearPaperPaint = Paint()..color = const Color(0xFFF8FAFC);
-    canvas.drawPath(rearPaperSheetPath, rearPaperPaint);
+    final Offset paperBottomLeft = project(
+      feederWidthLeft + paperMargin,
+      -halfDepth + 1.0,
+      totalHeight + 1.0,
+    );
+    final Offset paperBottomRight = project(
+      feederWidthRight - paperMargin,
+      -halfDepth + 1.0,
+      totalHeight + 1.0,
+    );
+    final Offset paperTopRight = project(
+      feederWidthRight - paperMargin,
+      -halfDepth - feederDepthOffset - 4.0,
+      totalHeight + feederHeightOffset + paperHeightExtra,
+    );
+    final Offset paperTopLeft = project(
+      feederWidthLeft + paperMargin,
+      -halfDepth - feederDepthOffset - 4.0,
+      totalHeight + feederHeightOffset + paperHeightExtra,
+    );
 
-    // 3. Main Isometric Chassis Geometry
-    // Vertices:
-    // Top-Center: (originX, originY)
-    // Top-Right: (originX + 54, originY - 14)
-    // Top-Left: (originX - 54, originY - 14)
-    // Top-Back: (originX, originY - 28)
-    final double leftExtension = 52.0 * scaleRatio;
-    final double rightExtension = 52.0 * scaleRatio;
-    final double isometricPitch = 15.0 * scaleRatio;
-    final double bodyHeight = 32.0 * scaleRatio;
+    final Path paperSheetPath = Path();
+    paperSheetPath.moveTo(paperBottomLeft.dx, paperBottomLeft.dy);
+    paperSheetPath.lineTo(paperBottomRight.dx, paperBottomRight.dy);
+    paperSheetPath.lineTo(paperTopRight.dx, paperTopRight.dy);
+    paperSheetPath.lineTo(paperTopLeft.dx, paperTopLeft.dy);
+    paperSheetPath.close();
 
-    final Offset topCenterPoint = Offset(originX, originY);
-    final Offset topRightPoint = Offset(originX + rightExtension, originY - isometricPitch);
-    final Offset topBackPoint = Offset(originX, originY - (isometricPitch * 2.0));
-    final Offset topLeftPoint = Offset(originX - leftExtension, originY - isometricPitch);
+    final Paint paperSheetPaint = Paint()..color = const Color(0xFFF8FAFC);
+    canvas.drawPath(paperSheetPath, paperSheetPaint);
 
-    final Offset bottomCenterPoint = Offset(originX, originY + bodyHeight);
-    final Offset bottomRightPoint = Offset(originX + rightExtension, originY - isometricPitch + bodyHeight);
-    final Offset bottomLeftPoint = Offset(originX - leftExtension, originY - isometricPitch + bodyHeight);
+    final Paint paperBorderPaint = Paint()
+      ..color = const Color(0xFFCBD5E1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0 * scaleFactor;
+    canvas.drawPath(paperSheetPath, paperBorderPaint);
 
-    // 3A. Left Side Flank
-    final Path leftSidePath = Path();
-    leftSidePath.moveTo(topCenterPoint.dx, topCenterPoint.dy);
-    leftSidePath.lineTo(topLeftPoint.dx, topLeftPoint.dy);
-    leftSidePath.lineTo(bottomLeftPoint.dx, bottomLeftPoint.dy);
-    leftSidePath.lineTo(bottomCenterPoint.dx, bottomCenterPoint.dy);
-    leftSidePath.close();
+    // 3. Printer Chassis Right Side Flank (Facing down and right)
+    final Offset rightBottomBack = project(halfWidth, -halfDepth, 0.0);
+    final Offset rightBottomFront = project(halfWidth, halfDepth, 0.0);
+    final Offset rightTopFront = project(halfWidth, halfDepth, totalHeight);
+    final Offset rightTopBack = project(halfWidth, -halfDepth, totalHeight);
 
-    final Paint leftSidePaint = Paint()..color = bodyLeftColor;
-    canvas.drawPath(leftSidePath, leftSidePaint);
+    final Path rightSidePath = Path();
+    rightSidePath.moveTo(rightBottomBack.dx, rightBottomBack.dy);
+    rightSidePath.lineTo(rightBottomFront.dx, rightBottomFront.dy);
+    rightSidePath.lineTo(rightTopFront.dx, rightTopFront.dy);
+    rightSidePath.lineTo(rightTopBack.dx, rightTopBack.dy);
+    rightSidePath.close();
 
-    // Subtle side ventilation / texture grooves
+    final Paint rightSidePaint = Paint()..color = bodyRightColor;
+    canvas.drawPath(rightSidePath, rightSidePaint);
+
+    // Right Side Tier Separation Seam Line
+    final Offset rightSeamBack = project(halfWidth, -halfDepth, tierSplitHeight);
+    final Offset rightSeamFront = project(halfWidth, halfDepth, tierSplitHeight);
+    final Paint seamPaint = Paint()
+      ..color = seamLineColor
+      ..strokeWidth = 1.4 * scaleFactor;
+    canvas.drawLine(rightSeamBack, rightSeamFront, seamPaint);
+
+    // Right Side Texture Grooves (parallel to bottom edge)
     final Paint groovePaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.12)
-      ..strokeWidth = 1.2 * scaleRatio
-      ..style = PaintingStyle.stroke;
+      ..color = Colors.black.withValues(alpha: 0.15)
+      ..strokeWidth = 1.0 * scaleFactor;
 
     for (int grooveIndex = 0; grooveIndex < 3; grooveIndex++) {
-      final double verticalOffset = (10.0 + (grooveIndex * 5.0)) * scaleRatio;
-      canvas.drawLine(
-        Offset(topLeftPoint.dx + (16.0 * scaleRatio), topLeftPoint.dy + verticalOffset),
-        Offset(topCenterPoint.dx - (16.0 * scaleRatio), topCenterPoint.dy + verticalOffset),
-        groovePaint,
-      );
+      final double grooveHeight = 5.0 + (grooveIndex * 4.0);
+      final Offset grooveBack = project(halfWidth, -halfDepth + 14.0, grooveHeight);
+      final Offset grooveFront = project(halfWidth, halfDepth - 14.0, grooveHeight);
+      canvas.drawLine(grooveBack, grooveFront, groovePaint);
     }
 
-    // 3B. Front Panel (Right Facing in Isometric Angle)
-    final Path frontPanelPath = Path();
-    frontPanelPath.moveTo(topCenterPoint.dx, topCenterPoint.dy);
-    frontPanelPath.lineTo(topRightPoint.dx, topRightPoint.dy);
-    frontPanelPath.lineTo(bottomRightPoint.dx, bottomRightPoint.dy);
-    frontPanelPath.lineTo(bottomCenterPoint.dx, bottomCenterPoint.dy);
-    frontPanelPath.close();
+    // 4. Printer Chassis Front Face (Facing down and left)
+    // 4A. Lower Tier Front Face (Base Body)
+    final Offset frontLowerBottomLeft = project(-halfWidth, halfDepth, 0.0);
+    final Offset frontLowerBottomRight = project(halfWidth, halfDepth, 0.0);
+    final Offset frontLowerTopRight = project(halfWidth, halfDepth, tierSplitHeight);
+    final Offset frontLowerTopLeft = project(-halfWidth, halfDepth, tierSplitHeight);
 
-    final Paint frontPanelPaint = Paint()..color = bodyFrontColor;
-    canvas.drawPath(frontPanelPath, frontPanelPaint);
+    final Path frontLowerPath = Path();
+    frontLowerPath.moveTo(frontLowerBottomLeft.dx, frontLowerBottomLeft.dy);
+    frontLowerPath.lineTo(frontLowerBottomRight.dx, frontLowerBottomRight.dy);
+    frontLowerPath.lineTo(frontLowerTopRight.dx, frontLowerTopRight.dy);
+    frontLowerPath.lineTo(frontLowerTopLeft.dx, frontLowerTopLeft.dy);
+    frontLowerPath.close();
 
-    // Paper Output Slot (recessed dark cavity)
+    final Paint frontLowerPaint = Paint()..color = bodyFrontLowerColor;
+    canvas.drawPath(frontLowerPath, frontLowerPaint);
+
+    // 4B. Upper Tier Front Face (Scanner Chassis)
+    final Offset frontUpperTopRight = project(halfWidth, halfDepth, totalHeight);
+    final Offset frontUpperTopLeft = project(-halfWidth, halfDepth, totalHeight);
+
+    final Path frontUpperPath = Path();
+    frontUpperPath.moveTo(frontLowerTopLeft.dx, frontLowerTopLeft.dy);
+    frontUpperPath.lineTo(frontLowerTopRight.dx, frontLowerTopRight.dy);
+    frontUpperPath.lineTo(frontUpperTopRight.dx, frontUpperTopRight.dy);
+    frontUpperPath.lineTo(frontUpperTopLeft.dx, frontUpperTopLeft.dy);
+    frontUpperPath.close();
+
+    final Paint frontUpperPaint = Paint()..color = bodyFrontUpperColor;
+    canvas.drawPath(frontUpperPath, frontUpperPaint);
+
+    // Front Horizontal Tier Separation Seam
+    canvas.drawLine(frontLowerTopLeft, frontLowerTopRight, seamPaint);
+
+    // 5. Paper Output Slot (Recessed Dark Cavity in Lower Front Face)
+    const double slotWidthLeft = -28.0;
+    const double slotWidthRight = 28.0;
+    const double slotZBottom = 4.0;
+    const double slotZTop = 15.0;
+
+    final Offset slotTopLeft = project(slotWidthLeft, halfDepth, slotZTop);
+    final Offset slotTopRight = project(slotWidthRight, halfDepth, slotZTop);
+    final Offset slotBottomRight = project(slotWidthRight, halfDepth, slotZBottom);
+    final Offset slotBottomLeft = project(slotWidthLeft, halfDepth, slotZBottom);
+
     final Path outputSlotPath = Path();
-    outputSlotPath.moveTo(topCenterPoint.dx + (8.0 * scaleRatio), topCenterPoint.dy + (8.0 * scaleRatio));
-    outputSlotPath.lineTo(topRightPoint.dx - (8.0 * scaleRatio), topRightPoint.dy + (8.0 * scaleRatio));
-    outputSlotPath.lineTo(bottomRightPoint.dx - (8.0 * scaleRatio), bottomRightPoint.dy - (8.0 * scaleRatio));
-    outputSlotPath.lineTo(bottomCenterPoint.dx + (8.0 * scaleRatio), bottomCenterPoint.dy - (8.0 * scaleRatio));
+    outputSlotPath.moveTo(slotTopLeft.dx, slotTopLeft.dy);
+    outputSlotPath.lineTo(slotTopRight.dx, slotTopRight.dy);
+    outputSlotPath.lineTo(slotBottomRight.dx, slotBottomRight.dy);
+    outputSlotPath.lineTo(slotBottomLeft.dx, slotBottomLeft.dy);
     outputSlotPath.close();
 
-    final Paint slotPaint = Paint()..color = const Color(0xFF1E2126);
+    final Paint slotPaint = Paint()..color = slotCavityColor;
     canvas.drawPath(outputSlotPath, slotPaint);
 
-    // Front Paper Output Tray extending forward
-    final Path outputTrayExtension = Path();
-    outputTrayExtension.moveTo(bottomCenterPoint.dx + (12.0 * scaleRatio), bottomCenterPoint.dy - (10.0 * scaleRatio));
-    outputTrayExtension.lineTo(bottomRightPoint.dx - (14.0 * scaleRatio), bottomRightPoint.dy - (10.0 * scaleRatio));
-    outputTrayExtension.lineTo(bottomRightPoint.dx - (4.0 * scaleRatio), bottomRightPoint.dy + (4.0 * scaleRatio));
-    outputTrayExtension.lineTo(bottomCenterPoint.dx + (22.0 * scaleRatio), bottomCenterPoint.dy + (4.0 * scaleRatio));
-    outputTrayExtension.close();
+    // 6. Paper Output Tray Extending Forward from Bottom of Slot
+    const double trayForwardExtension = 22.0;
 
-    final Paint outputTrayPaint = Paint()
-      ..color = isDarkMode ? const Color(0xFF282C32) : const Color(0xFF8F97A3);
-    canvas.drawPath(outputTrayExtension, outputTrayPaint);
+    final Offset trayBaseLeft = project(slotWidthLeft + 2.0, halfDepth, slotZBottom);
+    final Offset trayBaseRight = project(slotWidthRight - 2.0, halfDepth, slotZBottom);
+    final Offset trayTipRight = project(
+      slotWidthRight - 2.0,
+      halfDepth + trayForwardExtension,
+      slotZBottom - 1.0,
+    );
+    final Offset trayTipLeft = project(
+      slotWidthLeft + 2.0,
+      halfDepth + trayForwardExtension,
+      slotZBottom - 1.0,
+    );
 
-    // 3C. Top Deck / Scanner Platen Frame
+    final Path outputTrayPath = Path();
+    outputTrayPath.moveTo(trayBaseLeft.dx, trayBaseLeft.dy);
+    outputTrayPath.lineTo(trayBaseRight.dx, trayBaseRight.dy);
+    outputTrayPath.lineTo(trayTipRight.dx, trayTipRight.dy);
+    outputTrayPath.lineTo(trayTipLeft.dx, trayTipLeft.dy);
+    outputTrayPath.close();
+
+    final Paint trayPaint = Paint()..color = trayBodyColor;
+    canvas.drawPath(outputTrayPath, trayPaint);
+
+    // Front Catch Lip on Tray Tip
+    final Offset trayLipLeft = project(
+      slotWidthLeft + 2.0,
+      halfDepth + trayForwardExtension,
+      slotZBottom + 2.5,
+    );
+    final Offset trayLipRight = project(
+      slotWidthRight - 2.0,
+      halfDepth + trayForwardExtension,
+      slotZBottom + 2.5,
+    );
+
+    final Path trayLipPath = Path();
+    trayLipPath.moveTo(trayTipLeft.dx, trayTipLeft.dy);
+    trayLipPath.lineTo(trayTipRight.dx, trayTipRight.dy);
+    trayLipPath.lineTo(trayLipRight.dx, trayLipRight.dy);
+    trayLipPath.lineTo(trayLipLeft.dx, trayLipLeft.dy);
+    trayLipPath.close();
+
+    final Paint trayLipPaint = Paint()
+      ..color = isDarkMode ? const Color(0xFF1E2228) : const Color(0xFF7A8492);
+    canvas.drawPath(trayLipPath, trayLipPaint);
+
+    // Printed Document Sheet Resting on Output Tray
+    final Offset printedDocBaseLeft = project(slotWidthLeft + 6.0, halfDepth + 2.0, slotZBottom + 0.5);
+    final Offset printedDocBaseRight = project(slotWidthRight - 6.0, halfDepth + 2.0, slotZBottom + 0.5);
+    final Offset printedDocTipRight = project(
+      slotWidthRight - 6.0,
+      halfDepth + trayForwardExtension - 2.0,
+      slotZBottom - 0.5,
+    );
+    final Offset printedDocTipLeft = project(
+      slotWidthLeft + 6.0,
+      halfDepth + trayForwardExtension - 2.0,
+      slotZBottom - 0.5,
+    );
+
+    final Path printedDocPath = Path();
+    printedDocPath.moveTo(printedDocBaseLeft.dx, printedDocBaseLeft.dy);
+    printedDocPath.lineTo(printedDocBaseRight.dx, printedDocBaseRight.dy);
+    printedDocPath.lineTo(printedDocTipRight.dx, printedDocTipRight.dy);
+    printedDocPath.lineTo(printedDocTipLeft.dx, printedDocTipLeft.dy);
+    printedDocPath.close();
+
+    final Paint printedDocPaint = Paint()..color = const Color(0xFFF8FAFC);
+    canvas.drawPath(printedDocPath, printedDocPaint);
+
+    // Subtle printed text lines on the output document
+    final Paint printedTextPaint = Paint()
+      ..color = const Color(0xFF94A3B8)
+      ..strokeWidth = 1.0 * scaleFactor;
+
+    for (int textLineIndex = 0; textLineIndex < 3; textLineIndex++) {
+      final double lineForwardOffset = 6.0 + (textLineIndex * 4.0);
+      final Offset textLineLeft = project(
+        slotWidthLeft + 10.0,
+        halfDepth + lineForwardOffset,
+        slotZBottom + 0.2,
+      );
+      final Offset textLineRight = project(
+        slotWidthRight - 10.0,
+        halfDepth + lineForwardOffset,
+        slotZBottom + 0.2,
+      );
+      canvas.drawLine(textLineLeft, textLineRight, printedTextPaint);
+    }
+
+    // 7. Top Deck / Scanner Platen Frame (Top Horizontal Plane at z = totalHeight)
+    final Offset deckFrontRight = project(halfWidth, halfDepth, totalHeight);
+    final Offset deckBackRight = project(halfWidth, -halfDepth, totalHeight);
+    final Offset deckBackLeft = project(-halfWidth, -halfDepth, totalHeight);
+    final Offset deckFrontLeft = project(-halfWidth, halfDepth, totalHeight);
+
     final Path topDeckPath = Path();
-    topDeckPath.moveTo(topCenterPoint.dx, topCenterPoint.dy);
-    topDeckPath.lineTo(topRightPoint.dx, topRightPoint.dy);
-    topDeckPath.lineTo(topBackPoint.dx, topBackPoint.dy);
-    topDeckPath.lineTo(topLeftPoint.dx, topLeftPoint.dy);
+    topDeckPath.moveTo(deckFrontRight.dx, deckFrontRight.dy);
+    topDeckPath.lineTo(deckBackRight.dx, deckBackRight.dy);
+    topDeckPath.lineTo(deckBackLeft.dx, deckBackLeft.dy);
+    topDeckPath.lineTo(deckFrontLeft.dx, deckFrontLeft.dy);
     topDeckPath.close();
 
     final Paint topDeckPaint = Paint()..color = bodyTopColor;
     canvas.drawPath(topDeckPath, topDeckPaint);
 
-    // 4. Scanner Platen Glass Bed (Beveled inner rectangle)
-    final double platenInset = 8.0 * scaleRatio;
-    final Offset glassFront = Offset(topCenterPoint.dx, topCenterPoint.dy - (platenInset * 0.8));
-    final Offset glassRight = Offset(topRightPoint.dx - platenInset, topRightPoint.dy);
-    final Offset glassBack = Offset(topBackPoint.dx, topBackPoint.dy + (platenInset * 0.8));
-    final Offset glassLeft = Offset(topLeftPoint.dx + platenInset, topLeftPoint.dy);
+    // Subtle edge bevel line separating top deck from vertical faces
+    final Paint bevelPaint = Paint()
+      ..color = Colors.white.withValues(alpha: isDarkMode ? 0.12 : 0.45)
+      ..strokeWidth = 1.0 * scaleFactor;
+    canvas.drawLine(deckFrontLeft, deckFrontRight, bevelPaint);
+    canvas.drawLine(deckFrontRight, deckBackRight, bevelPaint);
 
-    final Path glassBorderPath = Path();
-    glassBorderPath.moveTo(glassFront.dx, glassFront.dy);
-    glassBorderPath.lineTo(glassRight.dx, glassRight.dy);
-    glassBorderPath.lineTo(glassBack.dx, glassBack.dy);
-    glassBorderPath.lineTo(glassLeft.dx, glassLeft.dy);
-    glassBorderPath.close();
+    // 8. Scanner Platen Glass Bed (Uniform 8-unit inset on all 4 edges)
+    const double platenInsetX = 8.0;
+    const double platenInsetY = 8.0;
 
-    final Paint glassBorderPaint = Paint()..color = lidGlassBorder;
-    canvas.drawPath(glassBorderPath, glassBorderPaint);
-
-    final Path glassBedPath = Path();
-    final double innerInset = 2.5 * scaleRatio;
-    glassBedPath.moveTo(glassFront.dx, glassFront.dy - innerInset);
-    glassBedPath.lineTo(glassRight.dx - innerInset, glassRight.dy);
-    glassBedPath.lineTo(glassBack.dx, glassBack.dy + innerInset);
-    glassBedPath.lineTo(glassLeft.dx + innerInset, glassLeft.dy);
-    glassBedPath.close();
-
-    final Paint glassBedPaint = Paint()..color = platenGlassBed;
-    canvas.drawPath(glassBedPath, glassBedPaint);
-
-    // Subtle glass surface reflection sheen
-    final Path reflectionPath = Path();
-    reflectionPath.moveTo(glassLeft.dx + (4.0 * scaleRatio), glassLeft.dy);
-    reflectionPath.lineTo(glassLeft.dx + (22.0 * scaleRatio), glassLeft.dy + (5.0 * scaleRatio));
-    reflectionPath.lineTo(glassBack.dx + (6.0 * scaleRatio), glassBack.dy + (6.0 * scaleRatio));
-    reflectionPath.lineTo(glassBack.dx - (8.0 * scaleRatio), glassBack.dy + (2.0 * scaleRatio));
-    reflectionPath.close();
-
-    final Paint reflectionPaint = Paint()
-      ..color = Colors.white.withValues(alpha: isDarkMode ? 0.08 : 0.28);
-    canvas.drawPath(reflectionPath, reflectionPaint);
-
-    // 5. Active Optical Scanner Light Bar (When scanning)
-    if (isScanning) {
-      final double scanSweep = animationProgress;
-      // Interpolate along the platen axes
-      final double scanFrontX = glassLeft.dx + ((glassFront.dx - glassLeft.dx) * scanSweep);
-      final double scanFrontY = glassLeft.dy + ((glassFront.dy - glassLeft.dy) * scanSweep);
-      final double scanBackX = glassBack.dx + ((glassRight.dx - glassBack.dx) * scanSweep);
-      final double scanBackY = glassBack.dy + ((glassRight.dy - glassBack.dy) * scanSweep);
-
-      // Cyan laser line
-      final Paint scanBeamPaint = Paint()
-        ..color = const Color(0xFF00E5FF)
-        ..strokeWidth = 2.4 * scaleRatio
-        ..style = PaintingStyle.stroke;
-
-      canvas.drawLine(
-        Offset(scanFrontX, scanFrontY),
-        Offset(scanBackX, scanBackY),
-        scanBeamPaint,
-      );
-
-      // Soft optical glow fan
-      final Paint scanGlowPaint = Paint()
-        ..color = const Color(0xFF00E5FF).withValues(alpha: 0.35)
-        ..strokeWidth = 7.0 * scaleRatio
-        ..style = PaintingStyle.stroke
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
-
-      canvas.drawLine(
-        Offset(scanFrontX, scanFrontY),
-        Offset(scanBackX, scanBackY),
-        scanGlowPaint,
-      );
-    }
-
-    // 6. Power Button and Status LED Beacon on Front Panel
-    final Offset ledPosition = Offset(
-      topCenterPoint.dx + (14.0 * scaleRatio),
-      topCenterPoint.dy + (4.5 * scaleRatio),
+    final Offset glassFrontRight = project(
+      halfWidth - platenInsetX,
+      halfDepth - platenInsetY,
+      totalHeight,
+    );
+    final Offset glassBackRight = project(
+      halfWidth - platenInsetX,
+      -halfDepth + platenInsetY,
+      totalHeight,
+    );
+    final Offset glassBackLeft = project(
+      -halfWidth + platenInsetX,
+      -halfDepth + platenInsetY,
+      totalHeight,
+    );
+    final Offset glassFrontLeft = project(
+      -halfWidth + platenInsetX,
+      halfDepth - platenInsetY,
+      totalHeight,
     );
 
-    final Color statusLedColor = switch (status) {
-      PrinterDeviceStatus.ready => const Color(0xFF10B981), // Bright emerald green
-      PrinterDeviceStatus.scanning => const Color(0xFF00E5FF), // Active cyan
-      PrinterDeviceStatus.standby => const Color(0xFFF59E0B), // Warm amber
-      PrinterDeviceStatus.offline => const Color(0xFFEF4444), // Disconnected red
+    final Path glassBorderPath = Path();
+    glassBorderPath.moveTo(glassFrontRight.dx, glassFrontRight.dy);
+    glassBorderPath.lineTo(glassBackRight.dx, glassBackRight.dy);
+    glassBorderPath.lineTo(glassBackLeft.dx, glassBackLeft.dy);
+    glassBorderPath.lineTo(glassFrontLeft.dx, glassFrontLeft.dy);
+    glassBorderPath.close();
+
+    final Paint glassBorderPaint = Paint()..color = platenBorderColor;
+    canvas.drawPath(glassBorderPath, glassBorderPaint);
+
+    // Inner Glass Bed
+    const double innerPlatenInset = 2.0;
+    final Offset innerGlassFrontRight = project(
+      halfWidth - platenInsetX - innerPlatenInset,
+      halfDepth - platenInsetY - innerPlatenInset,
+      totalHeight,
+    );
+    final Offset innerGlassBackRight = project(
+      halfWidth - platenInsetX - innerPlatenInset,
+      -halfDepth + platenInsetY + innerPlatenInset,
+      totalHeight,
+    );
+    final Offset innerGlassBackLeft = project(
+      -halfWidth + platenInsetX + innerPlatenInset,
+      -halfDepth + platenInsetY + innerPlatenInset,
+      totalHeight,
+    );
+    final Offset innerGlassFrontLeft = project(
+      -halfWidth + platenInsetX + innerPlatenInset,
+      halfDepth - platenInsetY - innerPlatenInset,
+      totalHeight,
+    );
+
+    final Path innerGlassPath = Path();
+    innerGlassPath.moveTo(innerGlassFrontRight.dx, innerGlassFrontRight.dy);
+    innerGlassPath.lineTo(innerGlassBackRight.dx, innerGlassBackRight.dy);
+    innerGlassPath.lineTo(innerGlassBackLeft.dx, innerGlassBackLeft.dy);
+    innerGlassPath.lineTo(innerGlassFrontLeft.dx, innerGlassFrontLeft.dy);
+    innerGlassPath.close();
+
+    final Paint innerGlassPaint = Paint()..color = platenGlassColor;
+    canvas.drawPath(innerGlassPath, innerGlassPaint);
+
+    // Specular Glass Sheen Reflection
+    final Offset sheenStartOne = project(
+      -halfWidth + platenInsetX + 6.0,
+      halfDepth - platenInsetY - 2.0,
+      totalHeight + 0.1,
+    );
+    final Offset sheenStartTwo = project(
+      -halfWidth + platenInsetX + 22.0,
+      halfDepth - platenInsetY - 2.0,
+      totalHeight + 0.1,
+    );
+    final Offset sheenEndTwo = project(
+      -halfWidth + platenInsetX + 44.0,
+      -halfDepth + platenInsetY + 2.0,
+      totalHeight + 0.1,
+    );
+    final Offset sheenEndOne = project(
+      -halfWidth + platenInsetX + 28.0,
+      -halfDepth + platenInsetY + 2.0,
+      totalHeight + 0.1,
+    );
+
+    final Path sheenPath = Path();
+    sheenPath.moveTo(sheenStartOne.dx, sheenStartOne.dy);
+    sheenPath.lineTo(sheenStartTwo.dx, sheenStartTwo.dy);
+    sheenPath.lineTo(sheenEndTwo.dx, sheenEndTwo.dy);
+    sheenPath.lineTo(sheenEndOne.dx, sheenEndOne.dy);
+    sheenPath.close();
+
+    final Paint sheenPaint = Paint()
+      ..color = Colors.white.withValues(alpha: isDarkMode ? 0.08 : 0.28);
+    canvas.drawPath(sheenPath, sheenPaint);
+
+    // 9. Active Optical Scanner Laser Bar (When Scanning)
+    if (isScanning) {
+      final double scanSweepMargin = platenInsetX + innerPlatenInset + 2.0;
+      final double scanAvailableWidth = chassisWidth - (scanSweepMargin * 2.0);
+      final double currentScanX = (-halfWidth + scanSweepMargin) + (scanAvailableWidth * animationProgress);
+
+      final Offset laserFrontPoint = project(
+        currentScanX,
+        halfDepth - platenInsetY - innerPlatenInset,
+        totalHeight + 0.2,
+      );
+      final Offset laserBackPoint = project(
+        currentScanX,
+        -halfDepth + platenInsetY + innerPlatenInset,
+        totalHeight + 0.2,
+      );
+
+      // Cyan Core Laser Line
+      final Paint laserBeamPaint = Paint()
+        ..color = const Color(0xFF00E5FF)
+        ..strokeWidth = 2.4 * scaleFactor
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(laserFrontPoint, laserBackPoint, laserBeamPaint);
+
+      // Neon Optical Glow Fan
+      final Paint laserGlowPaint = Paint()
+        ..color = const Color(0xFF00E5FF).withValues(alpha: 0.35)
+        ..strokeWidth = 7.0 * scaleFactor
+        ..style = PaintingStyle.stroke
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4.0 * scaleFactor);
+      canvas.drawLine(laserFrontPoint, laserBackPoint, laserGlowPaint);
+    }
+
+    // 10. Front Control Panel: Status LED Beacon & LCD Display Strip
+    final Offset statusLedCenter = project(-halfWidth + 14.0, halfDepth, tierSplitHeight + 9.0);
+
+    final Color statusBeaconColor = switch (status) {
+      PrinterDeviceStatus.ready => const Color(0xFF10B981),
+      PrinterDeviceStatus.scanning => const Color(0xFF00E5FF),
+      PrinterDeviceStatus.standby => const Color(0xFFF59E0B),
+      PrinterDeviceStatus.offline => const Color(0xFFEF4444),
     };
 
-    // LED Glow Halo
-    final double pulseScale = (status == PrinterDeviceStatus.ready || status == PrinterDeviceStatus.scanning)
+    // Soft Pulse Halo when ready or scanning
+    final double pulseRatio = (status == PrinterDeviceStatus.ready || status == PrinterDeviceStatus.scanning)
         ? (0.85 + (0.30 * math.sin(animationProgress * math.pi)))
         : 1.0;
 
-    final Paint glowPaint = Paint()
-      ..color = statusLedColor.withValues(alpha: isOffline ? 0.25 : (0.50 * pulseScale))
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+    final Paint haloPaint = Paint()
+      ..color = statusBeaconColor.withValues(alpha: isOffline ? 0.20 : (0.45 * pulseRatio))
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3.5 * scaleFactor);
+    canvas.drawCircle(statusLedCenter, 4.5 * scaleFactor * pulseRatio, haloPaint);
 
-    canvas.drawCircle(ledPosition, 4.2 * scaleRatio * pulseScale, glowPaint);
+    final Paint ledCorePaint = Paint()..color = statusBeaconColor;
+    canvas.drawCircle(statusLedCenter, 2.2 * scaleFactor, ledCorePaint);
 
-    // Crisp Center LED
-    final Paint ledCenterPaint = Paint()..color = statusLedColor;
-    canvas.drawCircle(ledPosition, 2.2 * scaleRatio, ledCenterPaint);
+    // Minimalist LCD Display Strip on Upper Front Face
+    final Offset displayTopLeft = project(-halfWidth + 24.0, halfDepth, tierSplitHeight + 13.0);
+    final Offset displayTopRight = project(-halfWidth + 48.0, halfDepth, tierSplitHeight + 13.0);
+    final Offset displayBottomRight = project(-halfWidth + 48.0, halfDepth, tierSplitHeight + 5.0);
+    final Offset displayBottomLeft = project(-halfWidth + 24.0, halfDepth, tierSplitHeight + 5.0);
 
-    // 7. Minimalist Front LCD / Controls Strip
-    final Paint buttonStripPaint = Paint()..color = Colors.black.withValues(alpha: 0.22);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          topCenterPoint.dx + (24.0 * scaleRatio),
-          topCenterPoint.dy + (2.5 * scaleRatio),
-          16.0 * scaleRatio,
-          4.0 * scaleRatio,
-        ),
-        Radius.circular(2.0 * scaleRatio),
-      ),
-      buttonStripPaint,
-    );
+    final Path displayStripPath = Path();
+    displayStripPath.moveTo(displayTopLeft.dx, displayTopLeft.dy);
+    displayStripPath.lineTo(displayTopRight.dx, displayTopRight.dy);
+    displayStripPath.lineTo(displayBottomRight.dx, displayBottomRight.dy);
+    displayStripPath.lineTo(displayBottomLeft.dx, displayBottomLeft.dy);
+    displayStripPath.close();
+
+    final Paint displayPaint = Paint()
+      ..color = isDarkMode ? const Color(0xFF1A1D22) : const Color(0xFF22262D);
+    canvas.drawPath(displayStripPath, displayPaint);
+
+    // Subtle LCD backlight indicator dot inside display
+    final Offset displayIndicatorDot = project(-halfWidth + 28.0, halfDepth, tierSplitHeight + 9.0);
+    final Paint displayDotPaint = Paint()
+      ..color = statusBeaconColor.withValues(alpha: 0.75);
+    canvas.drawCircle(displayIndicatorDot, 1.2 * scaleFactor, displayDotPaint);
   }
 
   @override
