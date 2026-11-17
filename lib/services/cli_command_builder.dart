@@ -59,7 +59,7 @@ class CliCommandBuilder {
           config.colorMode,
           '--format',
           config.format,
-          '--output-dir',
+          '--output-directory',
           config.outputDirectory,
         ];
         if (config.intent != 'document') {
@@ -117,7 +117,7 @@ class CliCommandBuilder {
           'png',
           '--background',
           'transparent',
-          '--output-dir',
+          '--output-directory',
           config.outputDirectory,
           '--safety-inset-mm',
           '${config.safetyInsetMm}',
@@ -145,7 +145,7 @@ class CliCommandBuilder {
           config.colorMode,
           '--format',
           config.format,
-          '--output-dir',
+          '--output-directory',
           config.outputDirectory,
         ];
         if (config.fileNamePrefix.trim().isNotEmpty) {
@@ -185,7 +185,7 @@ class CliCommandBuilder {
       config.colorMode,
       '--format',
       'png',
-      '--output-dir',
+      '--output-directory',
       stagingDirectoryPath,
       '--prefix',
       pagePrefix,
@@ -224,7 +224,7 @@ class CliCommandBuilder {
         : '$cleanPrefix.pdf';
     final List<String> args = [
       'compile-pdf',
-      '--input-dir',
+      '--input-directory',
       stagingDirectoryPath,
       '--output-file',
       p.join(config.outputDirectory, targetPdfFileName),

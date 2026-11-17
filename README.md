@@ -107,13 +107,13 @@ White Pepper decouples frontend user interactions from hardware acquisition. The
 
 ```powershell
 # Execute direct flatbed scan from the command line
-python scripts/scan_cli.py flatbed --paper-size a4 --dpi 300 --color-mode color --format pdf
+python scripts/scan_cli.py flatbed --paper-size a4 --dpi 300 --color-mode color --format pdf --output-directory D:\Pictures\Scanned
 
 # Batch extract and deskew ID cards with transparent rounded corners
-python scripts/process_cli.py cards --input-dir D:\Pictures\Scanned --dpi 600 --background transparent
+python scripts/process_cli.py cards --input-directory D:\Pictures\Scanned --output-directory D:\Pictures\Scanned\cards --dpi 600 --background transparent
 
 # Multi-image virtual-paper PDF compilation
-python scripts/process_cli.py compile-pdf --input-dir D:\Pictures\Scanned --output document.pdf --paper-size a4 --fit-mode contain
+python scripts/process_cli.py compile-pdf --input-directory D:\Pictures\Scanned --output-file document.pdf --paper-size a4 --fit-mode contain
 ```
 
 ---

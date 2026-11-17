@@ -97,7 +97,7 @@ void main() {
 
       expect(plan.scriptRelativePath, contains('scan_cli.py'));
       expect(plan.arguments, contains('flatbed'));
-      expect(plan.arguments, contains('--output-dir'));
+      expect(plan.arguments, contains('--output-directory'));
       expect(plan.arguments, contains('C:\\temp\\staging_pdf_123'));
       expect(plan.arguments, contains('--prefix'));
       expect(plan.arguments, contains('page_02'));
@@ -121,7 +121,7 @@ void main() {
 
       expect(plan.scriptRelativePath, contains('process_cli.py'));
       expect(plan.arguments, contains('compile-pdf'));
-      expect(plan.arguments, contains('--input-dir'));
+      expect(plan.arguments, contains('--input-directory'));
       expect(plan.arguments, contains('D:\\Pictures\\Scanned\\.staging_pdf_123'));
       expect(plan.arguments, contains('--output-file'));
       expect(plan.arguments, contains('D:\\Pictures\\Scanned\\Tax_Document.pdf'));
