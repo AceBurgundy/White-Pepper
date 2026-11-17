@@ -121,16 +121,16 @@ python scripts/process_cli.py cards --input-dir D:\Pictures\Scanned --dpi 600 --
 
 ---
 
-## 📸 Screenshot Inventory & Capture Guide for Updates
+## 📸 System Interface Gallery & Visual Reference
 
-To update the README visuals with the latest UI enhancements, capture screenshots of the following windows/sections and save them into the `images/` directory:
+The official application screenshots illustrate White Pepper's visual hierarchy, adaptive theming, and real-time vision feedback:
 
-| Filename | Target Window / Screen | Recommended Theme | Key Elements to Showcase |
+| View Reference | Screen / Window | Theme | Key Elements Showcased |
 | :--- | :--- | :--- | :--- |
-| `preview_desktop_ui.png` | **Main Dashboard Screen** | **Night Mode** | Inverted pure white printer card on the left with C/M/Y/K ink levels; the 5 workflow cards on the right (Basic Scan, Card Scan, Custom Region, Batch Scan, Legal 2-Pass Stitch); frameless title bar. |
-| `preview_options_deck.png` | **Options Control Deck** | **Day or Night Mode** | Optical Platen Canvas on the left showing proportional paper sizing, DPI checkered density tiles, crop margin brackets, and color mode strip; borderless PeaPod drawer on the right. |
-| `preview_instructions.png` | **Instructions Screen** (e.g., Card Scan) | **Day or Night Mode** | Organic wavy header divider; guided placement instructions ("Front Down on corner with 0.5\" space"); animated progress trigger button; live streaming console terminal output. |
-| `hardware_banner.png` | **View Printer Modal** | **Day or Night Mode** | "Printer Information & Capabilities" dialog showing Cyan/Magenta/Yellow/Black ink bars, connection endpoint, and diagnostic check status. |
+| [`preview_desktop_ui.png`](images/preview_desktop_ui.png) | **Main Dashboard Screen** | **Night Mode** | Inverted pure white printer card on the left with C/M/Y/K ink levels; the 5 curated workflow cards on the right (Basic Scan, Card Scan, Custom Region, Batch Scan, Legal 2-Pass Stitch); frameless title bar. |
+| [`preview_options_deck.png`](images/preview_options_deck.png) | **Options Control Deck** | **Night Mode** | Optical Platen Canvas on the left showing proportional paper sizing, DPI checkered density tiles, crop margin brackets, and color mode strip; borderless PeaPod drawer on the right. |
+| [`preview_instructions.png`](images/preview_instructions.png) | **Instructions Screen** (Card Scan) | **Night Mode** | Organic wavy header divider; guided placement instructions (*"Front Down on corner with 0.5\" space"*); animated progress trigger button; live streaming console terminal output. |
+| [`hardware_banner.png`](images/hardware_banner.png) | **View Printer Modal** | **Night Mode** | "Printer Information & Capabilities" dialog showing Cyan/Magenta/Yellow/Black ink bars, connection endpoint, and diagnostic check status. |
 
 ---
 
