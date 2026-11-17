@@ -99,38 +99,22 @@ Each workflow presents guided, step-by-step physical placement instructions (suc
 
 Tapping **View Printer** reveals live C/M/Y/K ink level gauges, scanner model identity, and diagnostic check items. The **Switch Scanner** modal scans your local network subnet and USB ports to present all detected scanning devices for instant auto-pairing.
 
-### 5️⃣ Virtual-Paper PDF Compiler & Presets 📑
+---
 
-![PDF Compilation & Presets](images/pdf_banner.png)
+## ⚡ Headless CLI Engine & Protocol Abstraction
 
-Compile raw scan captures into publication-ready PDF documents with virtual paper sizing (`A4`, `Letter`, `Legal`, `A5`, `Photo`), customizable margins, JPEG compression quality, and four fit modes (`contain`, `fill`, `stretch`, `original`).
-
-### 6️⃣ Headless CLI Engine & Protocol Abstraction ⚡
-
-![White Pepper CLI Engine](images/preview_cli_engine.png)
-
-White Pepper decouples frontend user interactions from hardware acquisition. The bundled CLI engine (`scripts/`) runs out-of-process, interfacing directly with eSCL HTTP/XML endpoints and native Windows WIA COM interfaces, streaming progress back to the Flutter UI in real time.
+White Pepper decouples frontend user interactions from hardware acquisition. The bundled CLI engine (`scripts/`) runs out-of-process, interfacing directly with eSCL HTTP/XML endpoints and native Windows WIA COM interfaces, streaming progress back to the Flutter UI in real time:
 
 ```powershell
 # Execute direct flatbed scan from the command line
 python scripts/scan_cli.py flatbed --paper-size a4 --dpi 300 --color-mode color --format pdf
 
-# Batch extract and deskew ID cards
-python scripts/process_cli.py cards --input-dir D:\Pictures\Scanned --dpi 600 --background white
+# Batch extract and deskew ID cards with transparent rounded corners
+python scripts/process_cli.py cards --input-dir D:\Pictures\Scanned --dpi 600 --background transparent
+
+# Multi-image virtual-paper PDF compilation
+python scripts/process_cli.py compile-pdf --input-dir D:\Pictures\Scanned --output document.pdf --paper-size a4 --fit-mode contain
 ```
-
----
-
-## 📸 System Interface Gallery & Visual Reference
-
-The official application screenshots illustrate White Pepper's visual hierarchy, adaptive theming, and real-time vision feedback:
-
-| View Reference | Screen / Window | Theme | Key Elements Showcased |
-| :--- | :--- | :--- | :--- |
-| [`preview_desktop_ui.png`](images/preview_desktop_ui.png) | **Main Dashboard Screen** | **Night Mode** | Inverted pure white printer card on the left with C/M/Y/K ink levels; the 5 curated workflow cards on the right (Basic Scan, Card Scan, Custom Region, Batch Scan, Legal 2-Pass Stitch); frameless title bar. |
-| [`preview_options_deck.png`](images/preview_options_deck.png) | **Options Control Deck** | **Night Mode** | Optical Platen Canvas on the left showing proportional paper sizing, DPI checkered density tiles, crop margin brackets, and color mode strip; borderless PeaPod drawer on the right. |
-| [`preview_instructions.png`](images/preview_instructions.png) | **Instructions Screen** (Card Scan) | **Night Mode** | Organic wavy header divider; guided placement instructions (*"Front Down on corner with 0.5\" space"*); animated progress trigger button; live streaming console terminal output. |
-| [`hardware_banner.png`](images/hardware_banner.png) | **View Printer Modal** | **Night Mode** | "Printer Information & Capabilities" dialog showing Cyan/Magenta/Yellow/Black ink bars, connection endpoint, and diagnostic check status. |
 
 ---
 
