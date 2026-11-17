@@ -68,6 +68,28 @@ window.DOCUMENTATION_ITEMS["data/navigation-items/presets-and-dpi-calibration.js
           ]
         }
       ]
+    },
+    {
+      "tab_title": "Platen Preview Visualization",
+      "icon_name": "preview",
+      "section_blocks": [
+        {
+          "heading_title": "Live Optical Platen Simulation",
+          "block_type": "paragraph",
+          "paragraph_text": "The Optical Platen preview canvas renders an interactive physical simulation of the glass bed and loaded media. Rather than showing static diagrams, all parameter changes in the Pea Pod drawer produce instant visual changes on the canvas."
+        },
+        {
+          "heading_title": "Visual Simulation Engine",
+          "block_type": "table",
+          "table_headers": ["Parameter", "Canvas Visual Element", "Behavior"],
+          "table_rows": [
+            ["Optical DPI", "Real-Time Checkered Density Grid", "Cell size is dynamically computed as 2400/DPI. 75 DPI renders large, coarse pixel squares; 300 DPI renders standard document checkering; 1200 DPI renders a silky micro-mesh texture."],
+            ["Crop & Margins", "Dashed Boundary & L-Corner Brackets", "Displays graphic design registration corner marks and dashed bounding box matching the configured marginMm inset or automatic crop detection."],
+            ["Color Mode", "Discrete Sheet Surface & Swatch Strip", "RGB Color renders pure white paper with 4 CMYK color swatches; 8-bit Grayscale renders monochrome neutral gray with a 4-step ramp; 1-bit B&W renders high-contrast binary blocks and black border."],
+            ["Paper Size", "Proportional Geometry Clamping", "Renders true physical aspect ratios against platen glass: Letter uses full 8.5\" width and is much shorter than A4; A4 is narrower and slightly shorter than Full Platen."]
+          ]
+        }
+      ]
     }
   ]
 };

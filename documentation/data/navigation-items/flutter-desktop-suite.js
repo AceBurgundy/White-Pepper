@@ -68,6 +68,40 @@ window.DOCUMENTATION_ITEMS["data/navigation-items/flutter-desktop-suite.js"] = {
           "paragraph_text": "The instructions screen utilizes an organic cubic-bezier vertical wave divider separating the light physical instruction pane from the dark onyx execution pane. The right pane features guided card flip countdowns, an 84x84 circular hold-to-confirm progress trigger button, and real-time streaming CLI console output."
         }
       ]
+    },
+    {
+      "tab_title": "Interactive Controls & Vision Feedback",
+      "icon_name": "auto_awesome",
+      "section_blocks": [
+        {
+          "heading_title": "Pure Component-Level Icon Animations",
+          "block_type": "paragraph",
+          "paragraph_text": "White Pepper enforces an uncompromising interaction rule: button hover states are driven strictly by vector icon kinematics rather than background color changes, overlays, or shadow shifts. When a user hovers over an interactive component, the icon's constituent paths independently animate (e.g. the Start Scan play arrow shifts forward while an optical sweep beam passes across; the View Printer chassis emerges a printed document sheet with text lines; the PeaPod rotate icon spins with tangent-aligned wings)."
+        },
+        {
+          "heading_title": "Optical Platen Real-Time Feedback Engine",
+          "block_type": "table",
+          "table_headers": ["Feature", "Implementation", "Visual Response"],
+          "table_rows": [
+            ["DPI Checkered Grid", "_PaperDpiCheckeredPainter", "Cell size inversely proportional to DPI (2400/dpi); transitions dynamically from coarse 24px boxes at 75 DPI to a silky 3px micro-mesh at 1200 DPI"],
+            ["Crop Guidelines & Margins", "_PaperCropMarginsPainter", "Draws dashed boundary rectangle and 4 graphic design L-corner registration brackets reflecting autoCrop status and marginMm insets"],
+            ["Color Mode Representation", "_buildColorModeStrip", "Renders RGB Color (with 4 vibrant CMYK swatches), 8-bit Grayscale (discrete 10%-90% monochrome ramp), and stark 1-bit B&W line art with black border"],
+            ["Proportional Paper Scaling", "PlatenGeometryHelper", "Mathematically computes paper dimensions against physical glass bounds; A4 is narrower than Letter and shorter than Full Platen, while Letter has full platen width and is much shorter than A4"]
+          ]
+        },
+        {
+          "heading_title": "Curated 5-Workflow Matrix",
+          "block_type": "table",
+          "table_headers": ["Workflow", "Key Capabilities", "Target Output"],
+          "table_rows": [
+            ["Basic Scan", "One-touch document & photo capture with quick presets (High Quality 600 DPI, B&W Text, Quick 300 DPI)", "PDF, PNG, JPEG, TIFF"],
+            ["Card Scan", "4-inch capture window, automated ID-1 deskew, 3.18mm rounded corner clipping, transparent background PNG, front/back guided dual-pass timer", "Dual PNGs (Front/Back)"],
+            ["Batch Scan", "Continuous multi-sheet document acquisition with customizable interval timer and Stop Early trigger", "Multi-page PDF / TIFF"],
+            ["Custom Region", "Custom platen coordinate clamping (width, height, X/Y offsets) with live inch/millimeter unit switching", "Custom cropped raster/PDF"],
+            ["Legal 2-Pass Stitch", "Auto-detected for <14\" flatbed scanners; guided top/bottom scanning with feature matching and seam blending", "14.0\" Legal PDF"]
+          ]
+        }
+      ]
     }
   ]
 };

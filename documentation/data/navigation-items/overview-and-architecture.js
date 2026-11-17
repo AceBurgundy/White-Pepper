@@ -41,9 +41,9 @@ window.DOCUMENTATION_ITEMS["data/navigation-items/overview-and-architecture.js"]
           "block_type": "table",
           "table_headers": ["Component", "Technology", "Responsibility", "Location"],
           "table_rows": [
-            ["Desktop Workstation", "Flutter 3.x / Dart", "4:3 workstation GUI, live platen preview canvas, parameter editing", "lib/"],
+            ["Desktop Workstation", "Flutter 3.x / Dart", "Spacious 1180x820 GUI, live optical platen preview, parameter editing", "lib/"],
             ["Command Builder", "Dart Service", "Translates UI parameters into command-line strings (--dpi, --paper-size, etc.)", "lib/services/cli_command_builder.dart"],
-            ["Execution Bridge", "Process.start() / Stream", "Spawns Python CLI, streams stdout line-by-line, emits progress events", "lib/services/cli_execution_service.dart"],
+            ["Execution Bridge", "Process.start() / Stream", "Spawns Python CLI, streams stdout line-by-line, emits progress events", "lib/services/scanner_process_service.dart"],
             ["Headless Scanning Engine", "Python 3.10+ / OpenCV / PIL", "Physical eSCL XML / WIA transfer, dynamic DPI scaling, card vision, PDF", "scripts/"]
           ]
         }
@@ -63,8 +63,8 @@ window.DOCUMENTATION_ITEMS["data/navigation-items/overview-and-architecture.js"]
           "block_type": "table",
           "table_headers": ["Stage", "Screen", "User Actions", "System Response"],
           "table_rows": [
-            ["Stage 1: Workstation Dashboard", "DashboardScreen", "Browse 8 workflow cards, review scanner status card and ink gauges", "Polls eSCL scanner endpoint, calculates platen bounds"],
-            ["Stage 2: Options Control Deck", "OptionsScreen", "Adjust optical DPI, rotation, color exposure, crop margin in Pea Pod", "Generates live command string preview, renders 3D printer preview"],
+            ["Stage 1: Workstation Dashboard", "DashboardScreen", "Browse 5 curated workflow cards, inspect connected scanner status, ink gauges, and auto-discovery", "Polls eSCL/WIA scanner endpoints, auto-connects to active device"],
+            ["Stage 2: Options Control Deck", "OptionsScreen", "Adjust optical DPI, rotation, color mode, crop margin in Pea Pod; inspect real-time DPI checkered grid and crop guidelines", "Renders proportional platen canvas, animates icon controls, triggers workflow"],
             ["Stage 3: Guided Instructions", "InstructionsScreen", "Follow on-screen platen placement diagram, click/hold yellow trigger", "Executes Python subprocess, streams real-time console log, offers Open File/Folder"]
           ]
         }
