@@ -143,10 +143,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       key: const ValueKey<String>('screen_dashboard'),
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool isCompact = (constraints.maxWidth < 740 || constraints.maxHeight < 640);
-        final double topMargin = isCompact ? 16.0 : 60.0;
-        final double sectionSpacing = isCompact ? 10.0 : 16.0;
-        final double bottomMargin = isCompact ? 18.0 : 60.0;
-        final double bottomPillSpacing = isCompact ? 20.0 : 36.0;
+        final double topMargin = isCompact ? 14.0 : 36.0;
+        final double bottomMargin = isCompact ? 18.0 : 44.0;
+        final double bottomPillSpacing = isCompact ? 20.0 : 32.0;
 
         final Widget upperContent = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -156,15 +155,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildHeaderRow(context, state, isDark, isCompact),
             SizedBox(height: topMargin),
 
-            // 2. Centered Top Section: 3D Grey Printer Image + Ink Levels & Buttons - NO card container
-            _buildTopPrinterSection(context, state, isDark, printerStatus, isCompact),
-            SizedBox(height: sectionSpacing),
-
-            // 3. Centered Status Section: Printer Name + Status-Reactive Graphic & Badge
-            _buildPrinterNameAndStatusSection(context, state, isDark, printerStatus, isCompact),
+            // 2. Top Row with 2 Columns: Bigger 3D Printer Logo (Col 1) + Name, Status, Ink & Buttons (Col 2)
+            _buildTopTwoColumnHero(context, state, isDark, printerStatus, isCompact),
             SizedBox(height: bottomMargin),
 
-            // 4. Single-Row Carousel of Workflow Cards moved below
+            // 3. Single-Row Carousel of Workflow Cards moved to the bottom
             WorkflowGrid(
               onSelectWorkflow: (WorkflowType workflow) {
                 // AppState.selectWorkflow transitions currentScreen to AppScreen.options
@@ -281,7 +276,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTopPrinterSection(
+  Widget _buildTopTwoColumnHero(
     BuildContext context,
     AppState state,
     bool isDark,
@@ -291,47 +286,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final Widget printerGraphic = Printer3DVisual(
       status: printerStatus,
       isDarkMode: isDark,
-      width: isCompact ? 116.0 : 148.0,
-      height: isCompact ? 82.0 : 104.0,
+      width: isCompact ? 160.0 : 252.0,
+      height: isCompact ? 112.0 : 176.0,
     );
 
-    final Widget inkLevels = _buildInkLevelsRow(isDark);
-
-    final Widget actionButtons = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        _SwitchScannerButton(
-          isDark: isDark,
-          onTap: () {
-            showDialog<void>(
-              context: context,
-              builder: (_) => const ScannerSelectorDialog(),
-            );
-          },
-        ),
-        const SizedBox(width: 8),
-        _ViewPrinterButton(
-          onTap: () {
-            showDialog<void>(
-              context: context,
-              builder: (_) => const HardwareConnectDialog(),
-            );
-          },
-        ),
-      ],
+    final Widget printerInfoColumn = _buildPrinterInfoColumn(
+      context,
+      state,
+      isDark,
+      printerStatus,
+      isCompact,
     );
 
     if (isCompact) {
       return Center(
         child: Wrap(
-          spacing: 16,
-          runSpacing: 12,
+          spacing: 20,
+          runSpacing: 14,
           crossAxisAlignment: WrapCrossAlignment.center,
           alignment: WrapAlignment.center,
           children: <Widget>[
             printerGraphic,
-            inkLevels,
-            actionButtons,
+            printerInfoColumn,
           ],
         ),
       );
@@ -343,12 +319,103 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           printerGraphic,
-          const SizedBox(width: 32),
-          inkLevels,
-          const SizedBox(width: 24),
-          actionButtons,
+          const SizedBox(width: 40),
+          printerInfoColumn,
         ],
       ),
+    );
+  }
+
+  Widget _buildPrinterInfoColumn(
+    BuildContext context,
+    AppState state,
+    bool isDark,
+    PrinterDeviceStatus printerStatus,
+    bool isCompact,
+  ) {
+    return Column(
+      crossAxisAlignment: isCompact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        // Printer Model Name
+        Text(
+          state.scannerModel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: isCompact ? TextAlign.center : TextAlign.start,
+          style: TextStyle(
+            fontSize: isCompact ? 18 : 22,
+            fontWeight: FontWeight.w800,
+            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+            letterSpacing: -0.4,
+          ),
+        ),
+        const SizedBox(height: 5),
+
+        // Status Badge, Connection Label & Workflows Tag
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          alignment: isCompact ? WrapAlignment.center : WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: <Widget>[
+            _buildStatusGraphic(printerStatus, isDark),
+            Text(
+              state.scannerConnectionLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySixHundred,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
+                borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
+              ),
+              child: Text(
+                'All Workflows (${state.availableWorkflows.length})',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // Ink Channels
+        _buildInkLevelsRow(isDark),
+        const SizedBox(height: 14),
+
+        // Action Buttons ("Switch Scanner" & "View Printer")
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _SwitchScannerButton(
+              isDark: isDark,
+              onTap: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => const ScannerSelectorDialog(),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            _ViewPrinterButton(
+              onTap: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => const HardwareConnectDialog(),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -415,83 +482,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildPrinterNameAndStatusSection(
-    BuildContext context,
-    AppState state,
-    bool isDark,
-    PrinterDeviceStatus printerStatus,
-    bool isCompact,
-  ) {
-    final Widget printerIdentity = Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Text(
-          state.scannerModel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isCompact ? 17 : 20,
-            fontWeight: FontWeight.w800,
-            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          state.scannerConnectionLabel,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isDark ? DesignTokens.neutralGrayFourHundred : DesignTokens.neutralGraySixHundred,
-          ),
-        ),
-      ],
-    );
-
-    final Widget statusBadgeAndWorkflows = Wrap(
-      spacing: 10,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: <Widget>[
-        _buildStatusGraphic(printerStatus, isDark),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 7,
-          ),
-          decoration: BoxDecoration(
-            color: isDark ? DesignTokens.pureWhite : DesignTokens.onyx,
-            borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
-          ),
-          child: Text(
-            'All Workflows (${state.availableWorkflows.length})',
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: isDark ? DesignTokens.onyx : DesignTokens.pureWhite,
-            ),
-          ),
-        ),
-      ],
-    );
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          printerIdentity,
-          const SizedBox(height: 10),
-          statusBadgeAndWorkflows,
-        ],
-      ),
     );
   }
 
